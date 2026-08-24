@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
   
+  <!-- Social Media & Link Preview Metadata -->
+  <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
+  <meta property="og:description" content="Handcrafted Brass, Pure Copper, and Authentic Kansa Bronze Metalware from Moradabad.">
+  <meta property="og:image" content="https://lh3.googleusercontent.com/aida-public/AB6AXuDV6FCmoL0oOdh9Sn5Gpjo0vf7YRF--t9gCyW8UZ82AWFF63l4KS2iMPUd-8B8z5BSDikONBwOsf1XRn3rxGaF_KZGGFh0XS_78k7GCNdremtL6w7WF9VzdCKLVNaMINdRwDo0ZrpV_QOsshBwwuihFKc-ovKKglDakuGCpiIYQAIDb3936fP9Pau__NIPPEXpO1jXOAFN-w7baIyzQ8GDO25BiM_7IGgy_T2QXZQO3vv3k_LLm_Y8g">
+  <meta property="og:url" content="https://arnavrastogi68-coder.github.io/Delight-Catalog/">
+  <meta property="og:type" content="website">
+
   <!-- Fonts & Material Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,6 +43,18 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Admin Security Rules */
+    .admin-only {
+      display: none !important;
+    }
+    body.is-admin .admin-only {
+      display: inline-flex !important;
+    }
+    body.is-admin div.admin-only {
+      display: flex !important;
+    }
+
     body {
       background: var(--cream);
       color: var(--ink);
@@ -834,92 +853,6 @@
       text-align: center;
     }
     footer strong { color: var(--maroon); }
-/* Clean, Non-Splitting PDF Export Styling */
-    .pdf-export-mode {
-      background: #ffffff !important;
-      color: #111111 !important;
-      padding: 0 !important;
-      width: 100% !important;
-      max-width: 100% !important;
-    }
-    .pdf-export-mode .section-status-bar {
-      display: none !important;
-    }
-    .pdf-export-mode .products-grid {
-      display: block !important;
-    }
-    .pdf-export-mode .product-box {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-      display: flex !important;
-      flex-direction: row !important;
-      align-items: center !important;
-      border: 1px solid #d0c8b8 !important;
-      box-shadow: none !important;
-      margin-bottom: 14px !important;
-      padding: 10px !important;
-      background: #ffffff !important;
-      height: 110px !important;
-      overflow: hidden !important;
-    }
-    .pdf-export-mode .product-thumb {
-      width: 90px !important;
-      height: 90px !important;
-      aspect-ratio: 1/1 !important;
-      flex-shrink: 0 !important;
-      border-radius: 6px !important;
-      overflow: hidden !important;
-      background: #f7f4ed !important;
-    }
-    .pdf-export-mode .product-thumb img {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: cover !important;
-    }
-    .pdf-export-mode .product-details {
-      padding: 0 0 0 16px !important;
-      flex: 1 !important;
-      display: flex !important;
-      flex-direction: column !important;
-      justify-content: center !important;
-      gap: 4px !important;
-    }
-    .pdf-export-mode .product-name {
-      font-size: 15px !important;
-      color: #1f1e1a !important;
-    }
-    .pdf-export-mode .product-spec-line {
-      font-size: 11.5px !important;
-      color: #555555 !important;
-    }
-    .pdf-export-mode .product-action-row {
-      margin-top: 4px !important;
-      padding-top: 0 !important;
-      border-top: none !important;
-    }
-    .pdf-export-mode .price-tag {
-      font-size: 14px !important;
-      font-weight: bold !important;
-      color: #541419 !important;
-    }
-    .pdf-export-mode .btn-add-order,
-    .pdf-export-mode .size-counter-pill,
-    .pdf-export-mode .multi-photo-pill,
-    .pdf-export-mode .badge-metal-type,
-    .pdf-export-mode .bulk-qty-action {
-      display: none !important;
-    }
-    .pdf-header-banner {
-      display: none;
-      border-bottom: 2px solid #541419;
-      padding-bottom: 8px;
-      margin-bottom: 16px;
-    }
-    .pdf-export-mode .pdf-header-banner {
-      display: flex !important;
-      justify-content: space-between;
-      align-items: center;
-    }
 
     @media (max-width: 768px) {
       body { padding-bottom: calc(65px + var(--safe-bottom)); }
@@ -958,9 +891,9 @@
     </div>
     <div class="header-actions">
       <button class="btn-outline" id="shareCatalogBtn" title="Copy Catalog Link">🔗 Share</button>
-      <button class="btn-outline" id="openSettingsBtn" title="Edit Brand Details">⚙️ Edit Brand</button>
+      <button class="btn-outline admin-only" id="openSettingsBtn" title="Edit Brand Details">⚙️ Edit Brand</button>
       <button class="btn-outline" id="downloadPdfBtn" title="Export as PDF">📄 Export PDF</button>
-      <button class="btn-save" id="saveOfflineHtmlBtn" title="Save standalone Webpage">💾 Save Offline</button>
+      <button class="btn-save admin-only" id="saveOfflineHtmlBtn" title="Save standalone Webpage">💾 Save Offline</button>
       <button class="cart-trigger-btn" id="openCartBtn">
         <span class="material-symbols-outlined" style="font-size: 18px;">shopping_cart</span>
         <span class="cart-count-badge" id="cartBadge">0</span>
@@ -1018,8 +951,10 @@
       <option value="price-asc">Sort: Price (Low to High)</option>
       <option value="price-desc">Sort: Price (High to Low)</option>
     </select>
-    <button class="btn-outline" id="openManageCatsBtn" style="border-color:var(--gold); color:var(--gold-dark);">🏷️ Manage Categories</button>
-    <button class="btn-maroon" id="openAddModalBtn">+ Add New Item</button>
+    <div class="admin-only" style="gap: 8px;">
+      <button class="btn-outline" id="openManageCatsBtn" style="border-color:var(--gold); color:var(--gold-dark);">🏷️ Manage Categories</button>
+      <button class="btn-maroon" id="openAddModalBtn">+ Add New Item</button>
+    </div>
     <label class="bulk-mode-toggle" title="Switch to compact list">
       <input id="bulkModeToggle" type="checkbox">
       Bulk Order Mode
@@ -1094,6 +1029,13 @@
         <button class="btn-outline" id="galleryNextBtn" onclick="navigateModalGallery(1)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); display:none; background:rgba(255,255,255,0.85); padding:6px 10px;">❯</button>
       </div>
       <div id="viewItemCategory" style="font-size:11px; font-weight:700; color:var(--gold-dark); text-transform:uppercase; letter-spacing:1px;"></div>
+      
+      <!-- Interactive Dropdown in View Modal if Variants Exist -->
+      <div id="viewVariantsContainer" style="display:none; margin: 4px 0;">
+        <label style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--ink-muted);">Select Size Option:</label>
+        <select id="viewVariantSelect" style="width:100%; padding: 8px 10px; border: 1px solid var(--border-line); border-radius: 5px; font-size: 13px; font-family: inherit; margin-top: 4px;" onchange="updateViewModalVariantWeight(this)"></select>
+      </div>
+
       <table class="spec-table">
         <tbody>
           <tr><th>Wholesale Price</th><td id="viewItemPrice" style="font-weight:700; color:var(--maroon);">—</td></tr>
@@ -1105,7 +1047,7 @@
     </div>
     <div class="modal-foot">
       <button class="btn-gold" id="modalAddToCartBtn">+ Add to Order List</button>
-      <div style="display:flex; gap:6px;">
+      <div class="admin-only" style="gap:6px;">
         <button class="btn-outline" id="modalEditBtn">Edit</button>
         <button class="btn-outline" id="modalDeleteBtn" style="color:var(--danger);">Delete</button>
       </div>
@@ -1113,7 +1055,7 @@
   </div>
 </div>
 
-<!-- Edit / Add Product Modal -->
+<!-- Edit / Add Product Modal with (+) Add Size & Weight Option -->
 <div class="modal-overlay" id="editModalOverlay">
   <div class="modal-card">
     <div class="modal-head">
@@ -1140,19 +1082,28 @@
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group" style="flex:1 1 100%;">
           <label>Wholesale Price (₹)</label>
           <input id="formPrice" placeholder="e.g. 480" type="text">
         </div>
-        <div class="form-group">
-          <label>Available Sizes</label>
-          <input id="formSize" placeholder="e.g. 18 sizes (No. 00 to 16)" type="text">
+      </div>
+
+      <!-- SIZES & RESPECTIVE WEIGHTS WITH (+) BUTTON -->
+      <div style="margin-top: 4px; background: rgba(0,0,0,0.02); border: 1px dashed var(--border-line); border-radius: 6px; padding: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--ink-muted); margin: 0;">
+            Available Sizes & Respective Weights (Optional)
+          </label>
+          <button type="button" id="addNewSizeWeightBtn" style="background: var(--maroon); color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            <span>+</span> Add Size & Weight
+          </button>
         </div>
-        <div class="form-group">
-          <label>Weight / Gauge</label>
-          <input id="formWeight" placeholder="e.g. 120 gm to 1500 gm" type="text">
+        
+        <div id="sizeWeightRowsContainer" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Dynamic rows inserted here -->
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group" style="flex:1 1 100%;">
           <label>Upload Photo or Image Link</label>
@@ -1304,15 +1255,15 @@ var COMPANY_INFO = {
 };
 
 var INITIAL_PRODUCTS = [
-  {"id":"dmw_001","catalog":"Akhand Deep & Diya","category":"Pure Brass","name":"Gol Jyoti / Akhand Deep","price":"240","size":"18 Sizes (No. 00 to 16)","weight":"120 gm to 1500 gm","images":[],"notes":"Borosilicate glass, heavy turned brass base, long burning ritual lamp."},
-  {"id":"dmw_002","catalog":"Akhand Deep & Diya","category":"Pure Brass","name":"Udappi / Matki Lamp","price":"380","size":"5 Sizes (No. 1 to 5)","weight":"250 gm to 800 gm","images":[],"notes":"Decorative brass pierced om pattern with brass top dome."},
-  {"id":"dmw_003","catalog":"Aarti & Panchaarti","category":"Pure Brass","name":"Om Goblet / Panchaarti Wood Handle","price":"450","size":"6 Sizes (No. 1 to 6)","weight":"350 gm to 900 gm","images":[],"notes":"5-batti sacred puja aarti with solid heat-resistant carved wooden handle."},
-  {"id":"dmw_004","catalog":"Thali & Dinner Sets","category":"Pure Brass","name":"Dana Thali Set (6 Pcs)","price":"1450","size":"5, 6, 7 Pcs (12\" to 14\")","weight":"1450 gm","images":[],"notes":"Authentic Dana bead border. Includes Thali, Katoris, Tumbler, and Spoon."},
-  {"id":"dmw_005","catalog":"Thali & Dinner Sets","category":"Kansa Bronze","name":"Matte Kansa Heritage Dinner Set","price":"3400","size":"6 Pcs Master Set","weight":"Authentic Bell Metal / Bronze","images":[],"notes":"Traditional ayurvedic dining set in fine satin matte golden finish."},
-  {"id":"dmw_006","catalog":"Thali & Dinner Sets","category":"Two-Tone Steel","name":"Flower Two Tone Thali Set","price":"1650","size":"6 Pcs Set","weight":"Stainless Steel & Gold Relief","images":[],"notes":"Mirror-finish stainless steel platter with laser-etched golden flower centerpiece."},
-  {"id":"dmw_007","catalog":"Sacred Pots & Kalash","category":"Pure Brass","name":"Embossed Brass Karwa (Polished & Color)","price":"480","size":"No. 8 to 24","weight":"600g to 2kg Brass","images":[],"notes":"Classic spouted Karwa Chauth vessel with intricate traditional hand tooling."},
-  {"id":"dmw_008","catalog":"Sacred Pots & Kalash","category":"Pure Copper","name":"Copper Kalash & Tara Lutia","price":"380","size":"No. 1 through 14","weight":"Pure Copper","images":[],"notes":"High gloss radiant pure copper sacred water vessel for daily and temple rituals."},
-  {"id":"dmw_009","catalog":"Cookware & Kitchen","category":"Pure Brass","name":"Brass Hammered Kadai with Kalai","price":"1400","size":"1.5L to 5L Capacity","weight":"Heavy Gauge Brass","images":[],"notes":"Hand-hammered brass kadai tin-lined (Kalai) for safe cooking & even heat distribution."}
+  {"id":"dmw_001","catalog":"Akhand Deep & Diya","category":"Pure Brass","name":"Gol Jyoti / Akhand Deep","price":"240","size":"18 Sizes (No. 00 to 16)","weight":"120 gm to 1500 gm","variants":[{"size":"No. 00","weight":"120 gm"},{"size":"No. 02","weight":"210 gm"},{"size":"No. 04","weight":"350 gm"},{"size":"No. 06","weight":"520 gm"},{"size":"No. 16","weight":"1500 gm"}],"images":[],"notes":"Borosilicate glass, heavy turned brass base, long burning ritual lamp."},
+  {"id":"dmw_002","catalog":"Akhand Deep & Diya","category":"Pure Brass","name":"Udappi / Matki Lamp","price":"380","size":"5 Sizes (No. 1 to 5)","weight":"250 gm to 800 gm","variants":[{"size":"No. 1","weight":"250 gm"},{"size":"No. 3","weight":"500 gm"},{"size":"No. 5","weight":"800 gm"}],"images":[],"notes":"Decorative brass pierced om pattern with brass top dome."},
+  {"id":"dmw_003","catalog":"Aarti & Panchaarti","category":"Pure Brass","name":"Om Goblet / Panchaarti Wood Handle","price":"450","size":"6 Sizes (No. 1 to 6)","weight":"350 gm to 900 gm","variants":[],"images":[],"notes":"5-batti sacred puja aarti with solid heat-resistant carved wooden handle."},
+  {"id":"dmw_004","catalog":"Thali & Dinner Sets","category":"Pure Brass","name":"Dana Thali Set (6 Pcs)","price":"1450","size":"5, 6, 7 Pcs (12\" to 14\")","weight":"1450 gm","variants":[],"images":[],"notes":"Authentic Dana bead border. Includes Thali, Katoris, Tumbler, and Spoon."},
+  {"id":"dmw_005","catalog":"Thali & Dinner Sets","category":"Kansa Bronze","name":"Matte Kansa Heritage Dinner Set","price":"3400","size":"6 Pcs Master Set","weight":"Authentic Bell Metal / Bronze","variants":[],"images":[],"notes":"Traditional ayurvedic dining set in fine satin matte golden finish."},
+  {"id":"dmw_006","catalog":"Thali & Dinner Sets","category":"Two-Tone Steel","name":"Flower Two Tone Thali Set","price":"1650","size":"6 Pcs Set","weight":"Stainless Steel & Gold Relief","variants":[],"images":[],"notes":"Mirror-finish stainless steel platter with laser-etched golden flower centerpiece."},
+  {"id":"dmw_007","catalog":"Sacred Pots & Kalash","category":"Pure Brass","name":"Embossed Brass Karwa (Polished & Color)","price":"480","size":"No. 8 to 24","weight":"600g to 2kg Brass","variants":[],"images":[],"notes":"Classic spouted Karwa Chauth vessel with intricate traditional hand tooling."},
+  {"id":"dmw_008","catalog":"Sacred Pots & Kalash","category":"Pure Copper","name":"Copper Kalash & Tara Lutia","price":"380","size":"No. 1 through 14","weight":"Pure Copper","variants":[],"images":[],"notes":"High gloss radiant pure copper sacred water vessel for daily and temple rituals."},
+  {"id":"dmw_009","catalog":"Cookware & Kitchen","category":"Pure Brass","name":"Brass Hammered Kadai with Kalai","price":"1400","size":"1.5L to 5L Capacity","weight":"Heavy Gauge Brass","variants":[],"images":[],"notes":"Hand-hammered brass kadai tin-lined (Kalai) for safe cooking & even heat distribution."}
 ];
 
 const DEFAULT_MAIN_CATS = ["Akhand Deep & Diya", "Aarti & Panchaarti", "Thali & Dinner Sets", "Sacred Pots & Kalash", "Platters & Thals", "Cookware & Kitchen"];
@@ -1388,6 +1339,39 @@ function getProductImages(p) {
   return [];
 }
 
+/* Dynamic Multi-Variant Row Functions for Add/Edit Modal */
+function addSizeWeightPair(sizeVal = '', weightVal = '') {
+  const container = document.getElementById('sizeWeightRowsContainer');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'size-weight-pair-row';
+  row.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center;';
+  
+  row.innerHTML = `
+    <input type="text" class="variant-size-input" placeholder="Size (e.g. No. 04 / 500ml)" value="${escapeStr(sizeVal)}" style="width:100%; padding:7px 10px; border:1px solid var(--border-line); border-radius:5px; font-size:12.5px; font-family:inherit;">
+    <input type="text" class="variant-weight-input" placeholder="Weight (e.g. 250 gm)" value="${escapeStr(weightVal)}" style="width:100%; padding:7px 10px; border:1px solid var(--border-line); border-radius:5px; font-size:12.5px; font-family:inherit;">
+    <button type="button" onclick="this.parentElement.remove()" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:5px; padding:6px 10px; cursor:pointer; font-weight:bold;" title="Remove size">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function collectSizeWeightVariants() {
+  const rows = document.querySelectorAll('#sizeWeightRowsContainer .size-weight-pair-row');
+  const list = [];
+  rows.forEach(r => {
+    const s = r.querySelector('.variant-size-input').value.trim();
+    const w = r.querySelector('.variant-weight-input').value.trim();
+    if (s || w) list.push({ size: s, weight: w });
+  });
+  return list;
+}
+
+/* View Modal Variant Weight Updater */
+window.updateViewModalVariantWeight = function(selectElem) {
+  const weightCell = document.getElementById('viewItemWeight');
+  if (weightCell) weightCell.textContent = selectElem.value || '—';
+};
+
 /* Catalog Rendering */
 function renderCatalog() {
   updateCompanyHeader();
@@ -1418,16 +1402,21 @@ function renderCatalog() {
     const primaryImg = imgs[0] || fallbackImg;
     const multiPhotoBadge = imgs.length > 1 ? `<div class="multi-photo-pill">📷 ${imgs.length}</div>` : '';
 
+    const hasVariants = p.variants && p.variants.length > 0;
+    const displaySize = hasVariants ? `${p.variants.length} Sizes (${p.variants[0].size})` : (p.size || 'Standard Size');
+    const displayWeight = hasVariants ? p.variants[0].weight : (p.weight || 'Pure Metal');
+    const sizeBadgeCount = hasVariants ? `${p.variants.length} Sizes` : (p.size ? p.size.split(' ')[0] : 'Std');
+
     box.innerHTML = `
       <div class="product-thumb">
         <img src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" loading="lazy" onerror="this.src='${fallbackImg}';">
         <div class="badge-metal-type">${escapeStr(p.category || 'Pure Brass')}</div>
         ${multiPhotoBadge}
-        <div class="size-counter-pill">${escapeStr(p.size ? p.size.split(' ')[0] : 'Std')}</div>
+        <div class="size-counter-pill">${escapeStr(sizeBadgeCount)}</div>
       </div>
       <div class="product-details">
         <div class="product-name">${escapeStr(p.name)}</div>
-        <div class="product-spec-line">${escapeStr(p.size || 'Standard Size')} · ${escapeStr(p.weight || 'Pure Metal')}</div>
+        <div class="product-spec-line">${escapeStr(displaySize)} · ${escapeStr(displayWeight)}</div>
         <div class="product-action-row">
           <div class="price-tag">₹ ${escapeStr(p.price || '—')}</div>
           <button class="btn-add-order" onclick="addToCart('${p.id}'); event.stopPropagation();">+ Add</button>
@@ -1444,7 +1433,8 @@ function getFilteredProducts() {
     if (currentFilter.metal && !((p.category || '').toLowerCase().includes(currentFilter.metal.toLowerCase()))) return false;
     if (currentFilter.search) {
       const q = currentFilter.search.toLowerCase();
-      const str = `${p.name} ${p.catalog} ${p.category} ${p.size || ''} ${p.weight || ''} ${p.notes || ''}`.toLowerCase();
+      const variantStr = (p.variants || []).map(v => `${v.size} ${v.weight}`).join(' ');
+      const str = `${p.name} ${p.catalog} ${p.category} ${p.size || ''} ${p.weight || ''} ${variantStr} ${p.notes || ''}`.toLowerCase();
       if (!str.includes(q)) return false;
     }
     return true;
@@ -1609,10 +1599,22 @@ function openViewModal(id) {
   document.getElementById('viewItemName').textContent = p.name;
   document.getElementById('viewItemCategory').textContent = `${p.catalog} · ${p.category || 'Pure Metal'}`;
   document.getElementById('viewItemPrice').textContent = p.price ? '₹ ' + p.price : 'On Request';
-  document.getElementById('viewItemSize').textContent = p.size || 'Standard Sizes';
-  document.getElementById('viewItemWeight').textContent = p.weight || 'Standard Gauge';
   document.getElementById('viewItemNotes').textContent = p.notes || 'Master Moradabad craftsmanship.';
   
+  // Check if product has dynamic variants
+  const varBox = document.getElementById('viewVariantsContainer');
+  const varSelect = document.getElementById('viewVariantSelect');
+  if (p.variants && p.variants.length > 0) {
+    varBox.style.display = 'block';
+    varSelect.innerHTML = p.variants.map(v => `<option value="${escapeStr(v.weight)}">${escapeStr(v.size)}</option>`).join('');
+    document.getElementById('viewItemSize').textContent = `${p.variants.length} Sizes Available`;
+    document.getElementById('viewItemWeight').textContent = p.variants[0].weight;
+  } else {
+    varBox.style.display = 'none';
+    document.getElementById('viewItemSize').textContent = p.size || 'Standard Sizes';
+    document.getElementById('viewItemWeight').textContent = p.weight || 'Standard Gauge';
+  }
+
   updateModalGallery();
   document.getElementById('viewModalOverlay').classList.add('show');
 }
@@ -1637,16 +1639,25 @@ function openEditModal(id) {
   const isNew = !id;
   document.getElementById('editModalTitle').textContent = isNew ? 'Add New Product' : 'Edit Product Details';
   
-  const p = isNew ? { name: '', catalog: 'Akhand Deep & Diya', category: 'Pure Brass', price: '', size: '', weight: '', images: [], notes: '' } : products.find(x => x.id === id);
+  const p = isNew ? { name: '', catalog: 'Akhand Deep & Diya', category: 'Pure Brass', price: '', size: '', weight: '', variants: [], images: [], notes: '' } : products.find(x => x.id === id);
 
   document.getElementById('formName').value = p.name || '';
   document.getElementById('formCatalog').value = p.catalog || '';
   document.getElementById('formCategory').value = p.category || '';
   document.getElementById('formPrice').value = p.price || '';
-  document.getElementById('formSize').value = p.size || '';
-  document.getElementById('formWeight').value = p.weight || '';
   document.getElementById('formNotes').value = p.notes || '';
   document.getElementById('formImgUrl').value = '';
+
+  // Setup Dynamic Variants (+ Option)
+  const vContainer = document.getElementById('sizeWeightRowsContainer');
+  vContainer.innerHTML = '';
+  if (p.variants && p.variants.length > 0) {
+    p.variants.forEach(v => addSizeWeightPair(v.size, v.weight));
+  } else if (p.size || p.weight) {
+    addSizeWeightPair(p.size || '', p.weight || '');
+  } else {
+    addSizeWeightPair();
+  }
 
   currentFormImages = [...getProductImages(p)];
   renderFormPhotoChips();
@@ -1734,6 +1745,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('openCartBtn').onclick = () => document.getElementById('orderDrawerOverlay').classList.add('show');
   document.getElementById('closeDrawerBtn').onclick = () => document.getElementById('orderDrawerOverlay').classList.remove('show');
   document.getElementById('openAddModalBtn').onclick = () => openEditModal(null);
+  document.getElementById('addNewSizeWeightBtn').onclick = () => addSizeWeightPair();
   
   document.getElementById('openSettingsBtn').onclick = () => {
     document.getElementById('setCompanyName').value = company.name || '';
@@ -1807,14 +1819,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = document.getElementById('formName').value.trim();
     if (!name) { alert('Please enter product name'); return; }
 
+    const collectedVariants = collectSizeWeightVariants();
+    let sizeStr = '';
+    let weightStr = '';
+    if (collectedVariants.length > 0) {
+      sizeStr = collectedVariants.map(v => v.size).filter(Boolean).join(', ');
+      weightStr = collectedVariants.map(v => v.weight).filter(Boolean).join(', ');
+    }
+
     const itemData = {
       id: activeEditId || 'dmw_' + Date.now(),
       name: name,
       catalog: document.getElementById('formCatalog').value.trim() || 'Akhand Deep & Diya',
       category: document.getElementById('formCategory').value.trim() || 'Pure Brass',
       price: document.getElementById('formPrice').value.trim(),
-      size: document.getElementById('formSize').value.trim(),
-      weight: document.getElementById('formWeight').value.trim(),
+      size: sizeStr,
+      weight: weightStr,
+      variants: collectedVariants,
       images: currentFormImages,
       notes: document.getElementById('formNotes').value.trim()
     };
@@ -1845,7 +1866,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Brand details updated');
   };
 
-// Luxury Wholesale Catalog PDF Generator (No Blank Pages)
+  // Luxury Wholesale Catalog PDF Generator
   document.getElementById('downloadPdfBtn').onclick = () => {
     showToast('Generating Clean Multi-Page Catalog...');
 
@@ -2065,14 +2086,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // Share Catalog Link
-  document.getElementById('shareCatalogBtn').onclick = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href).then(() => {
-        showToast('Catalog link copied to clipboard!');
+  // Share Catalog Link (Rich Branded Output)
+  document.getElementById('shareCatalogBtn').onclick = async () => {
+    const shareTitle = `${company.name} — Moradabad Wholesale Catalog`;
+    const shareMessage = `Explore our handcrafted Pure Brass, Copper & Kansa metalware collection:`;
+    const shareUrl = window.location.href;
+    const formattedShare = `🌟 *${shareTitle}*\n${shareMessage}\n👉 ${shareUrl}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareMessage,
+          url: shareUrl
+        });
+        showToast('Shared successfully!');
+      } catch (err) {}
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(formattedShare).then(() => {
+        showToast('Catalog link & title copied!');
       }).catch(() => {
         showToast('Failed to copy link');
       });
+    } else {
+      prompt('Copy catalog link:', shareUrl);
     }
   };
 
@@ -2086,6 +2123,21 @@ document.addEventListener('DOMContentLoaded', () => {
     a.click();
     showToast('Offline HTML file downloaded!');
   };
+
+  // Admin Mode Key Listener: Ctrl + Shift + A (PIN 1970)
+  window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+      e.preventDefault();
+      const pin = prompt('Enter Admin Security PIN:');
+      if (pin === '1970') {
+        document.body.classList.toggle('is-admin');
+        const status = document.body.classList.contains('is-admin') ? 'Admin Mode Activated' : 'Visitor Mode Activated';
+        showToast(status);
+      } else if (pin !== null) {
+        alert('Incorrect PIN');
+      }
+    }
+  });
 });
 </script>
 </body>
