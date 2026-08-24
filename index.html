@@ -623,7 +623,7 @@
     }
     .drawer-item-info strong { font-family: 'Playfair Display', serif; font-size: 14px; display: block; }
     .drawer-item-info span { font-size: 11px; color: var(--ink-muted); }
-    .qty-counter-box { display: flex; align-items: center; background: #fff; border: 1px solid var(--border-line); border-radius: 4px; overflow: hidden; }
+    .qty-counter-box { display: flex align-items: center; background: #fff; border: 1px solid var(--border-line); border-radius: 4px; overflow: hidden; }
     .qty-counter-box button { background: none; border: none; padding: 3px 8px; font-size: 13px; font-weight: 700; color: var(--maroon); cursor: pointer; }
     .qty-counter-box input { width: 35px; border: none; text-align: center; font-weight: 700; font-size: 12px; outline: none; }
     .drawer-foot {
@@ -1366,6 +1366,15 @@ function collectSizeWeightVariants() {
   return list;
 }
 
+/* Dynamic Dropdown Weight Updater for Cards */
+window.updateCardVariantWeight = function(selectElem) {
+  const cardDetails = selectElem.closest('.product-details');
+  const weightSpan = cardDetails.querySelector('.card-variant-weight-text span');
+  if (weightSpan) {
+    weightSpan.textContent = selectElem.value || 'Standard';
+  }
+};
+
 /* View Modal Variant Weight Updater */
 window.updateViewModalVariantWeight = function(selectElem) {
   const weightCell = document.getElementById('viewItemWeight');
@@ -1394,7 +1403,7 @@ function renderCatalog() {
     const box = document.createElement('div');
     box.className = 'product-box reveal-on-scroll visible';
     box.onclick = (e) => {
-      if (!e.target.closest('.btn-add-order')) openViewModal(p.id);
+      if (!e.target.closest('.btn-add-order') && !e.target.closest('select')) openViewModal(p.id);
     };
 
     const imgs = getProductImages(p);
@@ -1403,9 +1412,26 @@ function renderCatalog() {
     const multiPhotoBadge = imgs.length > 1 ? `<div class="multi-photo-pill">📷 ${imgs.length}</div>` : '';
 
     const hasVariants = p.variants && p.variants.length > 0;
-    const displaySize = hasVariants ? `${p.variants.length} Sizes (${p.variants[0].size})` : (p.size || 'Standard Size');
-    const displayWeight = hasVariants ? p.variants[0].weight : (p.weight || 'Pure Metal');
     const sizeBadgeCount = hasVariants ? `${p.variants.length} Sizes` : (p.size ? p.size.split(' ')[0] : 'Std');
+
+    // Dynamic Size/Weight Dropdown Layout
+    let sizeWeightDisplayHtml = '';
+    if (hasVariants) {
+      sizeWeightDisplayHtml = `
+        <div style="margin: 4px 0;" onclick="event.stopPropagation();">
+          <select class="custom-select" style="width: 100%; padding: 4px 8px; font-size: 11.5px; border-color: var(--border-line);" onchange="updateCardVariantWeight(this)">
+            ${p.variants.map(v => `<option value="${escapeStr(v.weight)}">${escapeStr(v.size)}</option>`).join('')}
+          </select>
+          <div class="product-spec-line card-variant-weight-text" style="margin-top: 3px; font-weight: 600; color: var(--gold-dark);">
+            Weight: <span>${escapeStr(p.variants[0].weight || 'Standard')}</span>
+          </div>
+        </div>
+      `;
+    } else {
+      sizeWeightDisplayHtml = `
+        <div class="product-spec-line">${escapeStr(p.size || 'Standard Size')} · ${escapeStr(p.weight || 'Pure Metal')}</div>
+      `;
+    }
 
     box.innerHTML = `
       <div class="product-thumb">
@@ -1416,7 +1442,7 @@ function renderCatalog() {
       </div>
       <div class="product-details">
         <div class="product-name">${escapeStr(p.name)}</div>
-        <div class="product-spec-line">${escapeStr(displaySize)} · ${escapeStr(displayWeight)}</div>
+        ${sizeWeightDisplayHtml}
         <div class="product-action-row">
           <div class="price-tag">₹ ${escapeStr(p.price || '—')}</div>
           <button class="btn-add-order" onclick="addToCart('${p.id}'); event.stopPropagation();">+ Add</button>
