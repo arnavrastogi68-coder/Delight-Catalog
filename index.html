@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
@@ -486,17 +485,55 @@
     }
     .product-thumb {
       aspect-ratio: 1 / 1;
-      background: #f7f4ed;
+      background: #faf8f5;
       position: relative;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
     }
     .product-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
       transition: transform 0.3s ease;
+      display: block;
+      margin: auto;
     }
     .product-box:hover .product-thumb img { transform: scale(1.04); }
+
+    /* Card Photo Navigation Arrows */
+    .card-photo-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.88);
+      color: var(--maroon);
+      border: 1px solid var(--border-line);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+      padding: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      transition: background 0.2s, color 0.2s;
+    }
+    .card-photo-arrow:hover {
+      background: var(--maroon);
+      color: #fff;
+    }
+    .card-photo-arrow.prev { left: 6px; }
+    .card-photo-arrow.next { right: 6px; }
+
     .badge-metal-type {
       position: absolute;
       top: 8px;
@@ -511,6 +548,7 @@
       padding: 2px 7px;
       border-radius: 4px;
       text-transform: uppercase;
+      z-index: 2;
     }
     .multi-photo-pill {
       position: absolute;
@@ -522,6 +560,7 @@
       font-weight: 700;
       padding: 2px 6px;
       border-radius: 10px;
+      z-index: 2;
     }
     .size-counter-pill {
       position: absolute;
@@ -534,6 +573,7 @@
       font-weight: 700;
       padding: 1px 7px;
       border-radius: 10px;
+      z-index: 2;
     }
     .product-details {
       padding: 14px;
@@ -573,8 +613,8 @@
     /* Bulk Mode View */
     .products-grid.bulk-view { display: flex; flex-direction: column; gap: 8px; }
     .bulk-view .product-box { flex-direction: row; align-items: center; padding: 8px 12px; gap: 12px; }
-    .bulk-view .product-thumb { width: 50px; height: 50px; flex-shrink: 0; border-radius: 6px; }
-    .bulk-view .badge-metal-type, .bulk-view .size-counter-pill, .bulk-view .multi-photo-pill, .bulk-view .product-spec-line { display: none; }
+    .bulk-view .product-thumb { width: 50px; height: 50px; flex-shrink: 0; border-radius: 6px; padding: 2px; }
+    .bulk-view .badge-metal-type, .bulk-view .size-counter-pill, .bulk-view .multi-photo-pill, .bulk-view .product-spec-line, .bulk-view .card-photo-arrow { display: none; }
     .bulk-view .product-details { padding: 0; flex-direction: row; flex: 1; align-items: center; justify-content: space-between; gap: 12px; }
     .bulk-view .product-name { font-size: 14px; flex: 1; }
     .bulk-view .product-action-row { margin: 0; padding: 0; border: none; gap: 14px; width: auto; }
@@ -623,7 +663,7 @@
     }
     .drawer-item-info strong { font-family: 'Playfair Display', serif; font-size: 14px; display: block; }
     .drawer-item-info span { font-size: 11px; color: var(--ink-muted); }
-    .qty-counter-box { display: flex align-items: center; background: #fff; border: 1px solid var(--border-line); border-radius: 4px; overflow: hidden; }
+    .qty-counter-box { display: flex; align-items: center; background: #fff; border: 1px solid var(--border-line); border-radius: 4px; overflow: hidden; }
     .qty-counter-box button { background: none; border: none; padding: 3px 8px; font-size: 13px; font-weight: 700; color: var(--maroon); cursor: pointer; }
     .qty-counter-box input { width: 35px; border: none; text-align: center; font-weight: 700; font-size: 12px; outline: none; }
     .drawer-foot {
@@ -689,15 +729,16 @@
     .modal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
     .modal-hero-img {
       aspect-ratio: 4 / 3;
-      background: #f7f4ed;
+      background: #faf8f5;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       border-radius: 6px;
       position: relative;
+      padding: 12px;
     }
-    .modal-hero-img img { width: 100%; height: 100%; object-fit: contain; }
+    .modal-hero-img img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
     .spec-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12.5px; }
     .spec-table th, .spec-table td { padding: 7px 10px; border: 1px solid var(--border-line); }
     .spec-table th { background: var(--cream-soft); font-family: 'Cinzel', serif; font-size: 10.5px; text-align: left; }
@@ -1232,13 +1273,28 @@
   </button>
 </nav>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database-compat.js"></script>
+
 <script>
 /* Master Data & State Management */
-const DB_STORAGE_KEY = 'house_of_delight_catalog_master';
 const CART_STORAGE_KEY = 'house_of_delight_cart_master';
-const CATS_STORAGE_KEY = 'house_of_delight_cats_master';
-const METALS_STORAGE_KEY = 'house_of_delight_metals_master';
-const COMPANY_STORAGE_KEY = 'house_of_delight_company_master';
+
+// 🛑 IMPORTANT: PASTE YOUR FIREBASE CONFIG KEYS HERE! 🛑
+const firebaseConfig = {
+  apiKey: "AIzaSyCzErups0XvZZ-UpO9JZmAMeknKJ22KKGk",
+  authDomain: "delight-catalog.firebaseapp.com",
+  databaseURL: https://delight-catalog-default-rtdb.firebaseio.com",
+  projectId: "delight-catalog",
+  storageBucket: "delight-catalog.firebasestorage.app",
+  messagingSenderId: "168844644794",
+  appId: "1:168844644794:web:80f932fb38c7bf08c5cd83"
+};
+
+// Initialize Firebase Cloud Database
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 var COMPANY_INFO = {
   name: "House of Delight",
@@ -1251,39 +1307,63 @@ var COMPANY_INFO = {
   logo: "https://lh3.googleusercontent.com/aida-public/AB6AXuALCWSL0GG0YbQTXLlehjEorBOgLr84RgonsUDFtYoEoRzDH5QJwittLvk2kyGgWRZA2G0-eg9vpM6-LYPzaTq5s_hJDci7EqbYKX8QpskO2QknZr4s6USd7gbl0FQaDcBkcnq4SQywD6M0GQKxnnQIV7rbkX3_91qeOMp0447Mg-d9MUUM612MrLzxtty2Y5StXv8W7s1659sLY5qmrtJNzLFFhqT8FDPwS-DH33mCRNr0tKKLJRq3z9fgB9SpnRCdjQ",
   bannerImg: "https://lh3.googleusercontent.com/aida-public/AB6AXuDV6FCmoL0oOdh9Sn5Gpjo0vf7YRF--t9gCyW8UZ82AWFF63l4KS2iMPUd-8B8z5BSDikONBwOsf1XRn3rxGaF_KZGGFh0XS_78k7GCNdremtL6w7WF9VzdCKLVNaMINdRwDo0ZrpV_QOsshBwwuihFKc-ovKKglDakuGCpiIYQAIDb3936fP9Pau__NIPPEXpO1jXOAFN-w7baIyzQ8GDO25BiM_7IGgy_T2QXZQO3vv3k_LLm_Y8g",
   storyHeading: "Heritage of Moradabad Craftsmanship <br><span style='font-size: 0.7em; font-style: italic; color: var(--gold-dark);'>by Jagdish Saran Rastogi</span>",
-  storyParagraph: "<strong>Delight Metal Works (House of Delight)</strong> is an integrated designing and manufacturing firm started in the year <strong>1970 by Mr. Jagdish Saran Rastogi</strong> in Moradabad—India’s celebrated <em>\"Brass City\"</em>. What began as a family workshop is today a premier manufacturing and trading house spanning Pure Brass, Pure Copper, Authentic Kansa (Bronze), and Stainless Steel, serving an extensive dealer network across India and globally."
+  storyParagraph: "<strong>Delight Metal Works (House of Delight)</strong> is an integrated designing and manufacturing firm started in the year <strong>1970 by Mr. Jagdish Saran Rastogi</strong> in Moradabad—India’s celebrated <em>\"Brass City\"</em>."
 };
 
 var INITIAL_PRODUCTS = [
-  {"id":"dmw_001","catalog":"Akhand Deep & Diya","category":"Pure Brass","name":"Gol Jyoti / Akhand Deep","price":"240","size":"18 Sizes (No. 00 to 16)","weight":"120 gm to 1500 gm","variants":[{"size":"No. 00","weight":"120 gm"},{"size":"No. 02","weight":"210 gm"},{"size":"No. 04","weight":"350 gm"},{"size":"No. 06","weight":"520 gm"},{"size":"No. 16","weight":"1500 gm"}],"images":[],"notes":"Borosilicate glass, heavy turned brass base, long burning ritual lamp."},
-  {"id":"dmw_002","catalog":"Akhand Deep & Diya","category":"Pure Brass","name":"Udappi / Matki Lamp","price":"380","size":"5 Sizes (No. 1 to 5)","weight":"250 gm to 800 gm","variants":[{"size":"No. 1","weight":"250 gm"},{"size":"No. 3","weight":"500 gm"},{"size":"No. 5","weight":"800 gm"}],"images":[],"notes":"Decorative brass pierced om pattern with brass top dome."},
-  {"id":"dmw_003","catalog":"Aarti & Panchaarti","category":"Pure Brass","name":"Om Goblet / Panchaarti Wood Handle","price":"450","size":"6 Sizes (No. 1 to 6)","weight":"350 gm to 900 gm","variants":[],"images":[],"notes":"5-batti sacred puja aarti with solid heat-resistant carved wooden handle."},
-  {"id":"dmw_004","catalog":"Thali & Dinner Sets","category":"Pure Brass","name":"Dana Thali Set (6 Pcs)","price":"1450","size":"5, 6, 7 Pcs (12\" to 14\")","weight":"1450 gm","variants":[],"images":[],"notes":"Authentic Dana bead border. Includes Thali, Katoris, Tumbler, and Spoon."},
-  {"id":"dmw_005","catalog":"Thali & Dinner Sets","category":"Kansa Bronze","name":"Matte Kansa Heritage Dinner Set","price":"3400","size":"6 Pcs Master Set","weight":"Authentic Bell Metal / Bronze","variants":[],"images":[],"notes":"Traditional ayurvedic dining set in fine satin matte golden finish."},
-  {"id":"dmw_006","catalog":"Thali & Dinner Sets","category":"Two-Tone Steel","name":"Flower Two Tone Thali Set","price":"1650","size":"6 Pcs Set","weight":"Stainless Steel & Gold Relief","variants":[],"images":[],"notes":"Mirror-finish stainless steel platter with laser-etched golden flower centerpiece."},
-  {"id":"dmw_007","catalog":"Sacred Pots & Kalash","category":"Pure Brass","name":"Embossed Brass Karwa (Polished & Color)","price":"480","size":"No. 8 to 24","weight":"600g to 2kg Brass","variants":[],"images":[],"notes":"Classic spouted Karwa Chauth vessel with intricate traditional hand tooling."},
-  {"id":"dmw_008","catalog":"Sacred Pots & Kalash","category":"Pure Copper","name":"Copper Kalash & Tara Lutia","price":"380","size":"No. 1 through 14","weight":"Pure Copper","variants":[],"images":[],"notes":"High gloss radiant pure copper sacred water vessel for daily and temple rituals."},
-  {"id":"dmw_009","catalog":"Cookware & Kitchen","category":"Pure Brass","name":"Brass Hammered Kadai with Kalai","price":"1400","size":"1.5L to 5L Capacity","weight":"Heavy Gauge Brass","variants":[],"images":[],"notes":"Hand-hammered brass kadai tin-lined (Kalai) for safe cooking & even heat distribution."}
+  {"id":"dmw_001","catalog":"Akhand Deep & Diya","category":"Pure Brass","name":"Gol Jyoti / Akhand Deep","price":"240","size":"18 Sizes","weight":"120 gm to 1500 gm","variants":[],"images":[],"notes":"Borosilicate glass, heavy turned brass base."}
 ];
 
-const DEFAULT_MAIN_CATS = ["Akhand Deep & Diya", "Aarti & Panchaarti", "Thali & Dinner Sets", "Sacred Pots & Kalash", "Platters & Thals", "Cookware & Kitchen"];
-const DEFAULT_METALS = ["Pure Brass", "Pure Copper", "Kansa Bronze", "Two-Tone Steel", "Kalai Lined", "Heavy Brass"];
+const DEFAULT_MAIN_CATS = ["Akhand Deep & Diya", "Aarti & Panchaarti", "Thali & Dinner Sets", "Sacred Pots & Kalash", "Platters & Thals", "Cookware & Kitchen", "Musalmani Items", "Matki", "Katori & Katora & Bowls", "Glassware", "Planter"];
+const DEFAULT_METALS = ["Pure Brass", "Pure Copper", "Kansa Bronze", "Two-Tone Steel", "Kalai Lined", "Heavy Brass", "Stainless Steel", "Copper Steel"];
 
-let products = JSON.parse(localStorage.getItem(DB_STORAGE_KEY)) || INITIAL_PRODUCTS;
-
-let storedCompany = null;
-try { storedCompany = JSON.parse(localStorage.getItem(COMPANY_STORAGE_KEY)); } catch(e) {}
-let company = {
-  ...COMPANY_INFO,
-  ...(storedCompany || {})
-};
-if (!company.logo) company.logo = COMPANY_INFO.logo;
-if (!company.bannerImg) company.bannerImg = COMPANY_INFO.bannerImg;
-
-let customCategories = JSON.parse(localStorage.getItem(CATS_STORAGE_KEY)) || DEFAULT_MAIN_CATS;
-let customMetals = JSON.parse(localStorage.getItem(METALS_STORAGE_KEY)) || DEFAULT_METALS;
-let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
+// Cloud Variables
+let products = [];
+let company = {};
+let customCategories = [];
+let customMetals = [];
 let currentFilter = { catalog: '', metal: '', search: '', sort: 'name' };
+
+// Shopping Carts stay in local memory so users don't share the same cart!
+let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
+
+// Live Cloud Sync: Listens for changes and updates the website instantly
+db.ref('catalog').on('value', (snapshot) => {
+  const data = snapshot.val();
+  
+  if (data) {
+    products = data.products || [];
+    customCategories = data.categories || DEFAULT_MAIN_CATS;
+    customMetals = data.metals || DEFAULT_METALS;
+    company = { ...COMPANY_INFO, ...(data.company || {}) };
+  } else {
+    // ONE-TIME MIGRATION: If the cloud is empty, upload your local computer's data to the cloud automatically!
+    const localProducts = JSON.parse(localStorage.getItem('house_of_delight_catalog_master')) || INITIAL_PRODUCTS;
+    const localCats = JSON.parse(localStorage.getItem('house_of_delight_cats_master')) || DEFAULT_MAIN_CATS;
+    const localMetals = JSON.parse(localStorage.getItem('house_of_delight_metals_master')) || DEFAULT_METALS;
+    const localCompany = JSON.parse(localStorage.getItem('house_of_delight_company_master')) || COMPANY_INFO;
+    
+    db.ref('catalog').set({
+      products: localProducts,
+      categories: localCats,
+      metals: localMetals,
+      company: localCompany
+    });
+    
+    products = localProducts;
+    customCategories = localCats;
+    customMetals = localMetals;
+    company = localCompany;
+  }
+
+  // Refresh screen with new data
+  renderCatalog();
+  renderManageLists();
+});
+
+// Cloud Save Functions
+function saveCategories() { db.ref('catalog/categories').set(customCategories); }
+function saveMetals() { db.ref('catalog/metals').set(customMetals); }
 
 /* SVG Fallback Generation */
 function getDefaultLogoSvg() {
@@ -1359,8 +1439,10 @@ function collectSizeWeightVariants() {
   const rows = document.querySelectorAll('#sizeWeightRowsContainer .size-weight-pair-row');
   const list = [];
   rows.forEach(r => {
-    const s = r.querySelector('.variant-size-input').value.trim();
-    const w = r.querySelector('.variant-weight-input').value.trim();
+    const sizeInput = r.querySelector('.variant-size-input');
+    const weightInput = r.querySelector('.variant-weight-input');
+    const s = sizeInput ? sizeInput.value.trim() : '';
+    const w = weightInput ? weightInput.value.trim() : '';
     if (s || w) list.push({ size: s, weight: w });
   });
   return list;
@@ -1379,6 +1461,22 @@ window.updateCardVariantWeight = function(selectElem) {
 window.updateViewModalVariantWeight = function(selectElem) {
   const weightCell = document.getElementById('viewItemWeight');
   if (weightCell) weightCell.textContent = selectElem.value || '—';
+};
+
+/* Card Inline Photo Carousel Navigator */
+window.navigateCardPhoto = function(productId, direction, event) {
+  if (event) event.stopPropagation();
+  const product = products.find(p => p.id === productId);
+  if (!product) return;
+  const imgs = getProductImages(product);
+  if (imgs.length <= 1) return;
+
+  const card = event.target.closest('.product-box');
+  const imgElem = card.querySelector('.product-thumb img');
+  let currentIdx = parseInt(imgElem.dataset.photoIndex || '0', 10);
+  currentIdx = (currentIdx + direction + imgs.length) % imgs.length;
+  imgElem.dataset.photoIndex = currentIdx;
+  imgElem.src = imgs[currentIdx];
 };
 
 /* Catalog Rendering */
@@ -1403,13 +1501,19 @@ function renderCatalog() {
     const box = document.createElement('div');
     box.className = 'product-box reveal-on-scroll visible';
     box.onclick = (e) => {
-      if (!e.target.closest('.btn-add-order') && !e.target.closest('select')) openViewModal(p.id);
+      if (!e.target.closest('.btn-add-order') && !e.target.closest('select') && !e.target.closest('.card-photo-arrow')) openViewModal(p.id);
     };
 
     const imgs = getProductImages(p);
     const fallbackImg = getFallbackSvg(p.category, p.name);
     const primaryImg = imgs[0] || fallbackImg;
-    const multiPhotoBadge = imgs.length > 1 ? `<div class="multi-photo-pill">📷 ${imgs.length}</div>` : '';
+    const hasMultiplePhotos = imgs.length > 1;
+    const multiPhotoBadge = hasMultiplePhotos ? `<div class="multi-photo-pill">📷 ${imgs.length}</div>` : '';
+
+    const photoArrowsHtml = hasMultiplePhotos ? `
+      <button type="button" class="card-photo-arrow prev" onclick="navigateCardPhoto('${p.id}', -1, event)" title="Previous photo">❮</button>
+      <button type="button" class="card-photo-arrow next" onclick="navigateCardPhoto('${p.id}', 1, event)" title="Next photo">❯</button>
+    ` : '';
 
     const hasVariants = p.variants && p.variants.length > 0;
     const sizeBadgeCount = hasVariants ? `${p.variants.length} Sizes` : (p.size ? p.size.split(' ')[0] : 'Std');
@@ -1435,7 +1539,8 @@ function renderCatalog() {
 
     box.innerHTML = `
       <div class="product-thumb">
-        <img src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" loading="lazy" onerror="this.src='${fallbackImg}';">
+        <img src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="lazy" onerror="this.src='${fallbackImg}';">
+        ${photoArrowsHtml}
         <div class="badge-metal-type">${escapeStr(p.category || 'Pure Brass')}</div>
         ${multiPhotoBadge}
         <div class="size-counter-pill">${escapeStr(sizeBadgeCount)}</div>
@@ -1745,9 +1850,6 @@ function addNewMetalSub() {
   }
 }
 
-function saveCategories() { localStorage.setItem(CATS_STORAGE_KEY, JSON.stringify(customCategories)); renderCatalog(); }
-function saveMetals() { localStorage.setItem(METALS_STORAGE_KEY, JSON.stringify(customMetals)); renderCatalog(); }
-
 function switchFilterTab(tab) {
   document.getElementById('tabCategoryBtn').classList.toggle('active', tab === 'category');
   document.getElementById('tabMaterialBtn').classList.toggle('active', tab === 'material');
@@ -1757,8 +1859,6 @@ function switchFilterTab(tab) {
 
 /* Document Ready Initializations */
 document.addEventListener('DOMContentLoaded', () => {
-  renderCatalog();
-  renderManageLists();
 
   // Search & Filter Listeners
   document.getElementById('searchInput').addEventListener('input', (e) => { currentFilter.search = e.target.value; renderCatalog(); });
@@ -1808,24 +1908,42 @@ document.addEventListener('DOMContentLoaded', () => {
     openEditModal(activeViewId);
   };
 
+  // Delete product (Firebase)
   document.getElementById('modalDeleteBtn').onclick = () => {
     if (confirm('Delete this product from the catalog?')) {
       products = products.filter(x => x.id !== activeViewId);
-      localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(products));
+      db.ref('catalog/products').set(products);
       document.getElementById('viewModalOverlay').classList.remove('show');
-      renderCatalog();
       showToast('Product deleted');
     }
   };
 
-  // Image Upload Handling
+  // Image Upload Handling (Auto-Compressed for LocalStorage)
   document.getElementById('formFileInput').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (re) => {
-        currentFormImages.push(re.target.result);
-        renderFormPhotoChips();
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 800;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+            else { w = Math.round((w * maxDim) / h); h = maxDim; }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          
+          const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          currentFormImages.push(optimizedDataUrl);
+          renderFormPhotoChips();
+        };
+        img.src = re.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -1840,7 +1958,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Save Product Data
+  // Save Product Data (Firebase)
   document.getElementById('formSaveBtn').onclick = () => {
     const name = document.getElementById('formName').value.trim();
     if (!name) { alert('Please enter product name'); return; }
@@ -1856,14 +1974,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemData = {
       id: activeEditId || 'dmw_' + Date.now(),
       name: name,
-      catalog: document.getElementById('formCatalog').value.trim() || 'Akhand Deep & Diya',
-      category: document.getElementById('formCategory').value.trim() || 'Pure Brass',
-      price: document.getElementById('formPrice').value.trim(),
+      catalog: (document.getElementById('formCatalog').value || '').trim() || 'Akhand Deep & Diya',
+      category: (document.getElementById('formCategory').value || '').trim() || 'Pure Brass',
+      price: (document.getElementById('formPrice').value || '').trim(),
       size: sizeStr,
       weight: weightStr,
       variants: collectedVariants,
       images: currentFormImages,
-      notes: document.getElementById('formNotes').value.trim()
+      notes: (document.getElementById('formNotes').value || '').trim()
     };
 
     if (activeEditId) {
@@ -1873,22 +1991,20 @@ document.addEventListener('DOMContentLoaded', () => {
       products.unshift(itemData);
     }
 
-    localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(products));
+    db.ref('catalog/products').set(products);
     document.getElementById('editModalOverlay').classList.remove('show');
-    renderCatalog();
     showToast('Product saved successfully');
   };
 
-  // Save Brand Details
+  // Save Brand Details (Firebase)
   document.getElementById('settingsSaveBtn').onclick = () => {
     company.name = document.getElementById('setCompanyName').value.trim() || company.name;
     company.tagline = document.getElementById('setTagline').value.trim() || company.tagline;
     company.phone = document.getElementById('setPhone').value.trim() || company.phone;
     company.storyParagraph = document.getElementById('setStoryParagraph').value.trim() || company.storyParagraph;
 
-    localStorage.setItem(COMPANY_STORAGE_KEY, JSON.stringify(company));
+    db.ref('catalog/company').set(company);
     document.getElementById('settingsModalOverlay').classList.remove('show');
-    updateCompanyHeader();
     showToast('Brand details updated');
   };
 
@@ -1939,7 +2055,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="background: rgba(255, 255, 255, 0.05); border-left: 3px solid #b38243; padding: 10px 14px; border-radius: 4px;">
             <h3 style="font-family: 'Cinzel', serif; font-size: 12px; color: #e2be89; margin: 0 0 4px;">Master Craftsmanship of Moradabad</h3>
             <p style="font-size: 10px; line-height: 1.6; color: #f4eee1; margin: 0;">
-              ${escapeStr(company.storyParagraph).replace(/&lt;[^&]*&gt;/g, '')}
+              ${escapeStr(company.storyParagraph).replace(/<[^>]*>/g, '')}
             </p>
           </div>
 
@@ -2112,14 +2228,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // Share Catalog Link (Rich Branded Output)
+  // Share Catalog Link (Bulletproof Fallbacks + Local File Check)
   document.getElementById('shareCatalogBtn').onclick = async () => {
-    const shareTitle = `${company.name} — Moradabad Wholesale Catalog`;
+    const shareTitle = `${company.name || 'House of Delight'} — Moradabad Wholesale Catalog`;
     const shareMessage = `Explore our handcrafted Pure Brass, Copper & Kansa metalware collection:`;
-    const shareUrl = window.location.href;
+    
+    const isLocalFile = window.location.protocol === 'file:';
+    const shareUrl = isLocalFile 
+      ? "https://arnavrastogi68-coder.github.io/Delight-Catalog/" 
+      : window.location.href;
+      
     const formattedShare = `🌟 *${shareTitle}*\n${shareMessage}\n👉 ${shareUrl}`;
 
-    if (navigator.share) {
+    if (navigator.share && !isLocalFile) {
       try {
         await navigator.share({
           title: shareTitle,
@@ -2127,14 +2248,35 @@ document.addEventListener('DOMContentLoaded', () => {
           url: shareUrl
         });
         showToast('Shared successfully!');
-      } catch (err) {}
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(formattedShare).then(() => {
-        showToast('Catalog link & title copied!');
-      }).catch(() => {
-        showToast('Failed to copy link');
-      });
-    } else {
+        return; 
+      } catch (err) {
+        if (err.name === 'AbortError') return; 
+        console.warn('Native share failed, falling back to clipboard:', err);
+      }
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(formattedShare);
+        showToast('Catalog link & details copied!');
+        return; 
+      } catch (err) {
+        console.warn('Clipboard API failed, trying legacy method:', err);
+      }
+    }
+
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = formattedShare;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      textArea.remove();
+      showToast('Catalog link & details copied!');
+    } catch (err) {
       prompt('Copy catalog link:', shareUrl);
     }
   };
