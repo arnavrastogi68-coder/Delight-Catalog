@@ -857,7 +857,7 @@
     <div class="header-actions">
       <button class="btn-outline" id="shareCatalogBtn" title="Copy Catalog Link">🔗 Share</button>
       <button class="btn-outline admin-only" id="openSettingsBtn" title="Edit Brand Details">⚙️ Edit Brand</button>
-      <button class="btn-outline" id="downloadPdfBtn" title="Export as PDF">📄 Export PDF</button>
+      <button class="btn-outline" id="downloadPdfBtn" title="Export Full Catalog as PDF">📄 Export Catalog</button>
       <button class="btn-save admin-only" id="saveOfflineHtmlBtn" title="Save standalone Webpage">💾 Save Offline</button>
       <button class="cart-trigger-btn" id="openCartBtn">
         <span class="material-symbols-outlined" style="font-size: 18px;">shopping_cart</span>
@@ -939,7 +939,7 @@
   </div>
 </div>
 
-<!-- Main Catalog Content Area -->
+<!-- Main Catalog Content -->
 <main class="catalog-content" id="catalogContentArea">
   <div class="section-status-bar">
     <h2 id="currentCategoryHeading">All Collections</h2>
@@ -953,7 +953,7 @@
   </div>
 </main>
 
-<!-- Slide-Out Order Estimate Drawer -->
+<!-- Slide-Out Order Estimate Drawer with Formal Quotation PDF Export -->
 <div class="order-drawer-overlay" id="orderDrawerOverlay">
   <div class="order-drawer">
     <div class="drawer-head">
@@ -975,6 +975,10 @@
       <a class="btn-send-whatsapp" href="#" id="sendWhatsAppOrderBtn">
         💬 Send Order to Dealer WhatsApp
       </a>
+      <!-- Point 5: Direct Quotation PDF Generation Button -->
+      <button class="btn-outline" id="downloadQuotationPdfBtn" style="justify-content:center; border-color:var(--gold); color:var(--gold-dark); font-weight:700;">
+        📄 Download Formal Quotation (PDF)
+      </button>
       <button class="btn-outline" id="clearCartBtn" style="justify-content:center; color:var(--danger); border-color:#f5c6cb;">Clear Order List</button>
     </div>
   </div>
@@ -1064,7 +1068,6 @@
         <div id="sizeWeightRowsContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </div>
 
-      <!-- AUTOMATED DIRECT IMGBB IMAGE UPLOADER -->
       <div class="form-row">
         <div class="form-group" style="flex:1 1 100%;">
           <label>Upload Product Images (Instant Cloud Sync)</label>
@@ -1521,7 +1524,15 @@ function addToCart(id) {
   if (existing) {
     existing.qty++;
   } else {
-    cart.push({ id: p.id, name: p.name, price: parseFloat((p.price || '').replace(/[^0-9.]/g, '')) || 0, qty: 1 });
+    cart.push({
+      id: p.id,
+      name: p.name,
+      category: p.category || 'Pure Brass',
+      size: p.size || 'Standard',
+      weight: p.weight || '—',
+      price: parseFloat((p.price || '').replace(/[^0-9.]/g, '')) || 0,
+      qty: 1
+    });
   }
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
   updateCartUI();
@@ -1840,16 +1851,15 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Brand details updated');
   };
 
-  // PDF Exporter
+  // Full Catalog PDF Exporter
   document.getElementById('downloadPdfBtn').onclick = () => {
     showToast('Generating Wholesale Catalog PDF...');
-    const uniqueCats = [...new Set(products.map(p => p.catalog).filter(Boolean))];
-    const waCleanPhone = (company.phone || '919758444444').replace(/[^0-9]/g, '');
-
     const pdfContainer = document.createElement('div');
     pdfContainer.style.cssText = 'background: #ffffff; color: #1f1e1a; width: 210mm; margin: 0 auto; padding: 0;';
 
     const heroCoverImg = company.bannerImg || getFallbackSvg('Pure Brass', 'Heritage Metalware');
+    const waCleanPhone = (company.phone || '919758444444').replace(/[^0-9]/g, '');
+
     const page1 = `
       <div style="page-break-after: always; height: 296mm; padding: 12mm; box-sizing: border-box; background: #3a0d10; color: #faf7f0;">
         <div style="border: 2px solid #b38243; height: 100%; box-sizing: border-box; padding: 10mm; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(180deg, rgba(84,20,25,0.95) 0%, rgba(35,7,9,0.98) 100%);">
@@ -1889,6 +1899,139 @@ document.addEventListener('DOMContentLoaded', () => {
     }).catch(err => {
       pdfContainer.remove();
       window.print();
+    });
+  };
+
+  // POINT 5: One-Click Formal B2B Quotation PDF Generator
+  document.getElementById('downloadQuotationPdfBtn').onclick = () => {
+    if (!cart || cart.length === 0) {
+      alert('Your order list is empty. Add products to generate a quotation.');
+      return;
+    }
+
+    showToast('Creating Formal Wholesale Quotation...');
+    const waCleanPhone = (company.phone || '919758444444').replace(/[^0-9]/g, '');
+    const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const quoteNo = 'QTN-' + Date.now().toString().slice(-6);
+    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+
+    const quoteContainer = document.createElement('div');
+    quoteContainer.id = 'quotePdfMasterWrapper';
+    quoteContainer.style.cssText = `
+      background: #ffffff;
+      color: #1f1e1a;
+      font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+      width: 210mm;
+      padding: 16mm 14mm;
+      box-sizing: border-box;
+      position: absolute;
+      left: -9999px;
+      top: 0;
+    `;
+
+    const tableRowsHtml = cart.map((item, idx) => `
+      <tr style="border-bottom: 1px solid #e6dfd1; font-size: 11px;">
+        <td style="padding: 10px 8px; text-align: center; color: #6b665c;">${idx + 1}</td>
+        <td style="padding: 10px 8px;">
+          <strong style="color: #541419; font-size: 12px; display: block;">${escapeStr(item.name)}</strong>
+          <span style="font-size: 9.5px; color: #875d27;">${escapeStr(item.category || 'Pure Metal')}</span>
+        </td>
+        <td style="padding: 10px 8px; text-align: center; color: #4a463c;">${escapeStr(item.size || 'Standard')}</td>
+        <td style="padding: 10px 8px; text-align: center; font-weight: 700;">${item.qty}</td>
+        <td style="padding: 10px 8px; text-align: right; color: #1f1e1a;">₹ ${item.price.toLocaleString()}</td>
+        <td style="padding: 10px 8px; text-align: right; font-weight: 800; color: #541419;">₹ ${(item.price * item.qty).toLocaleString()}</td>
+      </tr>
+    `).join('');
+
+    quoteContainer.innerHTML = `
+      <div style="border: 1.5px solid #b38243; border-radius: 8px; padding: 14mm 12mm; background: #fff;">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #541419; padding-bottom: 14px; margin-bottom: 16px;">
+          <div>
+            <h1 style="font-family: 'Cinzel', serif; font-size: 24px; color: #541419; margin: 0; line-height: 1.1;">${escapeStr(company.name)}</h1>
+            <p style="font-size: 11px; text-transform: uppercase; color: #875d27; font-weight: 700; margin: 4px 0 0; letter-spacing: 1px;">${escapeStr(company.tagline)}</p>
+            <p style="font-size: 10px; color: #6b665c; margin: 4px 0 0;">${escapeStr(company.location)}</p>
+          </div>
+          <div style="text-align: right;">
+            <span style="display: inline-block; background: #541419; color: #fff; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 4px; letter-spacing: 1px; text-transform: uppercase;">Wholesale Quotation</span>
+            <div style="font-size: 11px; color: #1f1e1a; margin-top: 8px;"><strong>Quotation Ref:</strong> #${quoteNo}</div>
+            <div style="font-size: 10.5px; color: #6b665c; margin-top: 2px;"><strong>Date:</strong> ${today}</div>
+          </div>
+        </div>
+
+        <!-- Meta Strip -->
+        <div style="display: flex; justify-content: space-between; background: #faf7f0; border: 1px solid #e6dfd1; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 11px;">
+          <div><strong>Order Destination:</strong> Dealer / Wholesale Dispatch</div>
+          <div><strong>Supplier WhatsApp:</strong> +${waCleanPhone}</div>
+          <div><strong>Total Articles:</strong> ${totalQty} Units</div>
+        </div>
+
+        <!-- Table -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
+          <thead>
+            <tr style="background: #f4eee1; border-bottom: 1.5px solid #b38243; font-family: 'Cinzel', serif; font-size: 10px; text-transform: uppercase; color: #541419;">
+              <th style="padding: 8px; text-align: center; width: 40px;">#</th>
+              <th style="padding: 8px; text-align: left;">Product Details</th>
+              <th style="padding: 8px; text-align: center; width: 100px;">Size / Gauge</th>
+              <th style="padding: 8px; text-align: center; width: 60px;">Qty</th>
+              <th style="padding: 8px; text-align: right; width: 90px;">Rate (₹)</th>
+              <th style="padding: 8px; text-align: right; width: 100px;">Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRowsHtml}
+          </tbody>
+        </table>
+
+        <!-- Summary -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+          <div style="width: 240px; background: #faf7f0; border: 1px solid #b38243; border-radius: 6px; padding: 10px 14px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; color: #6b665c;">
+              <span>Subtotal (${totalQty} units):</span>
+              <span>₹ ${total.toLocaleString()}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; color: #541419; border-top: 1px solid #e6dfd1; padding-top: 6px;">
+              <span>Estimated Total:</span>
+              <span>₹ ${total.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terms & Verification Disclaimers -->
+        <div style="background: #ffffff; border-top: 1px dashed #b38243; padding-top: 12px; font-size: 9.5px; color: #6b665c; line-height: 1.5;">
+          <strong style="color: #541419; text-transform: uppercase;">Wholesale & Trade Terms:</strong>
+          <ol style="margin: 4px 0 0 16px; padding: 0;">
+            <li>This quotation is indicative and valid for 7 days from the date of issue.</li>
+            <li>Metal weights and billing are finalized according to certified scales upon dispatch from Moradabad.</li>
+            <li>Applicable GST, insurance, and transport/freight charges are extra at actuals.</li>
+          </ol>
+        </div>
+
+        <div style="text-align: right; margin-top: 24px; font-size: 11px; color: #541419; font-weight: 700;">
+          For ${escapeStr(company.name)}<br>
+          <span style="font-size: 9px; color: #875d27; font-weight: normal;">Authorized Trade Signatory</span>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(quoteContainer);
+
+    const opt = {
+      margin: 0,
+      filename: `${company.name.replace(/\s+/g, '_')}_Quotation_${quoteNo}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(quoteContainer).save().then(() => {
+      quoteContainer.remove();
+      showToast('Formal Quotation PDF downloaded!');
+    }).catch(err => {
+      quoteContainer.remove();
+      console.error(err);
+      alert('Error generating PDF.');
     });
   };
 
