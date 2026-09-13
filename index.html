@@ -10,13 +10,13 @@
   <meta property="og:url" content="https://arnavrastogi68-coder.github.io/Delight-Catalog/">
   <meta property="og:type" content="website">
 
-  <!-- Step 3 Optimization: Preconnects for high-speed network handshakes -->
+  <!-- Optimized Preconnections for Speed -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://delight-catalog-default-rtdb.firebaseio.com" crossorigin>
   <link rel="preconnect" href="https://i.ibb.co" crossorigin>
 
-  <!-- Step 3 Optimization: Asynchronous Non-Blocking Font Loading -->
+  <!-- Non-Blocking Asynchronous Fonts -->
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" media="print" onload="this.media='all'">
@@ -58,6 +58,17 @@
       font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
+    }
+
+    .notice-top-bar {
+      background: #3a0d10;
+      color: #fcebd2;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      padding: 6px 12px;
+      letter-spacing: 0.3px;
+      border-bottom: 1px solid var(--gold);
     }
 
     .reveal-on-scroll {
@@ -842,7 +853,7 @@
     }
 
     @media print {
-      header.master-header, .story-hero, .filter-section, .category-nav-bar, .btn-add-order, .order-drawer-overlay, .cart-trigger-btn, .floating-action-bar, .mobile-bottom-bar {
+      .notice-top-bar, header.master-header, .story-hero, .filter-section, .category-nav-bar, .btn-add-order, .order-drawer-overlay, .cart-trigger-btn, .floating-action-bar, .mobile-bottom-bar {
         display: none !important;
       }
       body { background: #fff; }
@@ -851,6 +862,11 @@
   </style>
 </head>
 <body>
+
+<!-- High-Visibility Wholesale Notice Bar -->
+<div class="notice-top-bar">
+  B2B Wholesale Trade Notice: All orders are subject to stock availability · Handcrafted artisan metalware may vary slightly from pictures
+</div>
 
 <header class="master-header">
   <div class="header-container">
@@ -884,7 +900,7 @@
       <div class="story-desc">
         <h2 id="storyHeading">Heritage of Moradabad Craftsmanship <br><span style="font-size: 0.7em; font-style: italic; color: var(--gold-dark);">by Jagdish Saran Rastogi</span></h2>
         <p id="storyParagraph">
-          <strong>Delight Metal Works (House of Delight)</strong> is an integrated designing and manufacturing firm started in the year <strong>1970 by Mr. Jagdish Saran Rastogi</strong> in Moradabad—India’s celebrated <em>"Brass City"</em>. What began as a family workshop is today a premier manufacturing and trading house spanning Pure Brass, Pure Copper, Authentic Kansa (Bronze), and Stainless Steel, serving an extensive dealer network across India and globally.
+          <strong>Delight Metal Works (House of Delight)</strong> is an integrated designing and manufacturing firm started in the year <strong>1970 by Mr. Jagdish Saran Rastogi</strong> in Moradabad—India’s celebrated <em>"Brass City"</em>. What began as a dedicated family workshop has flourished over five decades into a premier manufacturing and trading house spanning Pure Brass, Pure Copper, Authentic Kansa (Bronze), and Stainless Steel metalware, serving an extensive dealer and export network across India and globally. Because every piece is individually turned and polished by traditional Moradabad artisans, subtle variations in weight, polish, and texture are hallmarks of authentic metalcraft.
         </p>
         <div class="stats-strip" id="statsStrip">
           <div class="stat-card">
@@ -948,7 +964,7 @@
   </div>
 </div>
 
-<!-- Main Catalog Content -->
+<!-- Main Catalog Content Area -->
 <main class="catalog-content" id="catalogContentArea">
   <div class="section-status-bar">
     <h2 id="currentCategoryHeading">All Collections</h2>
@@ -962,7 +978,7 @@
   </div>
 </main>
 
-<!-- Slide-Out Order Estimate Drawer with Formal Quotation PDF Export -->
+<!-- Slide-Out Order Estimate Drawer with Trade Disclaimers -->
 <div class="order-drawer-overlay" id="orderDrawerOverlay">
   <div class="order-drawer">
     <div class="drawer-head">
@@ -978,8 +994,8 @@
         <span>Estimated Total</span>
         <span id="drawerTotalAmount">₹ 0</span>
       </div>
-      <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-        *Indicative wholesale pricing — final billing based on actual metal weight, prevailing rates & GST.
+      <div style="font-size: 10px; color: var(--ink-muted); line-height: 1.45; background: var(--cream); padding: 8px; border-radius: 4px; border-left: 2.5px solid var(--gold);">
+        *<strong>Wholesale Disclaimer:</strong> Order confirmation is subject to factory stock availability. Handcrafted metalware may vary slightly from pictures in finish, weight, and tone. Billing is based on certified dispatch scale weight & prevailing taxes.
       </div>
       <a class="btn-send-whatsapp" href="#" id="sendWhatsAppOrderBtn">
         💬 Send Order to Dealer WhatsApp
@@ -992,7 +1008,7 @@
   </div>
 </div>
 
-<!-- View Product Modal -->
+<!-- View Product Modal with Artisan Notice -->
 <div class="modal-overlay" id="viewModalOverlay">
   <div class="modal-card" id="viewModalCard">
     <div class="modal-head">
@@ -1020,6 +1036,10 @@
           <tr><th>Specifications</th><td id="viewItemNotes">—</td></tr>
         </tbody>
       </table>
+
+      <div style="font-size: 10.5px; color: var(--ink-muted); background: var(--cream-soft); padding: 8px 10px; border-radius: 4px; border-left: 3px solid var(--gold); margin-top: 4px;">
+        ℹ️ <em>Handcrafted finish may vary slightly from photographs. Final order confirmation depends on workshop stock availability.</em>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn-gold" id="modalAddToCartBtn">+ Add to Order List</button>
@@ -1175,6 +1195,9 @@
 <div class="toast" id="toastBox">Saved successfully</div>
 
 <footer>
+  <div style="font-size: 11px; color: var(--ink-muted); margin-bottom: 6px;">
+    *Notice: Handcrafted brass, copper & bronze items are artisan-made and may differ slightly from photographs. All trade orders are confirmed subject to stock availability.
+  </div>
   <div id="footerText">House of Delight — <strong>Delight Metal Works</strong> · Estd. 1970 by Mr. Jagdish Saran Rastogi · Moradabad, Uttar Pradesh</div>
 </footer>
 
@@ -1226,7 +1249,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ImgBB Cloud API Key (Paste your API Key here)
+// ImgBB Cloud API Key
 const IMGBB_API_KEY = "f5af191426860af404ed72f0437aaccf";
 
 var COMPANY_INFO = {
@@ -1240,7 +1263,7 @@ var COMPANY_INFO = {
   logo: "https://lh3.googleusercontent.com/aida-public/AB6AXuALCWSL0GG0YbQTXLlehjEorBOgLr84RgonsUDFtYoEoRzDH5QJwittLvk2kyGgWRZA2G0-eg9vpM6-LYPzaTq5s_hJDci7EqbYKX8QpskO2QknZr4s6USd7gbl0FQaDcBkcnq4SQywD6M0GQKxnnQIV7rbkX3_91qeOMp0447Mg-d9MUUM612MrLzxtty2Y5StXv8W7s1659sLY5qmrtJNzLFFhqT8FDPwS-DH33mCRNr0tKKLJRq3z9fgB9SpnRCdjQ",
   bannerImg: "https://lh3.googleusercontent.com/aida-public/AB6AXuDV6FCmoL0oOdh9Sn5Gpjo0vf7YRF--t9gCyW8UZ82AWFF63l4KS2iMPUd-8B8z5BSDikONBwOsf1XRn3rxGaF_KZGGFh0XS_78k7GCNdremtL6w7WF9VzdCKLVNaMINdRwDo0ZrpV_QOsshBwwuihFKc-ovKKglDakuGCpiIYQAIDb3936fP9Pau__NIPPEXpO1jXOAFN-w7baIyzQ8GDO25BiM_7IGgy_T2QXZQO3vv3k_LLm_Y8g",
   storyHeading: "Heritage of Moradabad Craftsmanship <br><span style='font-size: 0.7em; font-style: italic; color: var(--gold-dark);'>by Jagdish Saran Rastogi</span>",
-  storyParagraph: "<strong>Delight Metal Works (House of Delight)</strong> is an integrated designing and manufacturing firm started in the year <strong>1970 by Mr. Jagdish Saran Rastogi</strong> in Moradabad—India’s celebrated <em>\"Brass City\"</em>."
+  storyParagraph: "<strong>Delight Metal Works (House of Delight)</strong> is an integrated designing and manufacturing firm started in the year <strong>1970 by Mr. Jagdish Saran Rastogi</strong> in Moradabad—India’s celebrated <em>\"Brass City\"</em>. What began as a dedicated family workshop has flourished over five decades into a premier manufacturing and trading house spanning Pure Brass, Pure Copper, Authentic Kansa (Bronze), and Stainless Steel metalware, serving an extensive dealer and export network across India and globally. Because every piece is individually turned and polished by traditional Moradabad artisans, subtle variations in weight, polish, and texture are hallmarks of authentic metalcraft."
 };
 
 var INITIAL_PRODUCTS = [
@@ -1250,7 +1273,7 @@ var INITIAL_PRODUCTS = [
 const DEFAULT_MAIN_CATS = ["Akhand Deep & Diya", "Aarti & Panchaarti", "Thali & Dinner Sets", "Sacred Pots & Kalash", "Platters & Thals", "Cookware & Kitchen", "Musalmani Items", "Matki", "Katori & Katora & Bowls", "Glassware", "Planter"];
 const DEFAULT_METALS = ["Pure Brass", "Pure Copper", "Kansa Bronze", "Two-Tone Steel", "Kalai Lined", "Heavy Brass", "Stainless Steel", "Copper Steel"];
 
-// Step 2 Optimization: Instant Pre-Render from Local Memory (First Paint)
+// Instant Pre-Render from Local Memory (First Paint)
 let products = JSON.parse(localStorage.getItem(CATALOG_STORAGE_KEY)) || INITIAL_PRODUCTS;
 let company = JSON.parse(localStorage.getItem(COMPANY_STORAGE_KEY)) || COMPANY_INFO;
 let customCategories = DEFAULT_MAIN_CATS;
@@ -1272,7 +1295,6 @@ db.ref('catalog').on('value', (snapshot) => {
     customMetals = data.metals || DEFAULT_METALS;
     company = { ...COMPANY_INFO, ...(data.company || {}) };
 
-    // Update persistent cache
     localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(products));
     localStorage.setItem(COMPANY_STORAGE_KEY, JSON.stringify(company));
   }
@@ -1283,7 +1305,7 @@ db.ref('catalog').on('value', (snapshot) => {
 function saveCategories() { db.ref('catalog/categories').set(customCategories); }
 function saveMetals() { db.ref('catalog/metals').set(customMetals); }
 
-// Step 1 Optimization: On-Demand Zero Render-Blocking PDF Engine
+// On-Demand PDF Engine Loader (Zero Render-Blocking)
 function loadPdfEngine(callback) {
   if (window.html2pdf) { callback(); return; }
   showToast('Initializing PDF generator...');
@@ -1435,7 +1457,6 @@ function renderCatalog() {
       `;
     }
 
-    // Step 4 Optimization: Added decoding="async" and loading="lazy" for ultra-smooth UI
     box.innerHTML = `
       <div class="product-thumb">
         <img src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="lazy" decoding="async" onerror="this.src='${fallbackImg}';">
@@ -1602,7 +1623,7 @@ function updateCartUI() {
   cart.forEach((it, idx) => {
     waMsg += `${idx + 1}. *${it.name}* — Qty: ${it.qty} (₹${it.price * it.qty})\n`;
   });
-  waMsg += `\n*Estimated Total: ₹ ${total.toLocaleString()}*\nPlease confirm availability and prevailing rates.`;
+  waMsg += `\n*Estimated Total: ₹ ${total.toLocaleString()}*\n\n_Note: Order confirmation is subject to physical stock availability. Handcrafted pieces may vary slightly from pictures._\nPlease confirm availability and prevailing rates.`;
   document.getElementById('sendWhatsAppOrderBtn').href = `https://wa.me/${(company.phone || '919758444444').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waMsg)}`;
 }
 
@@ -1805,7 +1826,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Direct ImgBB Cloud Uploader Implementation
+  // ImgBB Cloud Uploader Implementation
   document.getElementById('autoImageUploader').addEventListener('change', async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -2032,9 +2053,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="background: #ffffff; border-top: 1px dashed #b38243; padding-top: 12px; font-size: 9.5px; color: #6b665c; line-height: 1.5;">
             <strong style="color: #541419; text-transform: uppercase;">Wholesale & Trade Terms:</strong>
             <ol style="margin: 4px 0 0 16px; padding: 0;">
-              <li>This quotation is indicative and valid for 7 days from the date of issue.</li>
+              <li>Order confirmation and dispatch schedules are strictly subject to physical stock availability.</li>
+              <li>Due to traditional casting and handcrafting methods, actual products may differ slightly in color tone, finish, or texture from catalog photographs.</li>
               <li>Metal weights and billing are finalized according to certified scales upon dispatch from Moradabad.</li>
-              <li>Applicable GST, insurance, and transport/freight charges are extra at actuals.</li>
+              <li>Applicable GST, insurance, and freight charges are charged extra at actuals.</li>
             </ol>
           </div>
 
