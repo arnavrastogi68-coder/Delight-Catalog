@@ -891,6 +891,25 @@
     .product-thumb img { transition: opacity .15s ease; }
     .admin-session-pill { font-size:10px; color:var(--gold-dark); font-weight:700; }
 
+
+    /* v6 admin + wholesale workflow */
+    #adminStatusBtn.admin-live { border-color:#1b5e20; color:#1b5e20; background:#f2fbf3; }
+    .admin-quick-edit { position:absolute; right:8px; bottom:8px; z-index:8; background:rgba(84,20,25,.94); color:#fff; border:1px solid var(--gold-light); border-radius:5px; padding:4px 7px; font-size:10px; font-weight:800; cursor:pointer; }
+    .product-meta-line { font-size:10.5px; color:var(--ink-muted); display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .stock-chip { padding:1px 6px; border-radius:10px; border:1px solid var(--border-line); background:var(--cream); font-size:9.5px; font-weight:700; }
+    .drawer-item-info .drawer-sku { display:block; font-size:9.5px; color:var(--gold-dark); font-weight:800; letter-spacing:.4px; margin-bottom:2px; }
+    .drawer-item-info .drawer-variant { display:block; font-size:10px; color:var(--ink-muted); margin-top:2px; }
+    @media (max-width:768px) {
+      .product-details { padding:10px; gap:4px; }
+      .product-name { font-size:14px; }
+      .sku-line { font-size:8.5px; letter-spacing:.4px; }
+      .product-action-row { gap:6px; }
+      .price-tag { font-size:12.5px; }
+      .btn-add-order { font-size:10px; padding:5px 7px; }
+      .product-meta-line { font-size:9px; }
+      .admin-quick-edit { padding:3px 6px; font-size:9px; }
+    }
+
     @media print {
       .notice-top-bar, header.master-header, .story-hero, .filter-section, .category-nav-bar, .btn-add-order, .order-drawer-overlay, .cart-trigger-btn, .floating-action-bar, .mobile-bottom-bar {
         display: none !important;
@@ -920,6 +939,7 @@
     </div>
     <div class="header-actions">
       <button class="btn-outline" id="shareCatalogBtn" title="Copy Catalog Link">🔗 Share</button>
+      <button class="btn-outline" id="adminStatusBtn" title="Admin sign in / status">🔐 Admin</button>
       <button class="btn-outline admin-only" id="openSettingsBtn" title="Edit Brand Details">⚙️ Edit Brand</button>
       <button class="btn-outline admin-only" id="openExcelModalBtn" title="Bulk Import / Export Excel">📊 Excel Import</button>
       <button class="btn-outline" id="downloadPdfBtn" title="Export Full Catalog as PDF">📄 Export Catalog</button>
@@ -1085,6 +1105,8 @@
       <table class="spec-table">
         <tbody>
           <tr><th>Wholesale Price</th><td id="viewItemPrice" style="font-weight:700; color:var(--maroon);">—</td></tr>
+          <tr><th>SKU / Product Code</th><td id="viewItemSku">—</td></tr>
+          <tr><th>MOQ / Stock</th><td id="viewItemTrade">—</td></tr>
           <tr><th>Available Sizes</th><td id="viewItemSize">—</td></tr>
           <tr><th>Weight / Gauge</th><td id="viewItemWeight">—</td></tr>
           <tr><th>Specifications</th><td id="viewItemNotes">—</td></tr>
@@ -1096,7 +1118,7 @@
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn-gold" id="modalAddToCartBtn">+ Add to Order List</button>
+      <button class="btn-gold" id="modalAddToCartBtn">+ Add to Enquiry</button>
       <div class="admin-only" style="gap:6px;">
         <button class="btn-outline" id="modalEditBtn">Edit</button>
         <button class="btn-outline" id="modalDeleteBtn" style="color:var(--danger);">Delete</button>
@@ -1132,9 +1154,29 @@
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group" style="flex:1 1 100%;">
+        <div class="form-group">
           <label>Wholesale Price (₹)</label>
           <input id="formPrice" placeholder="e.g. 480" type="text">
+        </div>
+        <div class="form-group">
+          <label>SKU / Product Code</label>
+          <input id="formSku" placeholder="Auto-generated if blank" type="text">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>MOQ / Minimum Order</label>
+          <input id="formMoq" placeholder="e.g. 12 pcs" type="text">
+        </div>
+        <div class="form-group">
+          <label>Stock Status</label>
+          <select id="formStock">
+            <option value="">Not specified</option>
+            <option value="Ready Stock">Ready Stock</option>
+            <option value="Made to Order">Made to Order</option>
+            <option value="Limited Stock">Limited Stock</option>
+            <option value="Out of Stock">Out of Stock</option>
+          </select>
         </div>
       </div>
 
@@ -1158,6 +1200,7 @@
             <div style="font-size:10.5px;color:var(--ink-muted);margin-top:3px;">Large photos are automatically resized and compressed before upload. You can also drag & drop images here.</div>
             <div id="uploadStatusText" style="display:none; font-size:11px; font-weight:700; color:var(--maroon); margin-top:6px;">Optimizing images…</div>
             <div class="upload-progress" id="uploadProgress"><span id="uploadProgressBar"></span></div>
+            <button type="button" class="btn-outline" id="retryFailedUploadsBtn" style="display:none;margin-top:7px;padding:5px 9px;font-size:10.5px;">↻ Retry failed uploads</button>
           </div>
           <div class="form-photos-preview-container" id="formPhotosPreviewContainer"></div>
         </div>
@@ -1557,7 +1600,7 @@ function createProductCard(p) {
   box.className = 'product-box reveal-on-scroll visible';
   box.dataset.productId = p.id;
   box.onclick = (e) => {
-    if (!e.target.closest('.btn-add-order') && !e.target.closest('select') && !e.target.closest('.card-photo-arrow')) openViewModal(p.id);
+    if (!e.target.closest('.btn-add-order') && !e.target.closest('select') && !e.target.closest('.card-photo-arrow') && !e.target.closest('.admin-quick-edit')) openViewModal(p.id);
   };
 
   const imgs = getProductImages(p);
@@ -1592,14 +1635,19 @@ function createProductCard(p) {
       <div class="badge-metal-type">${escapeStr(p.category || 'Pure Brass')}</div>
       ${multiPhotoBadge}
       <div class="size-counter-pill">${escapeStr(sizeBadgeCount)}</div>
+      <button type="button" class="admin-quick-edit admin-only" onclick="event.stopPropagation(); openEditModal('${p.id}')">✎ Edit</button>
     </div>
     <div class="product-details">
       <div class="sku-line">${escapeStr(getProductSku(p))}</div>
       <div class="product-name">${escapeStr(p.name)}</div>
+      <div class="product-meta-line">
+        ${p.moq ? `<span>MOQ: ${escapeStr(p.moq)}</span>` : ''}
+        ${p.stock ? `<span class="stock-chip">${escapeStr(p.stock)}</span>` : ''}
+      </div>
       ${sizeWeightDisplayHtml}
       <div class="product-action-row">
         <div class="price-tag">₹ ${escapeStr(p.price || '—')}</div>
-        <button class="btn-add-order" onclick="addToCart('${p.id}'); event.stopPropagation();">+ Enquiry</button>
+        <button class="btn-add-order" onclick="addCardToCart('${p.id}', event)">+ Enquiry</button>
       </div>
     </div>`;
   return box;
@@ -1756,29 +1804,54 @@ function updateCompanyHeader() {
   }
 }
 
-function addToCart(id) {
+function addToCart(id, selection = {}) {
   const p = products.find(x => x.id === id);
   if (!p) return;
-  const existing = cart.find(x => x.id === id);
+  const size = selection.size || p.size || 'Standard';
+  const weight = selection.weight || p.weight || '—';
+  const sku = p.sku || getProductSku(p);
+  const cartKey = `${p.id}__${size}__${weight}`;
+  const existing = cart.find(x => (x.cartKey || `${x.id}__${x.size || 'Standard'}__${x.weight || '—'}`) === cartKey);
   if (existing) {
     existing.qty++;
+    existing.cartKey = cartKey;
+    existing.sku = existing.sku || sku;
   } else {
     cart.push({
+      cartKey,
       id: p.id,
+      sku,
       name: p.name,
       category: p.category || 'Pure Brass',
-      size: p.size || 'Standard',
-      weight: p.weight || '—',
+      size,
+      weight,
+      moq: p.moq || '',
+      stock: p.stock || '',
       price: parseFloat((p.price || '').replace(/[^0-9.]/g, '')) || 0,
       qty: 1
     });
   }
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
   updateCartUI();
-  showToast('Added to order estimate');
+  showToast('Added to enquiry list');
 }
 
+window.addCardToCart = function(id, event) {
+  if (event) event.stopPropagation();
+  const card = event?.target?.closest('.product-box');
+  const select = card?.querySelector('.product-details select');
+  const selection = select ? { size: select.options[select.selectedIndex]?.text || 'Standard', weight: select.value || '—' } : {};
+  addToCart(id, selection);
+};
+
 function updateCartUI() {
+  // Normalize older saved carts from previous versions.
+  cart.forEach(item => {
+    item.sku = item.sku || getProductSku(products.find(p => p.id === item.id) || item);
+    item.size = item.size || 'Standard';
+    item.weight = item.weight || '—';
+    item.cartKey = item.cartKey || `${item.id}__${item.size}__${item.weight}`;
+  });
   const count = cart.reduce((sum, item) => sum + item.qty, 0);
   const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   
@@ -1795,28 +1868,30 @@ function updateCartUI() {
     list.innerHTML = cart.map(item => `
       <div class="drawer-item-card">
         <div class="drawer-item-info">
+          <span class="drawer-sku">${escapeStr(item.sku || '')}</span>
           <strong>${escapeStr(item.name)}</strong>
-          <span>₹ ${item.price} each</span>
+          <span class="drawer-variant">${escapeStr(item.size || 'Standard')} · ${escapeStr(item.weight || '—')}</span>
+          <span>₹ ${item.price} each${item.moq ? ` · MOQ ${escapeStr(item.moq)}` : ''}</span>
         </div>
         <div class="qty-counter-box">
-          <button onclick="changeCartQty('${item.id}', -1)">−</button>
+          <button onclick="changeCartQty('${escapeStr(item.cartKey)}', -1)">−</button>
           <input type="text" value="${item.qty}" readonly>
-          <button onclick="changeCartQty('${item.id}', 1)">+</button>
+          <button onclick="changeCartQty('${escapeStr(item.cartKey)}', 1)">+</button>
         </div>
       </div>
     `).join('');
   }
 
-  let waMsg = `*Order Estimate from ${company.name} Catalog:*\n\n`;
+  let waMsg = `*Enquiry from ${company.name} Catalog:*\n\n`;
   cart.forEach((it, idx) => {
-    waMsg += `${idx + 1}. *${it.name}* — Qty: ${it.qty} (₹${it.price * it.qty})\n`;
+    waMsg += `${idx + 1}. *${it.name}* (${it.sku || ''})\n   ${it.size || 'Standard'} · ${it.weight || '—'} · Qty: ${it.qty} · ₹${(it.price * it.qty).toLocaleString()}\n`;
   });
-  waMsg += `\n*Estimated Total: ₹ ${total.toLocaleString()}*\n\n_Note: Order confirmation is subject to physical stock availability. Handcrafted pieces may vary slightly from pictures._\nPlease confirm availability and prevailing rates.`;
+  waMsg += `\n*Estimated Total: ₹ ${total.toLocaleString()}*\n\n_Note: Final availability, weight and prevailing rates are subject to confirmation._\nPlease confirm availability and final quotation.`;
   document.getElementById('sendWhatsAppOrderBtn').href = `https://wa.me/${(company.phone || '919758444444').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waMsg)}`;
 }
 
-function changeCartQty(id, delta) {
-  const idx = cart.findIndex(x => x.id === id);
+function changeCartQty(cartKey, delta) {
+  const idx = cart.findIndex(x => (x.cartKey || `${x.id}__${x.size || 'Standard'}__${x.weight || '—'}`) === cartKey);
   if (idx === -1) return;
   cart[idx].qty += delta;
   if (cart[idx].qty <= 0) cart.splice(idx, 1);
@@ -1837,6 +1912,8 @@ function openViewModal(id) {
   document.getElementById('viewItemName').textContent = p.name;
   document.getElementById('viewItemCategory').textContent = `${p.catalog} · ${p.category || 'Pure Metal'}`;
   document.getElementById('viewItemPrice').textContent = p.price ? '₹ ' + p.price : 'On Request';
+  document.getElementById('viewItemSku').textContent = p.sku || getProductSku(p);
+  document.getElementById('viewItemTrade').textContent = [p.moq ? `MOQ: ${p.moq}` : '', p.stock || ''].filter(Boolean).join(' · ') || 'On confirmation';
   document.getElementById('viewItemNotes').textContent = p.notes || 'Master Moradabad craftsmanship.';
   
   const varBox = document.getElementById('viewVariantsContainer');
@@ -1875,12 +1952,15 @@ function openEditModal(id) {
   const isNew = !id;
   document.getElementById('editModalTitle').textContent = isNew ? 'Add New Product' : 'Edit Product Details';
   
-  const p = isNew ? { name: '', catalog: 'Akhand Deep & Diya', category: 'Pure Brass', price: '', size: '', weight: '', variants: [], images: [], notes: '' } : products.find(x => x.id === id);
+  const p = isNew ? { name: '', catalog: 'Akhand Deep & Diya', category: 'Pure Brass', price: '', sku: '', moq: '', stock: '', size: '', weight: '', variants: [], images: [], notes: '' } : products.find(x => x.id === id);
 
   document.getElementById('formName').value = p.name || '';
   document.getElementById('formCatalog').value = p.catalog || '';
   document.getElementById('formCategory').value = p.category || '';
   document.getElementById('formPrice').value = p.price || '';
+  document.getElementById('formSku').value = p.sku || (isNew ? '' : getProductSku(p));
+  document.getElementById('formMoq').value = p.moq || '';
+  document.getElementById('formStock').value = p.stock || '';
   document.getElementById('formNotes').value = p.notes || '';
 
   const vContainer = document.getElementById('sizeWeightRowsContainer');
@@ -2021,7 +2101,13 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   document.getElementById('modalAddToCartBtn').onclick = () => {
-    if (activeViewId) addToCart(activeViewId);
+    if (activeViewId) {
+      const select = document.getElementById('viewVariantSelect');
+      const selection = select && document.getElementById('viewVariantsContainer').style.display !== 'none'
+        ? { size: select.options[select.selectedIndex]?.text || 'Standard', weight: select.value || '—' }
+        : {};
+      addToCart(activeViewId, selection);
+    }
     document.getElementById('viewModalOverlay').classList.remove('show');
   };
 
@@ -2087,6 +2173,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const bar = document.getElementById('uploadProgressBar');
     status.style.display = 'block'; progress.style.display = 'block'; bar.style.width = '0%';
     let next = 0, done = 0, failed = 0;
+    const failedFiles = [];
+    const retryBtn = document.getElementById('retryFailedUploadsBtn');
+    retryBtn.style.display = 'none';
     const concurrency = Math.min(3, files.length);
 
     async function worker() {
@@ -2097,7 +2186,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const url = await uploadOneImage(files[index]);
           currentFormImages.push(url);
         } catch (err) {
-          failed++; console.error('Image upload failed:', err);
+          failed++; failedFiles.push(files[index]); console.error('Image upload failed:', err);
         } finally {
           done++;
           bar.style.width = `${Math.round(done / files.length * 100)}%`;
@@ -2108,7 +2197,12 @@ document.addEventListener('DOMContentLoaded', () => {
     await Promise.all(Array.from({ length: concurrency }, worker));
     renderFormPhotoChips();
     status.textContent = failed ? `⚠️ ${files.length - failed} uploaded, ${failed} failed.` : `✅ ${files.length} photo(s) uploaded.`;
-    setTimeout(() => { progress.style.display = 'none'; status.style.display = 'none'; }, 1400);
+    if (failedFiles.length) {
+      retryBtn.style.display = 'inline-flex';
+      retryBtn.onclick = async () => { retryBtn.style.display = 'none'; await runUploadQueue(failedFiles); };
+    } else {
+      setTimeout(() => { progress.style.display = 'none'; status.style.display = 'none'; }, 1400);
+    }
   }
 
   const uploader = document.getElementById('autoImageUploader');
@@ -2136,12 +2230,16 @@ document.addEventListener('DOMContentLoaded', () => {
       catalog: (document.getElementById('formCatalog').value || '').trim() || 'Akhand Deep & Diya',
       category: (document.getElementById('formCategory').value || '').trim() || 'Pure Brass',
       price: (document.getElementById('formPrice').value || '').trim(),
+      sku: (document.getElementById('formSku').value || '').trim(),
+      moq: (document.getElementById('formMoq').value || '').trim(),
+      stock: (document.getElementById('formStock').value || '').trim(),
       size: sizeStr,
       weight: weightStr,
       variants: collectedVariants,
       images: currentFormImages,
       notes: (document.getElementById('formNotes').value || '').trim()
     };
+    if (!itemData.sku) itemData.sku = getProductSku(itemData);
 
     // Existing legacy products keep their original Firebase key.
     // New products use their product id as their Firebase key.
@@ -2285,9 +2383,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <td style="padding: 10px 8px; text-align: center; color: #6b665c;">${idx + 1}</td>
           <td style="padding: 10px 8px;">
             <strong style="color: #541419; font-size: 12px; display: block;">${escapeStr(item.name)}</strong>
-            <span style="font-size: 9.5px; color: #875d27;">${escapeStr(item.category || 'Pure Metal')}</span>
+            <span style="font-size: 9.5px; color: #875d27;">${escapeStr(item.sku || '')} · ${escapeStr(item.category || 'Pure Metal')}</span>
           </td>
-          <td style="padding: 10px 8px; text-align: center; color: #4a463c;">${escapeStr(item.size || 'Standard')}</td>
+          <td style="padding: 10px 8px; text-align: center; color: #4a463c;">${escapeStr(item.size || 'Standard')}<br><span style="font-size:9px;color:#6b665c;">${escapeStr(item.weight || '—')}</span></td>
           <td style="padding: 10px 8px; text-align: center; font-weight: 700;">${item.qty}</td>
           <td style="padding: 10px 8px; text-align: right; color: #1f1e1a;">₹ ${item.price.toLocaleString()}</td>
           <td style="padding: 10px 8px; text-align: right; font-weight: 800; color: #541419;">₹ ${(item.price * item.qty).toLocaleString()}</td>
@@ -2422,6 +2520,9 @@ document.addEventListener('DOMContentLoaded', () => {
       "Category": p.catalog || "",
       "Metal": p.category || "",
       "Price": p.price || "",
+      "SKU": p.sku || getProductSku(p),
+      "MOQ": p.moq || "",
+      "Stock": p.stock || "",
       "Size": p.size || "",
       "Weight": p.weight || "",
       "Notes": p.notes || "",
@@ -2483,6 +2584,9 @@ document.addEventListener('DOMContentLoaded', () => {
               catalog: String(r.Category || r.category || 'Akhand Deep & Diya').trim(),
               category: String(r.Metal || r.metal || 'Pure Brass').trim(),
               price: String(r.Price || r.price || '').trim(),
+              sku: String(r.SKU || r.sku || '').trim(),
+              moq: String(r.MOQ || r.moq || '').trim(),
+              stock: String(r.Stock || r.stock || '').trim(),
               size: String(r.Size || r.size || '').trim(),
               weight: String(r.Weight || r.weight || '').trim(),
               notes: String(r.Notes || r.notes || '').trim(),
@@ -2545,32 +2649,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Admin mode now uses Firebase Authentication instead of a public hard-coded PIN.
   // Create the admin user in Firebase Console > Authentication > Users and enable Email/Password sign-in.
+  async function toggleAdminSession() {
+    if (auth.currentUser) {
+      if (confirm(`Signed in as ${auth.currentUser.email}. Sign out of Admin Mode?`)) {
+        await auth.signOut();
+        showToast('Visitor Mode Activated');
+      }
+      return;
+    }
+    const email = prompt('Admin email:');
+    if (!email) return;
+    const password = prompt('Admin password:');
+    if (!password) return;
+    try {
+      await auth.signInWithEmailAndPassword(email.trim(), password);
+      showToast('Admin Mode Activated');
+    } catch (err) {
+      console.error(err);
+      alert('Admin sign-in failed. Check Firebase Authentication setup and credentials.');
+    }
+  }
+
+  const adminStatusBtn = document.getElementById('adminStatusBtn');
+  if (adminStatusBtn) adminStatusBtn.onclick = toggleAdminSession;
+
   auth.onAuthStateChanged((user) => {
     document.body.classList.toggle('is-admin', !!user);
+    if (adminStatusBtn) {
+      adminStatusBtn.classList.toggle('admin-live', !!user);
+      adminStatusBtn.textContent = user ? `✓ Admin: ${user.email.split('@')[0]}` : '🔐 Admin';
+      adminStatusBtn.title = user ? `Signed in as ${user.email}. Click to sign out.` : 'Click to sign in as admin';
+    }
     if (user) console.info('Admin authenticated:', user.email);
+    renderCatalog();
   });
 
   window.addEventListener('keydown', async (e) => {
     if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
       e.preventDefault();
-      if (auth.currentUser) {
-        if (confirm(`Signed in as ${auth.currentUser.email}. Sign out of Admin Mode?`)) {
-          await auth.signOut();
-          showToast('Visitor Mode Activated');
-        }
-        return;
-      }
-      const email = prompt('Admin email:');
-      if (!email) return;
-      const password = prompt('Admin password:');
-      if (!password) return;
-      try {
-        await auth.signInWithEmailAndPassword(email.trim(), password);
-        showToast('Admin Mode Activated');
-      } catch (err) {
-        console.error(err);
-        alert('Admin sign-in failed. Check Firebase Authentication setup and credentials.');
-      }
+      await toggleAdminSession();
     }
   });
 });
