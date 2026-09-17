@@ -2543,7 +2543,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // v7 Excel Catalog Sync — one sheet per category, safe SKU-based upsert/delete.
+  // v9 Excel Catalog Sync — one sheet per category, safe SKU-based upsert/delete.
   function excelCell(row, ...names) {
     for (const name of names) {
       if (Object.prototype.hasOwnProperty.call(row, name) && row[name] !== undefined && row[name] !== null) return row[name];
@@ -2583,28 +2583,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }).filter(v => v.size || v.weight);
   }
 
-  function productToExcelRow(p) {
-    return {
-      'Action': '',
-      'SKU': p.sku || getProductSku(p),
-      'Name': p.name || '',
-      'Category': p.catalog || '',
-      'Metal': p.category || '',
-      'Price': p.price || '',
-      'MOQ': p.moq || '',
-      'Stock': p.stock || '',
-      'Size': p.size || '',
-      'Weight': p.weight || '',
-      'Variants (Size => Weight)': variantsToExcel(p.variants),
-      'Notes': p.notes || '',
-      'Images': Array.isArray(p.images) ? p.images.join(', ') : (p.image || '')
-    };
+  const EXCEL_CELL_SAFE_LIMIT = 30000; // Excel hard limit is 32,767 characters per cell.
+
+  function excelSafeText(value, limit = EXCEL_CELL_SAFE_LIMIT) {
+    const text = String(value ?? '');
+    return text.length <= limit ? text : text.slice(0, limit);
   }
 
+  function splitExcelText(value, maxParts = 3, limit = EXCEL_CELL_SAFE_LIMIT) {
+    const text = String(value ?? '');
+    const parts = [];
+    for (let i = 0; i < text.length && parts.length < maxParts; i += limit) {
+      parts.push(text.slice(i, i + limit));
+    }
+    while (parts.length < maxParts) parts.push('');
+    return { parts, truncated: text.length > maxParts * limit };
+  }
+
+  function packImageUrlsForExcel(p, maxParts = 10, limit = EXCEL_CELL_SAFE_LIMIT) {
+    const raw = Array.isArray(p.images) ? p.images : (p.image ? [p.image] : []);
+    // Never export data/blob/file URLs: they can be enormous, are not portable, and are a common cause of the 32,767-char Excel failure.
+    const urls = raw.map(x => String(x || '').trim()).filter(x => x && !/^(data:|blob:|file:)/i.test(x));
+    const cells = Array.from({length:maxParts}, () => '');
+    let part = 0;
+    let omitted = 0;
+    for (const url of urls) {
+      if (url.length > limit) { omitted++; continue; }
+      const addition = (cells[part] ? ', ' : '') + url;
+      if ((cells[part] + addition).length > limit) part++;
+      if (part >= maxParts) { omitted++; continue; }
+      cells[part] += (cells[part] ? ', ' : '') + url;
+    }
+    return { cells, omitted };
+  }
+
+  function productToExcelRow(p) {
+    const notes = splitExcelText(p.notes || '', 3);
+    const variants = splitExcelText(variantsToExcel(p.variants), 2);
+    const images = packImageUrlsForExcel(p, 10);
+    const warnings = [];
+    if (notes.truncated) warnings.push('Notes exceeded Excel export capacity and were truncated');
+    if (variants.truncated) warnings.push('Variants exceeded Excel export capacity and were truncated');
+    if (images.omitted) warnings.push(`${images.omitted} non-portable/oversized image value(s) omitted`);
+
+    const row = {
+      'Action': '',
+      'SKU': excelSafeText(p.sku || getProductSku(p)),
+      'Name': excelSafeText(p.name || ''),
+      'Category': excelSafeText(p.catalog || ''),
+      'Metal': excelSafeText(p.category || ''),
+      'Price': excelSafeText(p.price || ''),
+      'MOQ': excelSafeText(p.moq || ''),
+      'Stock': excelSafeText(p.stock || ''),
+      'Size': excelSafeText(p.size || ''),
+      'Weight': excelSafeText(p.weight || ''),
+      'Variants (Size => Weight)': variants.parts[0],
+      'Variants 2': variants.parts[1],
+      'Notes': notes.parts[0],
+      'Notes 2': notes.parts[1],
+      'Notes 3': notes.parts[2],
+      'Images': images.cells[0],
+      'Export Warning': warnings.join('; ')
+    };
+    for (let i = 1; i < images.cells.length; i++) row[`Images ${i + 1}`] = images.cells[i];
+    return row;
+  }
+
+  const EXCEL_EXPORT_HEADERS = [
+    'Action','SKU','Name','Category','Metal','Price','MOQ','Stock','Size','Weight',
+    'Variants (Size => Weight)','Variants 2','Notes','Notes 2','Notes 3',
+    'Images','Images 2','Images 3','Images 4','Images 5','Images 6','Images 7','Images 8','Images 9','Images 10','Export Warning'
+  ];
+
   function styleExcelSheet(ws, rows) {
-    const widths = [10,18,32,26,20,12,14,18,18,18,34,45,55];
+    const widths = [10,18,32,26,20,12,14,18,18,18,34,34,45,45,45,55,55,55,55,55,55,55,55,55,55,38];
     ws['!cols'] = widths.map(wch => ({ wch }));
-    if (rows && rows.length) ws['!autofilter'] = { ref: `A1:M${rows.length + 1}` };
+    if (rows && rows.length) ws['!autofilter'] = { ref: `A1:Z${rows.length + 1}` };
     ws['!freeze'] = { xSplit: 0, ySplit: 1 };
   }
 
@@ -2617,7 +2671,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ['Move category', 'Change the Category cell. Sheet name is for organization only.'],
       ['Delete product', 'Type DELETE in the Action cell. The importer asks for confirmation before deletion.'],
       ['Missing row', 'Does NOT delete the product. Only Action=DELETE deletes.'],
-      ['Images', 'Comma-separated URLs. Blank Images on an existing product keeps its current images. Use [CLEAR] to remove all images.'],
+      ['Images', 'Image URLs may span Images through Images 10 to stay within Excel cell limits. Blank all image columns on an existing product to preserve current images. Use [CLEAR] in Images to remove all images.'],
       ['Variants', 'Format: 6 Inch => 350 gm | 8 Inch => 500 gm'],
       ['SKU', 'SKU is the matching key. Do not change an existing SKU unless you intend to create a new product.']
     ];
@@ -2648,9 +2702,9 @@ document.addEventListener('DOMContentLoaded', () => {
       addWorkbookGuide(wb);
       const rows = [{
         'Action':'', 'SKU':'', 'Name':'New Product Name', 'Category':'Akhand Deep & Diya', 'Metal':'Pure Brass',
-        'Price':'', 'MOQ':'', 'Stock':'Ready Stock', 'Size':'', 'Weight':'', 'Variants (Size => Weight)':'', 'Notes':'', 'Images':''
+        'Price':'', 'MOQ':'', 'Stock':'Ready Stock', 'Size':'', 'Weight':'', 'Variants (Size => Weight)':'', 'Variants 2':'', 'Notes':'', 'Notes 2':'', 'Notes 3':'', 'Images':'', 'Images 2':'', 'Images 3':'', 'Images 4':'', 'Images 5':'', 'Images 6':'', 'Images 7':'', 'Images 8':'', 'Images 9':'', 'Images 10':'', 'Export Warning':''
       }];
-      const ws = XLSX.utils.json_to_sheet(rows);
+      const ws = XLSX.utils.json_to_sheet(rows, { header: EXCEL_EXPORT_HEADERS });
       styleExcelSheet(ws, rows);
       XLSX.utils.book_append_sheet(wb, ws, 'New Products');
       downloadWorkbookSafe(wb, 'Delight_Catalog_Editor_Template.xlsx');
@@ -2691,7 +2745,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .sort((a,b)=>String(a.name || '').localeCompare(String(b.name || '')))
           .map(productToExcelRow);
         const ws = XLSX.utils.json_to_sheet(rows, {
-          header: ['Action','SKU','Name','Category','Metal','Price','MOQ','Stock','Size','Weight','Variants (Size => Weight)','Notes','Images']
+          header: EXCEL_EXPORT_HEADERS
         });
         styleExcelSheet(ws, rows);
         XLSX.utils.book_append_sheet(wb, ws, safeSheetName(cat, used));
@@ -2773,16 +2827,29 @@ document.addEventListener('DOMContentLoaded', () => {
           const id = existing ? existing.id : `dmw_${Date.now()}_${sequence}_${Math.random().toString(36).slice(2,6)}`;
           const category = String(excelCell(row, 'Category') || (existing && existing.catalog) || (sheetName === 'New Products' ? 'Uncategorized' : sheetName)).trim();
           const metal = String(excelCell(row, 'Metal', 'Material') || (existing && existing.category) || 'Pure Brass').trim();
-          const rawImages = String(excelCell(row, 'Images', 'Image') || '').trim();
+          const imageParts = [];
+          for (let i = 1; i <= 10; i++) {
+            const key = i === 1 ? 'Images' : `Images ${i}`;
+            const val = String(excelCell(row, key, i === 1 ? 'Image' : `Image ${i}`) || '').trim();
+            if (val) imageParts.push(val);
+          }
+          const rawImages = imageParts.join(', ').trim();
           let images;
-          if (existing && rawImages === '') images = getProductImages(existing).filter(x => !String(x).startsWith('data:image/svg+xml'));
+          if (existing && rawImages === '') images = getProductImages(existing).filter(x => !/^(data:image\/svg\+xml|blob:|file:)/i.test(String(x)));
           else if (/^\[clear\]$/i.test(rawImages)) images = [];
           else images = rawImages.split(',').map(x=>x.trim()).filter(Boolean);
 
-          let variants = variantsFromExcel(excelCell(row, 'Variants (Size => Weight)', 'Variants'));
+          const rawVariants = [
+            excelCell(row, 'Variants (Size => Weight)', 'Variants'),
+            excelCell(row, 'Variants 2')
+          ].map(x => String(x || '')).join('');
+          let variants = variantsFromExcel(rawVariants);
           const size = String(excelCell(row, 'Size') || '').trim();
           const weight = String(excelCell(row, 'Weight') || '').trim();
-          if (!variants.length && existing && String(excelCell(row, 'Variants (Size => Weight)', 'Variants') || '').trim() === '') variants = Array.isArray(existing.variants) ? existing.variants : [];
+          if (!variants.length && existing && rawVariants.trim() === '') variants = Array.isArray(existing.variants) ? existing.variants : [];
+
+          const rawNotes = [excelCell(row, 'Notes', 'Specifications'), excelCell(row, 'Notes 2'), excelCell(row, 'Notes 3')]
+            .map(x => String(x || '')).join('');
           const item = {
             id,
             name,
@@ -2795,7 +2862,7 @@ document.addEventListener('DOMContentLoaded', () => {
             size: size || (variants.length ? variants.map(v=>v.size).filter(Boolean).join(', ') : ''),
             weight: weight || (variants.length ? variants.map(v=>v.weight).filter(Boolean).join(', ') : ''),
             variants,
-            notes: String(excelCell(row, 'Notes', 'Specifications') || '').trim(),
+            notes: rawNotes.trim() || (existing ? String(existing.notes || '') : ''),
             images
           };
           if (!item.sku) item.sku = getProductSku(item);
