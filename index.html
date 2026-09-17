@@ -1381,6 +1381,9 @@ let displayedItemCount = 12;
 let infiniteScrollObserver = null;
 let firebaseCatalogReady = false;
 let firebaseCatalogLoadFailed = false;
+// Maps each product's logical id to its existing Firebase child key.
+// This lets us update/delete one product without rewriting the entire catalog.
+const productStorageKeys = new Map();
 
 // Render the shell immediately. Products appear after the authoritative Firebase catalog loads.
 renderCatalog();
@@ -1391,7 +1394,20 @@ db.ref('catalog').on('value', (snapshot) => {
   if (data) {
     let cloudProducts = data.products || [];
     if (typeof cloudProducts === 'string') { try { cloudProducts = JSON.parse(cloudProducts); } catch(e) { cloudProducts = []; } }
-    products = Array.isArray(cloudProducts) ? cloudProducts : Object.values(cloudProducts || {});
+
+    // Preserve the exact Firebase child key for every existing product.
+    // Old catalogs may use numeric array keys; newer items use their product id as the key.
+    productStorageKeys.clear();
+    const productsSnap = snapshot.child('products');
+    const cloudList = [];
+    productsSnap.forEach(childSnap => {
+      const item = childSnap.val();
+      if (item && typeof item === 'object') {
+        cloudList.push(item);
+        if (item.id) productStorageKeys.set(String(item.id), childSnap.key);
+      }
+    });
+    products = cloudList.length ? cloudList : (Array.isArray(cloudProducts) ? cloudProducts.filter(Boolean) : Object.values(cloudProducts || {}).filter(Boolean));
     customCategories = data.categories || DEFAULT_MAIN_CATS;
     customMetals = data.metals || DEFAULT_METALS;
     company = { ...COMPANY_INFO, ...(data.company || {}) };
@@ -2014,13 +2030,23 @@ document.addEventListener('DOMContentLoaded', () => {
     openEditModal(activeViewId);
   };
 
-  document.getElementById('modalDeleteBtn').onclick = () => {
+  document.getElementById('modalDeleteBtn').onclick = async () => {
     if (!requireCloudCatalogReady()) return;
-    if (confirm('Delete this product from the catalog?')) {
-      products = products.filter(x => x.id !== activeViewId);
-      db.ref('catalog/products').set(products);
+    if (!activeViewId || !confirm('Delete this product from the catalog?')) return;
+
+    const storageKey = productStorageKeys.get(String(activeViewId));
+    if (!storageKey) {
+      alert('Could not locate this product in the cloud database. Nothing was deleted. Please reload and try again.');
+      return;
+    }
+
+    try {
+      await db.ref(`catalog/products/${storageKey}`).remove();
       document.getElementById('viewModalOverlay').classList.remove('show');
       showToast('Product deleted');
+    } catch (err) {
+      console.error('Product delete failed:', err);
+      alert('Delete failed. Your catalog was not changed. Please check your admin login and connection.');
     }
   };
 
@@ -2092,7 +2118,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ['dragleave','drop'].forEach(type => dropZone.addEventListener(type, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
   dropZone.addEventListener('drop', e => runUploadQueue(e.dataTransfer.files));
 
-  document.getElementById('formSaveBtn').onclick = () => {
+  document.getElementById('formSaveBtn').onclick = async () => {
     if (!requireCloudCatalogReady()) return;
     const name = document.getElementById('formName').value.trim();
     if (!name) { alert('Please enter product name'); return; }
@@ -2117,16 +2143,33 @@ document.addEventListener('DOMContentLoaded', () => {
       notes: (document.getElementById('formNotes').value || '').trim()
     };
 
-    if (activeEditId) {
-      const idx = products.findIndex(x => x.id === activeEditId);
-      if (idx !== -1) products[idx] = itemData;
-    } else {
-      products.unshift(itemData);
+    // Existing legacy products keep their original Firebase key.
+    // New products use their product id as their Firebase key.
+    const storageKey = activeEditId
+      ? productStorageKeys.get(String(activeEditId))
+      : itemData.id;
+
+    if (activeEditId && !storageKey) {
+      alert('Could not locate this product in the cloud database. Nothing was saved. Please reload and try again.');
+      return;
     }
 
-    db.ref('catalog/products').set(products);
-    document.getElementById('editModalOverlay').classList.remove('show');
-    showToast('Product saved successfully');
+    const saveBtn = document.getElementById('formSaveBtn');
+    saveBtn.disabled = true;
+    const oldLabel = saveBtn.textContent;
+    saveBtn.textContent = 'Saving…';
+
+    try {
+      await db.ref(`catalog/products/${storageKey}`).set(itemData);
+      document.getElementById('editModalOverlay').classList.remove('show');
+      showToast(activeEditId ? 'Product updated successfully' : 'Product added successfully');
+    } catch (err) {
+      console.error('Product save failed:', err);
+      alert('Save failed. Your existing catalog was not overwritten. Please check your admin login and connection.');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = oldLabel;
+    }
   };
 
   document.getElementById('settingsSaveBtn').onclick = () => {
@@ -2420,15 +2463,22 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
+        if (!requireCloudCatalogReady()) {
+          status.textContent = 'Cloud catalog is not ready. Import cancelled to protect existing data.';
+          return;
+        }
+
         let importedCount = 0;
-        rows.forEach(r => {
+        const updates = {};
+        rows.forEach((r, rowIndex) => {
           const name = r.Name || r.name || r['Product Name'];
           if (name) {
             const rawImgs = r.Images || r.images || r.Image || r.image || '';
             const imgArray = typeof rawImgs === 'string' ? rawImgs.split(',').map(s => s.trim()).filter(Boolean) : [];
+            const id = 'dmw_' + Date.now() + '_' + rowIndex + '_' + Math.random().toString(36).substring(2, 6);
 
             const newItem = {
-              id: 'dmw_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+              id,
               name: String(name).trim(),
               catalog: String(r.Category || r.category || 'Akhand Deep & Diya').trim(),
               category: String(r.Metal || r.metal || 'Pure Brass').trim(),
@@ -2439,20 +2489,27 @@ document.addEventListener('DOMContentLoaded', () => {
               images: imgArray,
               variants: []
             };
-            products.unshift(newItem);
+            updates[id] = newItem;
             importedCount++;
           }
         });
 
-        db.ref('catalog/products').set(products);
-        // Firebase is authoritative; avoid duplicating the full catalog in localStorage.
-        renderCatalog();
+        if (!importedCount) {
+          status.textContent = 'No valid product rows found.';
+          return;
+        }
 
-        status.textContent = `✅ Successfully imported and synced ${importedCount} items!`;
-        setTimeout(() => {
-          document.getElementById('excelModalOverlay').classList.remove('show');
-          showToast(`Imported ${importedCount} items successfully!`);
-        }, 1200);
+        status.textContent = `Uploading ${importedCount} products safely...`;
+        db.ref('catalog/products').update(updates).then(() => {
+          status.textContent = `✅ Successfully imported and synced ${importedCount} items!`;
+          setTimeout(() => {
+            document.getElementById('excelModalOverlay').classList.remove('show');
+            showToast(`Imported ${importedCount} items successfully!`);
+          }, 1200);
+        }).catch(err => {
+          console.error('Excel cloud import failed:', err);
+          status.textContent = 'Cloud upload failed. Existing catalog was not overwritten.';
+        });
 
       } catch (err) {
         console.error("Excel import error:", err);
