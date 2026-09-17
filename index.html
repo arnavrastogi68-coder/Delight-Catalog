@@ -3,6 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
+  <!-- Performance & Admin Security Upgrade v2 — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Handcrafted Brass, Pure Copper, and Authentic Kansa Bronze Metalware from Moradabad.">
@@ -432,7 +433,7 @@
       transition: border-color 0.15s ease;
       cursor: pointer;
       position: relative;
-      content-visibility: auto;
+      content-visibility: auto; /* Browser-native performance boost for large lists */
     }
     .product-box:hover {
       border-color: var(--gold-light);
@@ -880,6 +881,16 @@
       .modal-card { max-height: 95vh; }
     }
 
+    /* v2 performance + UX upgrades */
+    .sku-line { font-size: 10px; font-weight: 700; letter-spacing: .7px; color: var(--ink-muted); text-transform: uppercase; }
+    .upload-drop-zone { border: 1.5px dashed var(--gold-light); background: var(--cream); border-radius: 8px; padding: 10px; transition: .15s ease; }
+    .upload-drop-zone.dragover { border-color: var(--maroon); background: #fff8ee; }
+    .upload-progress { height: 5px; background: #eadfce; border-radius: 999px; overflow: hidden; margin-top: 6px; display:none; }
+    .upload-progress > span { display:block; height:100%; width:0%; background: linear-gradient(90deg,var(--gold),var(--maroon)); transition: width .2s ease; }
+    .product-box { contain-intrinsic-size: 360px; }
+    .product-thumb img { transition: opacity .15s ease; }
+    .admin-session-pill { font-size:10px; color:var(--gold-dark); font-weight:700; }
+
     @media print {
       .notice-top-bar, header.master-header, .story-hero, .filter-section, .category-nav-bar, .btn-add-order, .order-drawer-overlay, .cart-trigger-btn, .floating-action-bar, .mobile-bottom-bar {
         display: none !important;
@@ -1094,7 +1105,7 @@
   </div>
 </div>
 
-<!-- Edit / Add Product Modal with Automated Client-Side Compressed ImgBB Uploader -->
+<!-- Edit / Add Product Modal with Automated ImgBB Uploader -->
 <div class="modal-overlay" id="editModalOverlay">
   <div class="modal-card">
     <div class="modal-head">
@@ -1141,10 +1152,12 @@
 
       <div class="form-row">
         <div class="form-group" style="flex:1 1 100%;">
-          <label>Upload Product Images (Compressed & Optimized Automatically)</label>
-          <input accept="image/*" id="autoImageUploader" type="file" multiple style="font-size:12px; background:var(--cream-soft); cursor:pointer; padding:8px;">
-          <div id="uploadStatusText" style="display:none; font-size:11px; font-weight:700; color:var(--maroon); margin-top:4px;">
-            ⏳ Optimizing and uploading photo(s)...
+          <label>Upload Product Images (Instant Cloud Sync)</label>
+          <div class="upload-drop-zone" id="imageDropZone">
+            <input accept="image/*" id="autoImageUploader" type="file" multiple style="width:100%; font-size:12px; background:transparent; cursor:pointer; padding:6px;">
+            <div style="font-size:10.5px;color:var(--ink-muted);margin-top:3px;">Large photos are automatically resized and compressed before upload. You can also drag & drop images here.</div>
+            <div id="uploadStatusText" style="display:none; font-size:11px; font-weight:700; color:var(--maroon); margin-top:6px;">Optimizing images…</div>
+            <div class="upload-progress" id="uploadProgress"><span id="uploadProgressBar"></span></div>
           </div>
           <div class="form-photos-preview-container" id="formPhotosPreviewContainer"></div>
         </div>
@@ -1305,11 +1318,15 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth-compat.js"></script>
 
 <script>
 const CART_STORAGE_KEY = 'house_of_delight_cart_master';
 const CATALOG_STORAGE_KEY = 'house_of_delight_catalog_master';
 const COMPANY_STORAGE_KEY = 'house_of_delight_company_master';
+
+// v4 cleanup: remove any oversized legacy catalog cache left by older versions.
+try { localStorage.removeItem(CATALOG_STORAGE_KEY); } catch(e) { console.warn('Legacy catalog cache cleanup skipped:', e); }
 
 const firebaseConfig = {
   apiKey: "AIzaSyCzErups0XvZZ-UpO9JZmAMeknKJ22KKGk",
@@ -1323,6 +1340,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const auth = firebase.auth();
 
 // ImgBB Cloud API Key
 const IMGBB_API_KEY = "f5af191426860af404ed72f0437aaccf";
@@ -1348,42 +1366,62 @@ var INITIAL_PRODUCTS = [
 const DEFAULT_MAIN_CATS = ["Akhand Deep & Diya", "Aarti & Panchaarti", "Thali & Dinner Sets", "Sacred Pots & Kalash", "Platters & Thals", "Cookware & Kitchen", "Musalmani Items", "Matki", "Katori & Katora & Bowls", "Glassware", "Planter"];
 const DEFAULT_METALS = ["Pure Brass", "Pure Copper", "Kansa Bronze", "Two-Tone Steel", "Kalai Lined", "Heavy Brass", "Stainless Steel", "Copper Steel"];
 
-// Instant Pre-Render from Local Memory (First Paint)
-let products = JSON.parse(localStorage.getItem(CATALOG_STORAGE_KEY)) || INITIAL_PRODUCTS;
-let company = JSON.parse(localStorage.getItem(COMPANY_STORAGE_KEY)) || COMPANY_INFO;
+// Safe startup: the cloud catalog is the source of truth.
+// Do NOT cache the full product catalog in localStorage; large catalogs can exceed the browser quota.
+let products = [];
+let company = (() => { try { return JSON.parse(localStorage.getItem(COMPANY_STORAGE_KEY) || 'null') || COMPANY_INFO; } catch(e) { return COMPANY_INFO; } })();
 let customCategories = DEFAULT_MAIN_CATS;
 let customMetals = DEFAULT_METALS;
 let currentFilter = { catalog: '', metal: '', search: '', sort: 'name' };
-let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
+let cart = (() => { try { return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]'); } catch(e) { return []; } })();
 
 // Ultra-Lightweight Rendering State (Loads only 12 items initially for instantaneous speed)
 let itemsPerPage = 12;
 let displayedItemCount = 12;
 let infiniteScrollObserver = null;
+let firebaseCatalogReady = false;
+let firebaseCatalogLoadFailed = false;
 
-// Render instantly from local cache
+// Render the shell immediately. Products appear after the authoritative Firebase catalog loads.
 renderCatalog();
 
-// Real-Time Background Firebase Sync
+// Real-Time Background Firebase Sync. IMPORTANT: writes stay disabled until this completes.
 db.ref('catalog').on('value', (snapshot) => {
   const data = snapshot.val();
   if (data) {
-    let p = data.products || [];
-    if (typeof p === 'string') { try { p = JSON.parse(p); } catch(e) {} }
-    products = Array.isArray(p) ? p : Object.values(p);
+    let cloudProducts = data.products || [];
+    if (typeof cloudProducts === 'string') { try { cloudProducts = JSON.parse(cloudProducts); } catch(e) { cloudProducts = []; } }
+    products = Array.isArray(cloudProducts) ? cloudProducts : Object.values(cloudProducts || {});
     customCategories = data.categories || DEFAULT_MAIN_CATS;
     customMetals = data.metals || DEFAULT_METALS;
     company = { ...COMPANY_INFO, ...(data.company || {}) };
 
-    localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(products));
-    localStorage.setItem(COMPANY_STORAGE_KEY, JSON.stringify(company));
+    // Cache only small company settings. Never cache the full catalog here.
+    try { localStorage.setItem(COMPANY_STORAGE_KEY, JSON.stringify(company)); } catch(e) { console.warn('Company cache skipped:', e); }
+  } else {
+    products = [];
   }
+  firebaseCatalogReady = true;
+  firebaseCatalogLoadFailed = false;
+  displayedItemCount = Math.min(Math.max(itemsPerPage, displayedItemCount), Math.max(products.length, itemsPerPage));
   renderCatalog();
   renderManageLists();
+  showToast(`Cloud catalog synced: ${products.length} products`);
+}, (error) => {
+  firebaseCatalogLoadFailed = true;
+  console.error('Firebase catalog load failed:', error);
+  showToast('Cloud catalog could not be loaded. Editing is disabled to protect your data.');
 });
 
-function saveCategories() { db.ref('catalog/categories').set(customCategories); }
-function saveMetals() { db.ref('catalog/metals').set(customMetals); }
+function requireCloudCatalogReady() {
+  if (!firebaseCatalogReady || firebaseCatalogLoadFailed) {
+    alert('The full cloud catalog has not loaded yet. Editing is disabled to protect your existing products. Please check your connection and reload.');
+    return false;
+  }
+  return true;
+}
+function saveCategories() { if (requireCloudCatalogReady()) db.ref('catalog/categories').set(customCategories); }
+function saveMetals() { if (requireCloudCatalogReady()) db.ref('catalog/metals').set(customMetals); }
 
 // On-Demand PDF Engine Loader (Zero Render-Blocking)
 function loadPdfEngine(callback) {
@@ -1491,109 +1529,124 @@ function toggleDealerCustomizer() {
   }
 }
 
-function renderCatalog() {
-  updateCompanyHeader();
-  renderCategoryPills();
-  updateCartUI();
+function getProductSku(p) {
+  if (p.sku) return p.sku;
+  const cat = (p.catalog || 'GEN').replace(/[^a-z0-9 ]/gi, ' ').trim().split(/\s+/).slice(0,2).map(x => x[0] || '').join('').toUpperCase() || 'GEN';
+  const tail = String(p.id || '').replace(/[^a-z0-9]/gi, '').slice(-5).toUpperCase() || '00001';
+  return `DMW-${cat}-${tail}`;
+}
+
+function createProductCard(p) {
+  const box = document.createElement('div');
+  box.className = 'product-box reveal-on-scroll visible';
+  box.dataset.productId = p.id;
+  box.onclick = (e) => {
+    if (!e.target.closest('.btn-add-order') && !e.target.closest('select') && !e.target.closest('.card-photo-arrow')) openViewModal(p.id);
+  };
+
+  const imgs = getProductImages(p);
+  const fallbackImg = getFallbackSvg(p.category, p.name);
+  const primaryImg = imgs[0] || fallbackImg;
+  const hasMultiplePhotos = imgs.length > 1;
+  const multiPhotoBadge = hasMultiplePhotos ? `<div class="multi-photo-pill">📷 ${imgs.length}</div>` : '';
+  const photoArrowsHtml = hasMultiplePhotos ? `
+    <button type="button" class="card-photo-arrow prev" onclick="navigateCardPhoto('${p.id}', -1, event)">❮</button>
+    <button type="button" class="card-photo-arrow next" onclick="navigateCardPhoto('${p.id}', 1, event)">❯</button>
+  ` : '';
+
+  const hasVariants = p.variants && p.variants.length > 0;
+  const sizeBadgeCount = hasVariants ? `${p.variants.length} Sizes` : (p.size ? p.size.split(' ')[0] : 'Std');
+  let sizeWeightDisplayHtml = '';
+  if (hasVariants) {
+    sizeWeightDisplayHtml = `
+      <div style="margin: 4px 0;" onclick="event.stopPropagation();">
+        <select class="custom-select" style="width:100%;padding:4px 8px;font-size:11.5px;border-color:var(--border-line);" onchange="updateCardVariantWeight(this)">
+          ${p.variants.map(v => `<option value="${escapeStr(v.weight)}">${escapeStr(v.size)}</option>`).join('')}
+        </select>
+        <div class="product-spec-line card-variant-weight-text" style="margin-top:3px;font-weight:600;color:var(--gold-dark);">Weight: <span>${escapeStr(p.variants[0].weight || 'Standard')}</span></div>
+      </div>`;
+  } else {
+    sizeWeightDisplayHtml = `<div class="product-spec-line">${escapeStr(p.size || 'Standard Size')} · ${escapeStr(p.weight || 'Pure Metal')}</div>`;
+  }
+
+  box.innerHTML = `
+    <div class="product-thumb">
+      <img src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='${fallbackImg}';">
+      ${photoArrowsHtml}
+      <div class="badge-metal-type">${escapeStr(p.category || 'Pure Brass')}</div>
+      ${multiPhotoBadge}
+      <div class="size-counter-pill">${escapeStr(sizeBadgeCount)}</div>
+    </div>
+    <div class="product-details">
+      <div class="sku-line">${escapeStr(getProductSku(p))}</div>
+      <div class="product-name">${escapeStr(p.name)}</div>
+      ${sizeWeightDisplayHtml}
+      <div class="product-action-row">
+        <div class="price-tag">₹ ${escapeStr(p.price || '—')}</div>
+        <button class="btn-add-order" onclick="addToCart('${p.id}'); event.stopPropagation();">+ Enquiry</button>
+      </div>
+    </div>`;
+  return box;
+}
+
+function renderCatalog(options = {}) {
+  const append = !!options.append;
+  if (!append) {
+    updateCompanyHeader();
+    renderCategoryPills();
+    updateCartUI();
+  }
 
   const grid = document.getElementById('productsGrid');
   const empty = document.getElementById('emptyNotice');
   if (!grid) return;
 
   const allFilteredItems = getFilteredProducts();
-  const paginatedItems = allFilteredItems.slice(0, displayedItemCount);
+  const startAt = append ? grid.querySelectorAll('.product-box').length : 0;
+  const endAt = Math.min(displayedItemCount, allFilteredItems.length);
+  const chunk = allFilteredItems.slice(startAt, endAt);
 
-  let headingText = currentFilter.catalog || 'All Collections';
-  if (currentFilter.metal) headingText += ` • ${currentFilter.metal}`;
-  document.getElementById('currentCategoryHeading').textContent = headingText;
-  document.getElementById('productCounterLabel').textContent = `${allFilteredItems.length} items total`;
-  
-  grid.innerHTML = '';
-  empty.style.display = allFilteredItems.length ? 'none' : 'block';
+  if (!append) {
+    let headingText = currentFilter.catalog || 'All Collections';
+    if (currentFilter.metal) headingText += ` • ${currentFilter.metal}`;
+    document.getElementById('currentCategoryHeading').textContent = headingText;
+    document.getElementById('productCounterLabel').textContent = `Showing ${Math.min(displayedItemCount, allFilteredItems.length)} of ${allFilteredItems.length} items`;
+    grid.innerHTML = '';
+    empty.style.display = allFilteredItems.length ? 'none' : 'block';
+  }
 
-  paginatedItems.forEach(p => {
-    const box = document.createElement('div');
-    box.className = 'product-box reveal-on-scroll visible';
-    box.onclick = (e) => {
-      if (!e.target.closest('.btn-add-order') && !e.target.closest('select') && !e.target.closest('.card-photo-arrow')) openViewModal(p.id);
-    };
+  const frag = document.createDocumentFragment();
+  chunk.forEach(p => frag.appendChild(createProductCard(p)));
+  grid.appendChild(frag);
 
-    const imgs = getProductImages(p);
-    const fallbackImg = getFallbackSvg(p.category, p.name);
-    const primaryImg = imgs[0] || fallbackImg;
-    const hasMultiplePhotos = imgs.length > 1;
-    const multiPhotoBadge = hasMultiplePhotos ? `<div class="multi-photo-pill">📷 ${imgs.length}</div>` : '';
-
-    const photoArrowsHtml = hasMultiplePhotos ? `
-      <button type="button" class="card-photo-arrow prev" onclick="navigateCardPhoto('${p.id}', -1, event)">❮</button>
-      <button type="button" class="card-photo-arrow next" onclick="navigateCardPhoto('${p.id}', 1, event)">❯</button>
-    ` : '';
-
-    const hasVariants = p.variants && p.variants.length > 0;
-    const sizeBadgeCount = hasVariants ? `${p.variants.length} Sizes` : (p.size ? p.size.split(' ')[0] : 'Std');
-
-    let sizeWeightDisplayHtml = '';
-    if (hasVariants) {
-      sizeWeightDisplayHtml = `
-        <div style="margin: 4px 0;" onclick="event.stopPropagation();">
-          <select class="custom-select" style="width: 100%; padding: 4px 8px; font-size: 11.5px; border-color: var(--border-line);" onchange="updateCardVariantWeight(this)">
-            ${p.variants.map(v => `<option value="${escapeStr(v.weight)}">${escapeStr(v.size)}</option>`).join('')}
-          </select>
-          <div class="product-spec-line card-variant-weight-text" style="margin-top: 3px; font-weight: 600; color: var(--gold-dark);">
-            Weight: <span>${escapeStr(p.variants[0].weight || 'Standard')}</span>
-          </div>
-        </div>
-      `;
-    } else {
-      sizeWeightDisplayHtml = `
-        <div class="product-spec-line">${escapeStr(p.size || 'Standard Size')} · ${escapeStr(p.weight || 'Pure Metal')}</div>
-      `;
-    }
-
-    box.innerHTML = `
-      <div class="product-thumb">
-        <img src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="lazy" decoding="async" onerror="this.src='${fallbackImg}';">
-        ${photoArrowsHtml}
-        <div class="badge-metal-type">${escapeStr(p.category || 'Pure Brass')}</div>
-        ${multiPhotoBadge}
-        <div class="size-counter-pill">${escapeStr(sizeBadgeCount)}</div>
-      </div>
-      <div class="product-details">
-        <div class="product-name">${escapeStr(p.name)}</div>
-        ${sizeWeightDisplayHtml}
-        <div class="product-action-row">
-          <div class="price-tag">₹ ${escapeStr(p.price || '—')}</div>
-          <button class="btn-add-order" onclick="addToCart('${p.id}'); event.stopPropagation();">+ Add</button>
-        </div>
-      </div>
-    `;
-    grid.appendChild(box);
-  });
-
-  // Setup Optimized Infinite Scroll Sensor
   let sentinel = document.getElementById('infiniteScrollSentinel');
   if (!sentinel) {
     sentinel = document.createElement('div');
     sentinel.id = 'infiniteScrollSentinel';
-    sentinel.style.cssText = 'height: 40px; width: 100%; grid-column: 1 / -1; text-align: center; padding: 10px; font-size: 11.5px; color: var(--ink-muted);';
+    sentinel.style.cssText = 'height:40px;width:100%;text-align:center;padding:10px;font-size:11.5px;color:var(--ink-muted);';
     grid.after(sentinel);
   }
-
   if (infiniteScrollObserver) infiniteScrollObserver.disconnect();
 
-  if (paginatedItems.length < allFilteredItems.length) {
-    sentinel.textContent = `Loading more products (${allFilteredItems.length - paginatedItems.length} remaining)...`;
+  const counter = document.getElementById('productCounterLabel');
+  if (counter) counter.textContent = `Showing ${Math.min(endAt, allFilteredItems.length)} of ${allFilteredItems.length} items`;
+
+  if (endAt < allFilteredItems.length) {
+    const remaining = allFilteredItems.length - endAt;
+    sentinel.innerHTML = `<button type="button" class="btn-outline" style="margin:auto;">Load more products (${remaining} remaining)</button>`;
+    const loadMore = () => {
+      if (infiniteScrollObserver) infiniteScrollObserver.disconnect();
+      displayedItemCount = Math.min(displayedItemCount + itemsPerPage, allFilteredItems.length);
+      renderCatalog({ append: true });
+    };
+    const btn = sentinel.querySelector('button');
+    if (btn) btn.onclick = loadMore;
     infiniteScrollObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          displayedItemCount += itemsPerPage;
-          renderCatalog();
-        }
-      });
-    }, { rootMargin: '300px' });
+      if (entries.some(entry => entry.isIntersecting)) loadMore();
+    }, { rootMargin: '350px' });
     infiniteScrollObserver.observe(sentinel);
   } else {
-    sentinel.textContent = allFilteredItems.length > 0 ? '✨ All products loaded.' : '';
+    sentinel.textContent = allFilteredItems.length ? `✓ All ${allFilteredItems.length} products loaded.` : '';
   }
 }
 
@@ -1890,69 +1943,17 @@ function switchFilterTab(tab) {
   document.getElementById('segmentMaterial').classList.toggle('active', tab === 'material');
 }
 
-// --- Client-Side High-Efficiency Image Compression ---
-async function compressImage(file, maxDimension = 1200, quality = 0.80) {
-  const bitmap = await createImageBitmap(file);
-
-  let width = bitmap.width;
-  let height = bitmap.height;
-
-  if (width > maxDimension || height > maxDimension) {
-    const scale = Math.min(maxDimension / width, maxDimension / height);
-    width = Math.round(width * scale);
-    height = Math.round(height * scale);
-  }
-
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(bitmap, 0, 0, width, height);
-
-  // Free graphics memory immediately
-  bitmap.close();
-
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      blob => blob ? resolve(blob) : reject(new Error('Canvas compression failed')),
-      'image/jpeg',
-      quality
-    );
-  });
-}
-
-async function uploadImage(file) {
-  const compressed = await compressImage(file);
-
-  const formData = new FormData();
-  formData.append(
-    'image',
-    compressed,
-    file.name.replace(/\.[^.]+$/, '') + '.jpg'
-  );
-
-  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-    method: 'POST',
-    body: formData
-  });
-
-  if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
-
-  const json = await res.json();
-  if (!json.success || !json.data?.url) {
-    throw new Error('ImgBB returned an invalid response');
-  }
-
-  return json.data.url;
+function debounce(fn, wait = 180) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), wait); };
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('searchInput').addEventListener('input', (e) => { 
-    currentFilter.search = e.target.value; 
-    displayedItemCount = 12; 
-    renderCatalog(); 
-  });
+  document.getElementById('searchInput').addEventListener('input', debounce((e) => {
+    currentFilter.search = e.target.value.trim();
+    displayedItemCount = 12;
+    renderCatalog();
+  }, 180));
   
   document.getElementById('sortSelect').addEventListener('change', (e) => { 
     currentFilter.sort = e.target.value; 
@@ -2014,6 +2015,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   document.getElementById('modalDeleteBtn').onclick = () => {
+    if (!requireCloudCatalogReady()) return;
     if (confirm('Delete this product from the catalog?')) {
       products = products.filter(x => x.id !== activeViewId);
       db.ref('catalog/products').set(products);
@@ -2022,49 +2024,76 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // High-Speed Multi-File Compressed Uploader
-  document.getElementById('autoImageUploader').addEventListener('change', async (e) => {
-    const files = [...e.target.files];
+  // Optimized image pipeline: resize/compress locally + limited parallel uploads
+  async function compressImage(file, maxDimension = 1800, quality = 0.82) {
+    if (!file.type.startsWith('image/')) throw new Error('Unsupported file type');
+    const bitmap = await createImageBitmap(file);
+    let width = bitmap.width, height = bitmap.height;
+    const scale = Math.min(1, maxDimension / Math.max(width, height));
+    width = Math.max(1, Math.round(width * scale));
+    height = Math.max(1, Math.round(height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d', { alpha: false });
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    if (bitmap.close) bitmap.close();
+    return await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('Compression failed')), 'image/jpeg', quality));
+  }
+
+  async function uploadOneImage(file) {
+    const optimized = await compressImage(file);
+    const formData = new FormData();
+    const safeName = (file.name || 'product').replace(/\.[^.]+$/, '').replace(/[^a-z0-9_-]+/gi, '_') + '.jpg';
+    formData.append('image', optimized, safeName);
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+    const json = await res.json();
+    if (!json.success || !json.data?.url) throw new Error('Invalid upload response');
+    return json.data.url;
+  }
+
+  async function runUploadQueue(fileList) {
+    const files = [...fileList].filter(f => f.type.startsWith('image/'));
     if (!files.length) return;
-
     const status = document.getElementById('uploadStatusText');
-    status.style.display = 'block';
-    status.textContent = `⏳ Compressing and uploading ${files.length} photo(s)...`;
+    const progress = document.getElementById('uploadProgress');
+    const bar = document.getElementById('uploadProgressBar');
+    status.style.display = 'block'; progress.style.display = 'block'; bar.style.width = '0%';
+    let next = 0, done = 0, failed = 0;
+    const concurrency = Math.min(3, files.length);
 
-    let completed = 0;
-
-    const results = await Promise.allSettled(
-      files.map(async file => {
-        const url = await uploadImage(file);
-        completed++;
-        status.textContent = `⏳ Uploaded ${completed} of ${files.length} photo(s)...`;
-        return url;
-      })
-    );
-
-    results.forEach(result => {
-      if (result.status === 'fulfilled') {
-        currentFormImages.push(result.value);
+    async function worker() {
+      while (next < files.length) {
+        const index = next++;
+        status.textContent = `Optimizing & uploading ${done + 1}/${files.length}…`;
+        try {
+          const url = await uploadOneImage(files[index]);
+          currentFormImages.push(url);
+        } catch (err) {
+          failed++; console.error('Image upload failed:', err);
+        } finally {
+          done++;
+          bar.style.width = `${Math.round(done / files.length * 100)}%`;
+          status.textContent = failed ? `Uploaded ${done - failed}/${files.length} · ${failed} failed` : `Uploaded ${done}/${files.length}`;
+        }
       }
-    });
-
-    renderFormPhotoChips();
-
-    const failed = results.filter(x => x.status === 'rejected').length;
-
-    if (failed) {
-      status.textContent = `⚠️ ${files.length - failed} uploaded, ${failed} failed.`;
-    } else {
-      status.textContent = `✅ ${files.length} photo(s) optimized & uploaded!`;
-      setTimeout(() => {
-        status.style.display = 'none';
-      }, 1500);
     }
+    await Promise.all(Array.from({ length: concurrency }, worker));
+    renderFormPhotoChips();
+    status.textContent = failed ? `⚠️ ${files.length - failed} uploaded, ${failed} failed.` : `✅ ${files.length} photo(s) uploaded.`;
+    setTimeout(() => { progress.style.display = 'none'; status.style.display = 'none'; }, 1400);
+  }
 
-    e.target.value = '';
-  });
+  const uploader = document.getElementById('autoImageUploader');
+  const dropZone = document.getElementById('imageDropZone');
+  uploader.addEventListener('change', async (e) => { await runUploadQueue(e.target.files); e.target.value = ''; });
+  ['dragenter','dragover'].forEach(type => dropZone.addEventListener(type, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(type => dropZone.addEventListener(type, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+  dropZone.addEventListener('drop', e => runUploadQueue(e.dataTransfer.files));
 
   document.getElementById('formSaveBtn').onclick = () => {
+    if (!requireCloudCatalogReady()) return;
     const name = document.getElementById('formName').value.trim();
     if (!name) { alert('Please enter product name'); return; }
 
@@ -2416,7 +2445,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         db.ref('catalog/products').set(products);
-        localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(products));
+        // Firebase is authoritative; avoid duplicating the full catalog in localStorage.
         renderCatalog();
 
         status.textContent = `✅ Successfully imported and synced ${importedCount} items!`;
@@ -2457,15 +2486,33 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Offline copy downloaded!');
   };
 
-  // Admin Toggle: Ctrl + Shift + A (PIN 1970)
-  window.addEventListener('keydown', (e) => {
+  // Admin mode now uses Firebase Authentication instead of a public hard-coded PIN.
+  // Create the admin user in Firebase Console > Authentication > Users and enable Email/Password sign-in.
+  auth.onAuthStateChanged((user) => {
+    document.body.classList.toggle('is-admin', !!user);
+    if (user) console.info('Admin authenticated:', user.email);
+  });
+
+  window.addEventListener('keydown', async (e) => {
     if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
       e.preventDefault();
-      if (prompt('Enter Admin PIN:') === '1970') {
-        document.body.classList.toggle('is-admin');
-        showToast(document.body.classList.contains('is-admin') ? 'Admin Mode Activated' : 'Visitor Mode Activated');
-      } else {
-        alert('Incorrect PIN');
+      if (auth.currentUser) {
+        if (confirm(`Signed in as ${auth.currentUser.email}. Sign out of Admin Mode?`)) {
+          await auth.signOut();
+          showToast('Visitor Mode Activated');
+        }
+        return;
+      }
+      const email = prompt('Admin email:');
+      if (!email) return;
+      const password = prompt('Admin password:');
+      if (!password) return;
+      try {
+        await auth.signInWithEmailAndPassword(email.trim(), password);
+        showToast('Admin Mode Activated');
+      } catch (err) {
+        console.error(err);
+        alert('Admin sign-in failed. Check Firebase Authentication setup and credentials.');
       }
     }
   });
