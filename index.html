@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v12: Premium Heritage Visual Redesign — 2026-09 -->
+  <!-- v13: Premium Heritage Visual Redesign + Product Modal Scroll Fix — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -2226,6 +2226,105 @@
       .detail-facts-grid { margin-top: 2px; }
       .premium-footer-inner { grid-template-columns: 1fr; }
       .footer-links-col, .footer-founder-col { grid-column: 1; }
+    }
+
+
+    /* =========================================================
+       v13 — Product detail modal scrolling fix
+       Keeps the modal within the viewport and makes the product
+       information independently scrollable on desktop.
+       ========================================================= */
+    #viewModalOverlay {
+      overscroll-behavior: contain;
+    }
+
+    #viewModalCard.product-detail-modal {
+      height: min(92vh, 780px);
+      max-height: 92vh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    #viewModalCard .product-detail-topbar {
+      flex: none;
+      position: relative;
+      z-index: 5;
+    }
+
+    #viewModalCard .product-detail-layout {
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #viewModalCard .product-detail-gallery {
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+
+    #viewModalCard .product-detail-info {
+      min-height: 0;
+      height: 100%;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      padding-bottom: 34px;
+    }
+
+    #viewModalCard .product-detail-info::-webkit-scrollbar,
+    #viewModalCard .product-detail-gallery::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    #viewModalCard .product-detail-info::-webkit-scrollbar-thumb,
+    #viewModalCard .product-detail-gallery::-webkit-scrollbar-thumb {
+      background: #d7c7b3;
+      border-radius: 20px;
+    }
+
+    #viewModalCard .product-detail-info::-webkit-scrollbar-track,
+    #viewModalCard .product-detail-gallery::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* Keep the enquiry/share controls easy to reach after scrolling. */
+    #viewModalCard .product-detail-actions {
+      position: sticky;
+      bottom: -34px;
+      z-index: 3;
+      margin: 14px -28px -34px;
+      padding: 13px 28px 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.93), #fff 24%);
+      border-top: 1px solid #eee5da;
+    }
+
+    @media (max-width: 768px) {
+      #viewModalCard.product-detail-modal {
+        height: 94vh;
+        max-height: 94vh;
+      }
+
+      #viewModalCard .product-detail-layout {
+        display: block;
+        height: 100%;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+
+      #viewModalCard .product-detail-gallery,
+      #viewModalCard .product-detail-info {
+        height: auto;
+        overflow: visible;
+      }
+
+      #viewModalCard .product-detail-actions {
+        bottom: 0;
+        margin: 14px -16px -18px;
+        padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+      }
     }
 
   </style>
