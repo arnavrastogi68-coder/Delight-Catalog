@@ -432,7 +432,7 @@
       transition: border-color 0.15s ease;
       cursor: pointer;
       position: relative;
-      content-visibility: auto; /* Browser-native performance boost for large lists */
+      content-visibility: auto;
     }
     .product-box:hover {
       border-color: var(--gold-light);
@@ -1094,7 +1094,7 @@
   </div>
 </div>
 
-<!-- Edit / Add Product Modal with Automated ImgBB Uploader -->
+<!-- Edit / Add Product Modal with Automated Client-Side Compressed ImgBB Uploader -->
 <div class="modal-overlay" id="editModalOverlay">
   <div class="modal-card">
     <div class="modal-head">
@@ -1141,10 +1141,10 @@
 
       <div class="form-row">
         <div class="form-group" style="flex:1 1 100%;">
-          <label>Upload Product Images (Instant Cloud Sync)</label>
+          <label>Upload Product Images (Compressed & Optimized Automatically)</label>
           <input accept="image/*" id="autoImageUploader" type="file" multiple style="font-size:12px; background:var(--cream-soft); cursor:pointer; padding:8px;">
           <div id="uploadStatusText" style="display:none; font-size:11px; font-weight:700; color:var(--maroon); margin-top:4px;">
-            ⏳ Uploading image to cloud, please wait...
+            ⏳ Optimizing and uploading photo(s)...
           </div>
           <div class="form-photos-preview-container" id="formPhotosPreviewContainer"></div>
         </div>
@@ -1890,6 +1890,63 @@ function switchFilterTab(tab) {
   document.getElementById('segmentMaterial').classList.toggle('active', tab === 'material');
 }
 
+// --- Client-Side High-Efficiency Image Compression ---
+async function compressImage(file, maxDimension = 1200, quality = 0.80) {
+  const bitmap = await createImageBitmap(file);
+
+  let width = bitmap.width;
+  let height = bitmap.height;
+
+  if (width > maxDimension || height > maxDimension) {
+    const scale = Math.min(maxDimension / width, maxDimension / height);
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0, width, height);
+
+  // Free graphics memory immediately
+  bitmap.close();
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      blob => blob ? resolve(blob) : reject(new Error('Canvas compression failed')),
+      'image/jpeg',
+      quality
+    );
+  });
+}
+
+async function uploadImage(file) {
+  const compressed = await compressImage(file);
+
+  const formData = new FormData();
+  formData.append(
+    'image',
+    compressed,
+    file.name.replace(/\.[^.]+$/, '') + '.jpg'
+  );
+
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+    method: 'POST',
+    body: formData
+  });
+
+  if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+
+  const json = await res.json();
+  if (!json.success || !json.data?.url) {
+    throw new Error('ImgBB returned an invalid response');
+  }
+
+  return json.data.url;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('searchInput').addEventListener('input', (e) => { 
     currentFilter.search = e.target.value; 
@@ -1965,35 +2022,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // ImgBB Cloud Uploader Implementation
+  // High-Speed Multi-File Compressed Uploader
   document.getElementById('autoImageUploader').addEventListener('change', async (e) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const files = [...e.target.files];
+    if (!files.length) return;
 
     const status = document.getElementById('uploadStatusText');
     status.style.display = 'block';
-    status.textContent = `⏳ Uploading ${files.length} photo(s) to cloud...`;
+    status.textContent = `⏳ Compressing and uploading ${files.length} photo(s)...`;
 
-    for (let file of files) {
-      const formData = new FormData();
-      formData.append('image', file);
+    let completed = 0;
 
-      try {
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-          method: 'POST',
-          body: formData
-        });
-        const json = await res.json();
-        if (json.success && json.data.url) {
-          currentFormImages.push(json.data.url);
-          renderFormPhotoChips();
-        }
-      } catch(err) {
-        console.error("ImgBB upload failed:", err);
-        alert("Failed to upload image. Please verify your internet connection.");
+    const results = await Promise.allSettled(
+      files.map(async file => {
+        const url = await uploadImage(file);
+        completed++;
+        status.textContent = `⏳ Uploaded ${completed} of ${files.length} photo(s)...`;
+        return url;
+      })
+    );
+
+    results.forEach(result => {
+      if (result.status === 'fulfilled') {
+        currentFormImages.push(result.value);
       }
+    });
+
+    renderFormPhotoChips();
+
+    const failed = results.filter(x => x.status === 'rejected').length;
+
+    if (failed) {
+      status.textContent = `⚠️ ${files.length - failed} uploaded, ${failed} failed.`;
+    } else {
+      status.textContent = `✅ ${files.length} photo(s) optimized & uploaded!`;
+      setTimeout(() => {
+        status.style.display = 'none';
+      }, 1500);
     }
-    status.style.display = 'none';
+
+    e.target.value = '';
   });
 
   document.getElementById('formSaveBtn').onclick = () => {
