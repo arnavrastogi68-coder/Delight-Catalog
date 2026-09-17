@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- Performance & Admin Security Upgrade v2 — 2026-09 -->
+  <!-- v7: Multi-sheet Excel Sync + Dealer UX/Admin Polish — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Handcrafted Brass, Pure Copper, and Authentic Kansa Bronze Metalware from Moradabad.">
@@ -917,6 +917,35 @@
       body { background: #fff; }
       .products-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
     }
+
+    /* v7 — clearer admin workflow, gallery and enquiry polish */
+    .admin-toolbar {
+      display: none; position: sticky; top: 73px; z-index: 47;
+      background: #2d0b0e; color: #fff; border-bottom: 1px solid var(--gold);
+      padding: 8px 20px; gap: 8px; align-items: center; flex-wrap: wrap;
+    }
+    body.is-admin .admin-toolbar { display: flex; }
+    .admin-toolbar .admin-toolbar-label { font-size: 11px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; margin-right: 4px; color: #f3d6a8; }
+    .admin-toolbar button { padding: 6px 10px; font-size: 11px; background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.24); }
+    .admin-toolbar button:hover { background: rgba(255,255,255,.18); }
+    .wholesale-price-label { display:block; font-size:9px; line-height:1; color:var(--ink-muted); font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
+    .gallery-thumbs { display:flex; gap:7px; overflow-x:auto; padding:3px 1px 1px; }
+    .gallery-thumb { width:52px; height:52px; flex:0 0 52px; border:1px solid var(--border-line); border-radius:6px; background:#fff; padding:2px; cursor:pointer; }
+    .gallery-thumb.active { border:2px solid var(--gold-dark); }
+    .gallery-thumb img { width:100%; height:100%; object-fit:contain; display:block; }
+    .drawer-line-total { font-weight:800; color:var(--maroon); font-size:12px; margin-top:3px; display:block; }
+    .qty-counter-box input.editable-qty { width:42px; cursor:text; background:#fff; }
+    .excel-help-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:9px; }
+    .excel-help-chip { background:#fff; border:1px solid var(--border-line); border-radius:5px; padding:7px 8px; font-size:10.5px; line-height:1.4; }
+    @media (max-width:768px) {
+      body.is-admin .admin-toolbar { top:0; padding:7px 10px; overflow-x:auto; flex-wrap:nowrap; }
+      .admin-toolbar .admin-toolbar-label { flex:0 0 auto; }
+      .admin-toolbar button { flex:0 0 auto; }
+      .excel-help-grid { grid-template-columns:1fr; }
+      .product-name { font-size:15px; }
+      .price-tag { font-size:14px; }
+    }
+
   </style>
 </head>
 <body>
@@ -951,6 +980,14 @@
     </div>
   </div>
 </header>
+
+<div class="admin-toolbar" id="adminToolbar">
+  <span class="admin-toolbar-label">Admin tools</span>
+  <button type="button" onclick="document.getElementById('openAddModalBtn').click()">＋ Add Product</button>
+  <button type="button" onclick="document.getElementById('openExcelModalBtn').click()">📊 Excel Sync</button>
+  <button type="button" onclick="document.getElementById('openManageCatsBtn').click()">🏷 Categories</button>
+  <button type="button" onclick="document.getElementById('openSettingsBtn').click()">⚙ Brand</button>
+</div>
 
 <!-- Story Hero Section -->
 <section class="story-hero reveal-on-scroll visible">
@@ -1095,6 +1132,7 @@
         <img alt="Product Image" id="viewItemImg">
         <button class="btn-outline" id="galleryNextBtn" onclick="navigateModalGallery(1)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); display:none; background:rgba(255,255,255,0.85); padding:6px 10px;">❯</button>
       </div>
+      <div class="gallery-thumbs" id="modalGalleryThumbs"></div>
       <div id="viewItemCategory" style="font-size:11px; font-weight:700; color:var(--gold-dark); text-transform:uppercase; letter-spacing:1px;"></div>
       
       <div id="viewVariantsContainer" style="display:none; margin: 4px 0;">
@@ -1257,30 +1295,35 @@
 <div class="modal-overlay" id="excelModalOverlay">
   <div class="modal-card">
     <div class="modal-head">
-      <h3>Bulk Inventory Import & Export</h3>
+      <h3>Excel Catalog Editor & Sync</h3>
       <button id="closeExcelModalBtn" style="background:none; border:none; font-size:18px; cursor:pointer;">✕</button>
     </div>
     <div class="modal-body">
       <div style="background:var(--cream-soft); padding:12px; border-radius:6px; border:1px solid var(--border-line); font-size:11.5px; line-height:1.5;">
-        <strong>Excel Columns Expected:</strong><br>
-        <code>Name | Category | Metal | Price | Size | Weight | Notes | Images</code>
-        <div style="margin-top:6px; color:var(--ink-muted);">Images can be comma-separated URLs. New items will be added directly to your Firebase catalog.</div>
+        <strong>Excel Catalog Sync (SKU based)</strong><br>
+        Export creates <strong>one worksheet per category</strong>. Edit those sheets and import the same workbook back. Existing products are matched by SKU; new rows create new products.
+        <div class="excel-help-grid">
+          <div class="excel-help-chip"><strong>Update:</strong> keep the SKU unchanged and edit any product fields.</div>
+          <div class="excel-help-chip"><strong>Add:</strong> add a new row. SKU may be supplied or left blank for auto-generation.</div>
+          <div class="excel-help-chip"><strong>Delete:</strong> put <code>DELETE</code> in the Action column. Missing rows are never deleted.</div>
+          <div class="excel-help-chip"><strong>Photos:</strong> keep comma-separated image URLs. Blank Images on an existing row preserves current photos.</div>
+        </div>
       </div>
 
       <div class="form-group" style="margin-top:10px;">
-        <label>Upload Excel / CSV Spreadsheet</label>
+        <label>Upload Edited Excel / CSV Spreadsheet</label>
         <input accept=".xlsx, .xls, .csv" id="excelFileInput" type="file" style="padding:10px; background:#fff; border:1px dashed var(--gold);">
         <small id="excelImportStatus" style="color:var(--maroon); font-weight:700; margin-top:4px; display:none;"></small>
       </div>
 
       <div style="display:flex; gap:10px; margin-top:8px;">
-        <button class="btn-gold" id="downloadExcelTemplateBtn" style="flex:1; justify-content:center;">📥 Download Blank Template</button>
-        <button class="btn-outline" id="exportCatalogExcelBtn" style="flex:1; justify-content:center;">📤 Export Catalog to Excel</button>
+        <button class="btn-gold" id="downloadExcelTemplateBtn" style="flex:1; justify-content:center;">📥 Download Excel Template</button>
+        <button class="btn-outline" id="exportCatalogExcelBtn" style="flex:1; justify-content:center;">📤 Export by Category</button>
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn-outline" onclick="document.getElementById('excelModalOverlay').classList.remove('show');">Close</button>
-      <button class="btn-maroon" id="executeExcelImportBtn">Process & Upload to Cloud</button>
+      <button class="btn-maroon" id="executeExcelImportBtn">Sync Excel to Website</button>
     </div>
   </div>
 </div>
@@ -1646,7 +1689,7 @@ function createProductCard(p) {
       </div>
       ${sizeWeightDisplayHtml}
       <div class="product-action-row">
-        <div class="price-tag">₹ ${escapeStr(p.price || '—')}</div>
+        <div class="price-tag"><span class="wholesale-price-label">Wholesale</span>₹ ${escapeStr(p.price || '—')}</div>
         <button class="btn-add-order" onclick="addCardToCart('${p.id}', event)">+ Enquiry</button>
       </div>
     </div>`;
@@ -1871,11 +1914,12 @@ function updateCartUI() {
           <span class="drawer-sku">${escapeStr(item.sku || '')}</span>
           <strong>${escapeStr(item.name)}</strong>
           <span class="drawer-variant">${escapeStr(item.size || 'Standard')} · ${escapeStr(item.weight || '—')}</span>
-          <span>₹ ${item.price} each${item.moq ? ` · MOQ ${escapeStr(item.moq)}` : ''}</span>
+          <span>₹ ${item.price} each${item.moq ? ` · MOQ ${escapeStr(item.moq)}` : ''}${item.stock ? ` · ${escapeStr(item.stock)}` : ''}</span>
+          <span class="drawer-line-total">Line total: ₹ ${(item.price * item.qty).toLocaleString()}</span>
         </div>
         <div class="qty-counter-box">
           <button onclick="changeCartQty('${escapeStr(item.cartKey)}', -1)">−</button>
-          <input type="text" value="${item.qty}" readonly>
+          <input class="editable-qty" type="number" min="1" value="${item.qty}" onchange="setCartQty('${escapeStr(item.cartKey)}', this.value)">
           <button onclick="changeCartQty('${escapeStr(item.cartKey)}', 1)">+</button>
         </div>
       </div>
@@ -1895,6 +1939,15 @@ function changeCartQty(cartKey, delta) {
   if (idx === -1) return;
   cart[idx].qty += delta;
   if (cart[idx].qty <= 0) cart.splice(idx, 1);
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  updateCartUI();
+}
+
+function setCartQty(cartKey, value) {
+  const idx = cart.findIndex(x => (x.cartKey || `${x.id}__${x.size || 'Standard'}__${x.weight || '—'}`) === cartKey);
+  if (idx === -1) return;
+  const qty = Math.max(1, Math.min(9999, parseInt(value, 10) || 1));
+  cart[idx].qty = qty;
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
   updateCartUI();
 }
@@ -1938,6 +1991,14 @@ function updateModalGallery() {
   const hasMultiple = activeViewImages.length > 1;
   document.getElementById('galleryPrevBtn').style.display = hasMultiple ? 'block' : 'none';
   document.getElementById('galleryNextBtn').style.display = hasMultiple ? 'block' : 'none';
+  const thumbs = document.getElementById('modalGalleryThumbs');
+  if (thumbs) {
+    thumbs.style.display = hasMultiple ? 'flex' : 'none';
+    thumbs.innerHTML = activeViewImages.map((src, idx) => `
+      <button type="button" class="gallery-thumb ${idx === activeViewImgIdx ? 'active' : ''}" onclick="activeViewImgIdx=${idx}; updateModalGallery();">
+        <img src="${escapeStr(src)}" alt="Photo ${idx + 1}">
+      </button>`).join('');
+  }
 }
 
 function navigateModalGallery(dir) {
@@ -2482,142 +2543,244 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // Excel / CSV Bulk Inventory Import Implementation
+  // v7 Excel Catalog Sync — one sheet per category, safe SKU-based upsert/delete.
+  function excelCell(row, ...names) {
+    for (const name of names) {
+      if (Object.prototype.hasOwnProperty.call(row, name) && row[name] !== undefined && row[name] !== null) return row[name];
+      const found = Object.keys(row).find(k => String(k).trim().toLowerCase() === String(name).trim().toLowerCase());
+      if (found !== undefined) return row[found];
+    }
+    return '';
+  }
+
+  function normalizeSku(value) {
+    return String(value || '').trim().toUpperCase();
+  }
+
+  function safeSheetName(name, used) {
+    let base = String(name || 'Uncategorized').replace(/[\\\/?*\[\]:]/g, ' ').replace(/\s+/g, ' ').trim() || 'Uncategorized';
+    base = base.slice(0, 31);
+    let candidate = base, n = 2;
+    while (used.has(candidate.toLowerCase())) {
+      const suffix = ` ${n++}`;
+      candidate = (base.slice(0, 31 - suffix.length) + suffix).trim();
+    }
+    used.add(candidate.toLowerCase());
+    return candidate;
+  }
+
+  function variantsToExcel(variants) {
+    if (!Array.isArray(variants) || !variants.length) return '';
+    return variants.map(v => `${String(v.size || '').trim()} => ${String(v.weight || '').trim()}`).join(' | ');
+  }
+
+  function variantsFromExcel(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return [];
+    return raw.split('|').map(part => {
+      const bits = part.split(/=>|=/);
+      return { size: String(bits[0] || '').trim(), weight: String(bits.slice(1).join('=>') || '').trim() };
+    }).filter(v => v.size || v.weight);
+  }
+
+  function productToExcelRow(p) {
+    return {
+      'Action': '',
+      'SKU': p.sku || getProductSku(p),
+      'Name': p.name || '',
+      'Category': p.catalog || '',
+      'Metal': p.category || '',
+      'Price': p.price || '',
+      'MOQ': p.moq || '',
+      'Stock': p.stock || '',
+      'Size': p.size || '',
+      'Weight': p.weight || '',
+      'Variants (Size => Weight)': variantsToExcel(p.variants),
+      'Notes': p.notes || '',
+      'Images': Array.isArray(p.images) ? p.images.join(', ') : (p.image || '')
+    };
+  }
+
+  function styleExcelSheet(ws, rows) {
+    const widths = [10,18,32,26,20,12,14,18,18,18,34,45,55];
+    ws['!cols'] = widths.map(wch => ({ wch }));
+    if (rows && rows.length) ws['!autofilter'] = { ref: `A1:M${rows.length + 1}` };
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+  }
+
+  function addWorkbookGuide(wb) {
+    const guide = [
+      ['HOUSE OF DELIGHT — EXCEL CATALOG SYNC'],
+      ['Rule', 'How it works'],
+      ['Existing product', 'Keep SKU unchanged. Edit any other cells, then import.'],
+      ['New product', 'Add a row to any category sheet. SKU can be blank; the website will generate one.'],
+      ['Move category', 'Change the Category cell. Sheet name is for organization only.'],
+      ['Delete product', 'Type DELETE in the Action cell. The importer asks for confirmation before deletion.'],
+      ['Missing row', 'Does NOT delete the product. Only Action=DELETE deletes.'],
+      ['Images', 'Comma-separated URLs. Blank Images on an existing product keeps its current images. Use [CLEAR] to remove all images.'],
+      ['Variants', 'Format: 6 Inch => 350 gm | 8 Inch => 500 gm'],
+      ['SKU', 'SKU is the matching key. Do not change an existing SKU unless you intend to create a new product.']
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(guide);
+    ws['!cols'] = [{wch:22},{wch:95}];
+    XLSX.utils.book_append_sheet(wb, ws, 'README');
+  }
+
   document.getElementById('downloadExcelTemplateBtn').onclick = () => {
     if (typeof XLSX === 'undefined') return alert('Excel engine loading. Please retry in a moment.');
-    const sampleData = [
-      {
-        "Name": "Gol Jyoti / Akhand Deep",
-        "Category": "Akhand Deep & Diya",
-        "Metal": "Pure Brass",
-        "Price": "240",
-        "Size": "18 Sizes",
-        "Weight": "120 gm to 1500 gm",
-        "Notes": "Borosilicate glass, heavy turned brass base.",
-        "Images": "https://i.ibb.co/sample1.jpg, https://i.ibb.co/sample2.jpg"
-      },
-      {
-        "Name": "Royal Puja Thali Set",
-        "Category": "Thali & Dinner Sets",
-        "Metal": "Kansa Bronze",
-        "Price": "1850",
-        "Size": "12 Inch",
-        "Weight": "1100 gm",
-        "Notes": "Traditional Moradabad hand-beaten bronze finish.",
-        "Images": ""
-      }
-    ];
-    const ws = XLSX.utils.json_to_sheet(sampleData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Inventory_Template");
-    XLSX.writeFile(wb, "Delight_Inventory_Template.xlsx");
+    addWorkbookGuide(wb);
+    const rows = [{
+      'Action':'', 'SKU':'', 'Name':'New Product Name', 'Category':'Akhand Deep & Diya', 'Metal':'Pure Brass',
+      'Price':'', 'MOQ':'', 'Stock':'Ready Stock', 'Size':'', 'Weight':'', 'Variants (Size => Weight)':'', 'Notes':'', 'Images':''
+    }];
+    const ws = XLSX.utils.json_to_sheet(rows);
+    styleExcelSheet(ws, rows);
+    XLSX.utils.book_append_sheet(wb, ws, 'New Products');
+    XLSX.writeFile(wb, 'Delight_Catalog_Editor_Template.xlsx');
   };
 
   document.getElementById('exportCatalogExcelBtn').onclick = () => {
     if (typeof XLSX === 'undefined') return alert('Excel engine loading. Please retry in a moment.');
-    const exportData = products.map(p => ({
-      "Name": p.name || "",
-      "Category": p.catalog || "",
-      "Metal": p.category || "",
-      "Price": p.price || "",
-      "SKU": p.sku || getProductSku(p),
-      "MOQ": p.moq || "",
-      "Stock": p.stock || "",
-      "Size": p.size || "",
-      "Weight": p.weight || "",
-      "Notes": p.notes || "",
-      "Images": Array.isArray(p.images) ? p.images.join(', ') : (p.image || "")
-    }));
-    const ws = XLSX.utils.json_to_sheet(exportData);
+    if (!products.length) return alert('Catalog is still loading. Please wait and try again.');
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Catalog_Inventory");
-    XLSX.writeFile(wb, `${company.name.replace(/\s+/g, '_')}_Inventory_${Date.now()}.xlsx`);
+    addWorkbookGuide(wb);
+    const groups = new Map();
+    products.forEach(p => {
+      const cat = p.catalog || 'Uncategorized';
+      if (!groups.has(cat)) groups.set(cat, []);
+      groups.get(cat).push(p);
+    });
+    const used = new Set(['readme']);
+    [...groups.keys()].sort((a,b)=>a.localeCompare(b)).forEach(cat => {
+      const rows = groups.get(cat).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(productToExcelRow);
+      const ws = XLSX.utils.json_to_sheet(rows);
+      styleExcelSheet(ws, rows);
+      XLSX.utils.book_append_sheet(wb, ws, safeSheetName(cat, used));
+    });
+    const stamp = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, `${(company.name || 'Delight').replace(/[^a-z0-9]+/gi,'_')}_Catalog_${stamp}.xlsx`);
+    showToast(`Excel exported: ${products.length} products across ${groups.size} category sheets`);
   };
 
   document.getElementById('executeExcelImportBtn').onclick = () => {
     const fileInput = document.getElementById('excelFileInput');
     const status = document.getElementById('excelImportStatus');
     const file = fileInput.files[0];
-
-    if (!file) {
-      alert('Please select an Excel or CSV file to import.');
-      return;
-    }
-    if (typeof XLSX === 'undefined') {
-      alert('Excel processor still loading. Please retry.');
-      return;
-    }
+    if (!file) return alert('Please select the edited Excel or CSV file.');
+    if (typeof XLSX === 'undefined') return alert('Excel processor still loading. Please retry.');
+    if (!requireCloudCatalogReady()) return;
 
     status.style.display = 'block';
-    status.textContent = 'Processing file...';
-
+    status.textContent = 'Reading workbook and checking SKUs…';
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+        const sourceRows = [];
+        workbook.SheetNames.forEach(sheetName => {
+          if (/^(readme|instructions?|guide)$/i.test(sheetName.trim())) return;
+          const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+          rows.forEach((row, rowIndex) => sourceRows.push({ row, sheetName, rowIndex: rowIndex + 2 }));
+        });
+        if (!sourceRows.length) { status.textContent = 'No product rows found in the workbook.'; return; }
 
-        if (!rows || rows.length === 0) {
-          status.textContent = 'No records found in spreadsheet.';
+        const existingBySku = new Map();
+        const duplicateExisting = new Set();
+        products.forEach(p => {
+          const sku = normalizeSku(p.sku || getProductSku(p));
+          if (!sku) return;
+          if (existingBySku.has(sku)) duplicateExisting.add(sku);
+          else existingBySku.set(sku, p);
+        });
+        if (duplicateExisting.size) {
+          status.textContent = `Import stopped: duplicate SKUs already exist in the website (${[...duplicateExisting].slice(0,5).join(', ')}). Fix those first.`;
           return;
         }
 
-        if (!requireCloudCatalogReady()) {
-          status.textContent = 'Cloud catalog is not ready. Import cancelled to protect existing data.';
-          return;
-        }
-
-        let importedCount = 0;
-        const updates = {};
-        rows.forEach((r, rowIndex) => {
-          const name = r.Name || r.name || r['Product Name'];
-          if (name) {
-            const rawImgs = r.Images || r.images || r.Image || r.image || '';
-            const imgArray = typeof rawImgs === 'string' ? rawImgs.split(',').map(s => s.trim()).filter(Boolean) : [];
-            const id = 'dmw_' + Date.now() + '_' + rowIndex + '_' + Math.random().toString(36).substring(2, 6);
-
-            const newItem = {
-              id,
-              name: String(name).trim(),
-              catalog: String(r.Category || r.category || 'Akhand Deep & Diya').trim(),
-              category: String(r.Metal || r.metal || 'Pure Brass').trim(),
-              price: String(r.Price || r.price || '').trim(),
-              sku: String(r.SKU || r.sku || '').trim(),
-              moq: String(r.MOQ || r.moq || '').trim(),
-              stock: String(r.Stock || r.stock || '').trim(),
-              size: String(r.Size || r.size || '').trim(),
-              weight: String(r.Weight || r.weight || '').trim(),
-              notes: String(r.Notes || r.notes || '').trim(),
-              images: imgArray,
-              variants: []
-            };
-            updates[id] = newItem;
-            importedCount++;
+        const workbookSkus = new Set();
+        const ops = [];
+        const errors = [];
+        let addCount = 0, updateCount = 0, deleteCount = 0, skipCount = 0;
+        sourceRows.forEach(({row, sheetName, rowIndex}, sequence) => {
+          const action = String(excelCell(row, 'Action') || '').trim().toUpperCase();
+          const name = String(excelCell(row, 'Name', 'Product Name') || '').trim();
+          let sku = normalizeSku(excelCell(row, 'SKU', 'Product Code'));
+          if (!name && !sku && !action) { skipCount++; return; }
+          if (sku) {
+            if (workbookSkus.has(sku)) { errors.push(`${sheetName}! row ${rowIndex}: duplicate SKU ${sku}`); return; }
+            workbookSkus.add(sku);
           }
+          const existing = sku ? existingBySku.get(sku) : null;
+          if (action === 'DELETE') {
+            if (!sku) { errors.push(`${sheetName}! row ${rowIndex}: DELETE requires SKU`); return; }
+            if (!existing) { errors.push(`${sheetName}! row ${rowIndex}: SKU ${sku} not found for DELETE`); return; }
+            const key = productStorageKeys.get(String(existing.id));
+            if (!key) { errors.push(`${sheetName}! row ${rowIndex}: cloud key missing for ${sku}`); return; }
+            ops.push({ key, value: null, kind: 'delete', sku }); deleteCount++; return;
+          }
+          if (!name) { errors.push(`${sheetName}! row ${rowIndex}: Name is required`); return; }
+
+          const id = existing ? existing.id : `dmw_${Date.now()}_${sequence}_${Math.random().toString(36).slice(2,6)}`;
+          const category = String(excelCell(row, 'Category') || (existing && existing.catalog) || (sheetName === 'New Products' ? 'Uncategorized' : sheetName)).trim();
+          const metal = String(excelCell(row, 'Metal', 'Material') || (existing && existing.category) || 'Pure Brass').trim();
+          const rawImages = String(excelCell(row, 'Images', 'Image') || '').trim();
+          let images;
+          if (existing && rawImages === '') images = getProductImages(existing).filter(x => !String(x).startsWith('data:image/svg+xml'));
+          else if (/^\[clear\]$/i.test(rawImages)) images = [];
+          else images = rawImages.split(',').map(x=>x.trim()).filter(Boolean);
+
+          let variants = variantsFromExcel(excelCell(row, 'Variants (Size => Weight)', 'Variants'));
+          const size = String(excelCell(row, 'Size') || '').trim();
+          const weight = String(excelCell(row, 'Weight') || '').trim();
+          if (!variants.length && existing && String(excelCell(row, 'Variants (Size => Weight)', 'Variants') || '').trim() === '') variants = Array.isArray(existing.variants) ? existing.variants : [];
+          const item = {
+            id,
+            name,
+            catalog: category || 'Uncategorized',
+            category: metal || 'Pure Brass',
+            price: String(excelCell(row, 'Price') || '').trim(),
+            sku: sku || '',
+            moq: String(excelCell(row, 'MOQ') || '').trim(),
+            stock: String(excelCell(row, 'Stock', 'Stock Status') || '').trim(),
+            size: size || (variants.length ? variants.map(v=>v.size).filter(Boolean).join(', ') : ''),
+            weight: weight || (variants.length ? variants.map(v=>v.weight).filter(Boolean).join(', ') : ''),
+            variants,
+            notes: String(excelCell(row, 'Notes', 'Specifications') || '').trim(),
+            images
+          };
+          if (!item.sku) item.sku = getProductSku(item);
+          sku = normalizeSku(item.sku);
+          if (!existing && existingBySku.has(sku)) { errors.push(`${sheetName}! row ${rowIndex}: generated/provided SKU ${sku} already exists`); return; }
+          const key = existing ? productStorageKeys.get(String(existing.id)) : item.id;
+          if (!key) { errors.push(`${sheetName}! row ${rowIndex}: cloud key missing for ${sku}`); return; }
+          ops.push({ key, value: item, kind: existing ? 'update' : 'add', sku });
+          if (existing) updateCount++; else addCount++;
         });
 
-        if (!importedCount) {
-          status.textContent = 'No valid product rows found.';
+        if (errors.length) {
+          console.error('Excel import validation errors:', errors);
+          status.textContent = `Import stopped — ${errors.length} problem(s). First: ${errors[0]}`;
+          alert(`Excel import was not applied.\n\n${errors.slice(0,10).join('\n')}${errors.length > 10 ? `\n…and ${errors.length-10} more.` : ''}`);
           return;
         }
+        if (!ops.length) { status.textContent = 'No changes found to import.'; return; }
 
-        status.textContent = `Uploading ${importedCount} products safely...`;
-        db.ref('catalog/products').update(updates).then(() => {
-          status.textContent = `✅ Successfully imported and synced ${importedCount} items!`;
-          setTimeout(() => {
-            document.getElementById('excelModalOverlay').classList.remove('show');
-            showToast(`Imported ${importedCount} items successfully!`);
-          }, 1200);
-        }).catch(err => {
-          console.error('Excel cloud import failed:', err);
-          status.textContent = 'Cloud upload failed. Existing catalog was not overwritten.';
-        });
+        const summary = `Excel sync will apply:\n\n${updateCount} update(s)\n${addCount} new product(s)\n${deleteCount} deletion(s)\n\nProducts missing from the workbook will NOT be deleted.\n\nContinue?`;
+        if (!confirm(summary)) { status.textContent = 'Import cancelled. No website data changed.'; return; }
 
+        const updates = {};
+        ops.forEach(op => { updates[op.key] = op.value; });
+        status.textContent = `Syncing ${ops.length} change(s) to Firebase…`;
+        await db.ref('catalog/products').update(updates);
+        status.textContent = `✅ Excel sync complete: ${updateCount} updated, ${addCount} added, ${deleteCount} deleted.`;
+        showToast('Excel catalog sync completed');
+        setTimeout(() => document.getElementById('excelModalOverlay').classList.remove('show'), 1700);
       } catch (err) {
-        console.error("Excel import error:", err);
-        status.textContent = 'Error parsing file. Check format.';
+        console.error('Excel catalog sync failed:', err);
+        status.textContent = 'Excel sync failed. No full-catalog overwrite was attempted.';
+        alert('Excel sync failed. Please check the file format and try again.');
       }
     };
     reader.readAsArrayBuffer(file);
