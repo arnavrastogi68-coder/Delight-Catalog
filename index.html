@@ -25,6 +25,9 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
   </noscript>
 
+  <!-- Lightweight SheetJS for Excel/CSV Bulk Import -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+
   <style>
     :root {
       --cream: #faf7f0;
@@ -615,6 +618,7 @@
     .qty-counter-box { display: flex; align-items: center; background: #fff; border: 1px solid var(--border-line); border-radius: 4px; overflow: hidden; }
     .qty-counter-box button { background: none; border: none; padding: 3px 8px; font-size: 13px; font-weight: 700; color: var(--maroon); cursor: pointer; }
     .qty-counter-box input { width: 35px; border: none; text-align: center; font-weight: 700; font-size: 12px; outline: none; }
+    
     .drawer-foot {
       padding: 18px 20px;
       background: #ffffff;
@@ -622,8 +626,45 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      max-height: 48vh;
+      overflow-y: auto;
     }
     .drawer-summary-line { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: var(--ink); }
+    
+    /* Dealer Customizer Accordion Box */
+    .dealer-customizer-box {
+      background: var(--cream-soft);
+      border: 1px solid var(--border-line);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .dealer-customizer-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--maroon);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .dealer-customizer-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .dealer-customizer-inputs input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border-line);
+      border-radius: 4px;
+      font-size: 11.5px;
+      background: #fff;
+    }
+
     .btn-send-whatsapp {
       background: var(--wa-green);
       color: #fff;
@@ -668,7 +709,7 @@
     .modal-head {
       padding: 14px 20px;
       background: var(--cream);
-      border-bottom: 1px solid var(--border-line);
+      border-bottom: 1.5px solid var(--border-line);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -882,6 +923,7 @@
     <div class="header-actions">
       <button class="btn-outline" id="shareCatalogBtn" title="Copy Catalog Link">🔗 Share</button>
       <button class="btn-outline admin-only" id="openSettingsBtn" title="Edit Brand Details">⚙️ Edit Brand</button>
+      <button class="btn-outline admin-only" id="openExcelModalBtn" title="Bulk Import / Export Excel">📊 Excel Import</button>
       <button class="btn-outline" id="downloadPdfBtn" title="Export Full Catalog as PDF">📄 Export Catalog</button>
       <button class="btn-save admin-only" id="saveOfflineHtmlBtn" title="Save standalone Webpage">💾 Save Offline</button>
       <button class="cart-trigger-btn" id="openCartBtn">
@@ -978,7 +1020,7 @@
   </div>
 </main>
 
-<!-- Slide-Out Order Estimate Drawer with Trade Disclaimers -->
+<!-- Slide-Out Order Estimate Drawer with Optional Dealer Customizer -->
 <div class="order-drawer-overlay" id="orderDrawerOverlay">
   <div class="order-drawer">
     <div class="drawer-head">
@@ -994,6 +1036,20 @@
         <span>Estimated Total</span>
         <span id="drawerTotalAmount">₹ 0</span>
       </div>
+
+      <!-- Optional Dealer Customizer Fields for Quotation PDF -->
+      <div class="dealer-customizer-box">
+        <div class="dealer-customizer-title" onclick="toggleDealerCustomizer()">
+          <span>🏢 Add Dealer / Firm Details (Optional)</span>
+          <span id="customizerArrow" style="font-size: 10px;">▼</span>
+        </div>
+        <div class="dealer-customizer-inputs" id="dealerCustomizerInputs" style="display: none;">
+          <input id="quoteBuyerFirm" type="text" placeholder="Dealer / Store Firm Name (e.g. Balaji Traders)">
+          <input id="quoteBuyerLocation" type="text" placeholder="Destination City, State (e.g. Jaipur, Rajasthan)">
+          <input id="quoteBuyerGst" type="text" placeholder="GSTIN (Optional)">
+        </div>
+      </div>
+
       <div style="font-size: 10px; color: var(--ink-muted); line-height: 1.45; background: var(--cream); padding: 8px; border-radius: 4px; border-left: 2.5px solid var(--gold);">
         *<strong>Wholesale Disclaimer:</strong> Order confirmation is subject to factory stock availability. Handcrafted metalware may vary slightly from pictures in finish, weight, and tone. Billing is based on certified dispatch scale weight & prevailing taxes.
       </div>
@@ -1154,6 +1210,38 @@
   </div>
 </div>
 
+<!-- Excel / CSV Bulk Inventory Modal (Item 4) -->
+<div class="modal-overlay" id="excelModalOverlay">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Bulk Inventory Import & Export</h3>
+      <button id="closeExcelModalBtn" style="background:none; border:none; font-size:18px; cursor:pointer;">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--cream-soft); padding:12px; border-radius:6px; border:1px solid var(--border-line); font-size:11.5px; line-height:1.5;">
+        <strong>Excel Columns Expected:</strong><br>
+        <code>Name | Category | Metal | Price | Size | Weight | Notes | Images</code>
+        <div style="margin-top:6px; color:var(--ink-muted);">Images can be comma-separated URLs. New items will be added directly to your Firebase catalog.</div>
+      </div>
+
+      <div class="form-group" style="margin-top:10px;">
+        <label>Upload Excel / CSV Spreadsheet</label>
+        <input accept=".xlsx, .xls, .csv" id="excelFileInput" type="file" style="padding:10px; background:#fff; border:1px dashed var(--gold);">
+        <small id="excelImportStatus" style="color:var(--maroon); font-weight:700; margin-top:4px; display:none;"></small>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button class="btn-gold" id="downloadExcelTemplateBtn" style="flex:1; justify-content:center;">📥 Download Blank Template</button>
+        <button class="btn-outline" id="exportCatalogExcelBtn" style="flex:1; justify-content:center;">📤 Export Catalog to Excel</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-outline" onclick="document.getElementById('excelModalOverlay').classList.remove('show');">Close</button>
+      <button class="btn-maroon" id="executeExcelImportBtn">Process & Upload to Cloud</button>
+    </div>
+  </div>
+</div>
+
 <!-- Settings Modal -->
 <div class="modal-overlay" id="settingsModalOverlay">
   <div class="modal-card">
@@ -1281,6 +1369,10 @@ let customMetals = DEFAULT_METALS;
 let currentFilter = { catalog: '', metal: '', search: '', sort: 'name' };
 let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
 
+// Pagination State Variables for 400+ Products Performance
+let itemsPerPage = 24;
+let currentPage = 1;
+
 // Render instantly from local cache
 renderCatalog();
 
@@ -1399,6 +1491,18 @@ window.navigateCardPhoto = function(productId, direction, event) {
   imgElem.src = imgs[currentIdx];
 };
 
+function toggleDealerCustomizer() {
+  const box = document.getElementById('dealerCustomizerInputs');
+  const arrow = document.getElementById('customizerArrow');
+  if (box.style.display === 'none') {
+    box.style.display = 'flex';
+    arrow.textContent = '▲';
+  } else {
+    box.style.display = 'none';
+    arrow.textContent = '▼';
+  }
+}
+
 function renderCatalog() {
   updateCompanyHeader();
   renderCategoryPills();
@@ -1408,17 +1512,18 @@ function renderCatalog() {
   const empty = document.getElementById('emptyNotice');
   if (!grid) return;
 
-  const items = getFilteredProducts();
+  const allFilteredItems = getFilteredProducts();
+  const paginatedItems = allFilteredItems.slice(0, currentPage * itemsPerPage);
 
   let headingText = currentFilter.catalog || 'All Collections';
   if (currentFilter.metal) headingText += ` • ${currentFilter.metal}`;
   document.getElementById('currentCategoryHeading').textContent = headingText;
-  document.getElementById('productCounterLabel').textContent = `${items.length} items`;
+  document.getElementById('productCounterLabel').textContent = `${allFilteredItems.length} items total`;
   
   grid.innerHTML = '';
-  empty.style.display = items.length ? 'none' : 'block';
+  empty.style.display = allFilteredItems.length ? 'none' : 'block';
 
-  items.forEach(p => {
+  paginatedItems.forEach(p => {
     const box = document.createElement('div');
     box.className = 'product-box reveal-on-scroll visible';
     box.onclick = (e) => {
@@ -1476,6 +1581,25 @@ function renderCatalog() {
     `;
     grid.appendChild(box);
   });
+
+  // Handle "Load More" Pagination Container for High Performance with 400+ items
+  let loadMoreContainer = document.getElementById('loadMoreContainer');
+  if (!loadMoreContainer) {
+    loadMoreContainer = document.createElement('div');
+    loadMoreContainer.id = 'loadMoreContainer';
+    loadMoreContainer.style.cssText = 'text-align: center; margin-top: 30px; width: 100%; grid-column: 1 / -1;';
+    grid.after(loadMoreContainer);
+  }
+
+  if (paginatedItems.length < allFilteredItems.length) {
+    loadMoreContainer.innerHTML = `
+      <button class="btn-outline" onclick="currentPage++; renderCatalog();" style="padding: 11px 28px; font-weight: 700; border-color: var(--gold); color: var(--gold-dark); background: #ffffff;">
+        Load More Products (${allFilteredItems.length - paginatedItems.length} remaining) 🔻
+      </button>
+    `;
+  } else {
+    loadMoreContainer.innerHTML = '';
+  }
 }
 
 function getFilteredProducts() {
@@ -1508,14 +1632,14 @@ function renderCategoryPills() {
   const allPill = document.createElement('div');
   allPill.className = 'cat-pill' + (currentFilter.catalog === '' ? ' active' : '');
   allPill.textContent = 'All Collections';
-  allPill.onclick = () => { currentFilter.catalog = ''; renderCatalog(); };
+  allPill.onclick = () => { currentFilter.catalog = ''; currentPage = 1; renderCatalog(); };
   row.appendChild(allPill);
 
   cats.forEach(c => {
     const pill = document.createElement('div');
     pill.className = 'cat-pill' + (currentFilter.catalog === c ? ' active' : '');
     pill.textContent = c;
-    pill.onclick = () => { currentFilter.catalog = c; renderCatalog(); };
+    pill.onclick = () => { currentFilter.catalog = c; currentPage = 1; renderCatalog(); };
     row.appendChild(pill);
   });
 
@@ -1524,14 +1648,14 @@ function renderCategoryPills() {
   const allMetal = document.createElement('div');
   allMetal.className = 'metal-chip' + (currentFilter.metal === '' ? ' active' : '');
   allMetal.textContent = 'All Metals';
-  allMetal.onclick = () => { currentFilter.metal = ''; renderCatalog(); };
+  allMetal.onclick = () => { currentFilter.metal = ''; currentPage = 1; renderCatalog(); };
   metalBar.appendChild(allMetal);
 
   customMetals.forEach(m => {
     const chip = document.createElement('div');
     chip.className = 'metal-chip' + (currentFilter.metal.toLowerCase() === m.toLowerCase() ? ' active' : '');
     chip.textContent = m;
-    chip.onclick = () => { currentFilter.metal = m; renderCatalog(); };
+    chip.onclick = () => { currentFilter.metal = m; currentPage = 1; renderCatalog(); };
     metalBar.appendChild(chip);
   });
 
@@ -1772,8 +1896,18 @@ function switchFilterTab(tab) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('searchInput').addEventListener('input', (e) => { currentFilter.search = e.target.value; renderCatalog(); });
-  document.getElementById('sortSelect').addEventListener('change', (e) => { currentFilter.sort = e.target.value; renderCatalog(); });
+  document.getElementById('searchInput').addEventListener('input', (e) => { 
+    currentFilter.search = e.target.value; 
+    currentPage = 1; // Reset to page 1 on search
+    renderCatalog(); 
+  });
+  
+  document.getElementById('sortSelect').addEventListener('change', (e) => { 
+    currentFilter.sort = e.target.value; 
+    currentPage = 1; // Reset to page 1 on sort change
+    renderCatalog(); 
+  });
+
   document.getElementById('bulkModeToggle').addEventListener('change', (e) => {
     document.getElementById('productsGrid').classList.toggle('bulk-view', e.target.checked);
   });
@@ -1794,6 +1928,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('openManageCatsBtn').onclick = () => {
     renderManageLists();
     document.getElementById('manageCatsModalOverlay').classList.add('show');
+  };
+
+  // Excel Bulk Modal Trigger
+  document.getElementById('openExcelModalBtn').onclick = () => {
+    document.getElementById('excelImportStatus').style.display = 'none';
+    document.getElementById('excelFileInput').value = '';
+    document.getElementById('excelModalOverlay').classList.add('show');
+  };
+  document.getElementById('closeExcelModalBtn').onclick = () => {
+    document.getElementById('excelModalOverlay').classList.remove('show');
   };
 
   ['closeViewModalBtn', 'closeEditModalBtn', 'formCancelBtn', 'closeSettingsModalBtn', 'settingsCancelBtn', 'closeManageCatsModalBtn'].forEach(id => {
@@ -1957,7 +2101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // Formal B2B Quotation PDF Generator
+  // Formal B2B Quotation PDF Generator with Optional Dealer Customizer
   document.getElementById('downloadQuotationPdfBtn').onclick = () => {
     if (!cart || cart.length === 0) {
       alert('Your order list is empty. Add products to generate a quotation.');
@@ -1971,6 +2115,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const quoteNo = 'QTN-' + Date.now().toString().slice(-6);
       const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
       const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+
+      const buyerFirm = (document.getElementById('quoteBuyerFirm')?.value || '').trim();
+      const buyerLoc = (document.getElementById('quoteBuyerLocation')?.value || '').trim();
+      const buyerGst = (document.getElementById('quoteBuyerGst')?.value || '').trim();
+
+      const dealerInfoBlock = buyerFirm ? `
+        <div style="background: #faf7f0; border: 1.5px solid #b38243; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;">
+          <div style="font-size: 10px; font-weight: bold; color: #875d27; text-transform: uppercase; letter-spacing: 0.5px;">Billed / Quoted To:</div>
+          <div style="font-size: 13px; font-weight: bold; color: #541419; margin-top: 2px;">${escapeStr(buyerFirm)}</div>
+          <div style="font-size: 10.5px; color: #4a463c; margin-top: 2px;">
+            ${buyerLoc ? `<span>📍 ${escapeStr(buyerLoc)}</span> ` : ''}
+            ${buyerGst ? `| <span>GSTIN: ${escapeStr(buyerGst)}</span>` : ''}
+          </div>
+        </div>
+      ` : '';
 
       const quoteContainer = document.createElement('div');
       quoteContainer.id = 'quotePdfMasterWrapper';
@@ -2015,8 +2174,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
 
+          ${dealerInfoBlock}
+
           <div style="display: flex; justify-content: space-between; background: #faf7f0; border: 1px solid #e6dfd1; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 11px;">
-            <div><strong>Order Destination:</strong> Dealer / Wholesale Dispatch</div>
+            <div><strong>Order Type:</strong> Dealer Wholesale Order</div>
             <div><strong>Supplier WhatsApp:</strong> +${waCleanPhone}</div>
             <div><strong>Total Articles:</strong> ${totalQty} Units</div>
           </div>
@@ -2086,6 +2247,127 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Error generating PDF.');
       });
     });
+  };
+
+  // Excel / CSV Bulk Inventory Import Implementation
+  document.getElementById('downloadExcelTemplateBtn').onclick = () => {
+    if (typeof XLSX === 'undefined') return alert('Excel engine loading. Please retry in a moment.');
+    const sampleData = [
+      {
+        "Name": "Gol Jyoti / Akhand Deep",
+        "Category": "Akhand Deep & Diya",
+        "Metal": "Pure Brass",
+        "Price": "240",
+        "Size": "18 Sizes",
+        "Weight": "120 gm to 1500 gm",
+        "Notes": "Borosilicate glass, heavy turned brass base.",
+        "Images": "https://i.ibb.co/sample1.jpg, https://i.ibb.co/sample2.jpg"
+      },
+      {
+        "Name": "Royal Puja Thali Set",
+        "Category": "Thali & Dinner Sets",
+        "Metal": "Kansa Bronze",
+        "Price": "1850",
+        "Size": "12 Inch",
+        "Weight": "1100 gm",
+        "Notes": "Traditional Moradabad hand-beaten bronze finish.",
+        "Images": ""
+      }
+    ];
+    const ws = XLSX.utils.json_to_sheet(sampleData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Inventory_Template");
+    XLSX.writeFile(wb, "Delight_Inventory_Template.xlsx");
+  };
+
+  document.getElementById('exportCatalogExcelBtn').onclick = () => {
+    if (typeof XLSX === 'undefined') return alert('Excel engine loading. Please retry in a moment.');
+    const exportData = products.map(p => ({
+      "Name": p.name || "",
+      "Category": p.catalog || "",
+      "Metal": p.category || "",
+      "Price": p.price || "",
+      "Size": p.size || "",
+      "Weight": p.weight || "",
+      "Notes": p.notes || "",
+      "Images": Array.isArray(p.images) ? p.images.join(', ') : (p.image || "")
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Catalog_Inventory");
+    XLSX.writeFile(wb, `${company.name.replace(/\s+/g, '_')}_Inventory_${Date.now()}.xlsx`);
+  };
+
+  document.getElementById('executeExcelImportBtn').onclick = () => {
+    const fileInput = document.getElementById('excelFileInput');
+    const status = document.getElementById('excelImportStatus');
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert('Please select an Excel or CSV file to import.');
+      return;
+    }
+    if (typeof XLSX === 'undefined') {
+      alert('Excel processor still loading. Please retry.');
+      return;
+    }
+
+    status.style.display = 'block';
+    status.textContent = 'Processing file...';
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+
+        if (!rows || rows.length === 0) {
+          status.textContent = 'No records found in spreadsheet.';
+          return;
+        }
+
+        let importedCount = 0;
+        rows.forEach(r => {
+          const name = r.Name || r.name || r['Product Name'];
+          if (name) {
+            const rawImgs = r.Images || r.images || r.Image || r.image || '';
+            const imgArray = typeof rawImgs === 'string' ? rawImgs.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+            const newItem = {
+              id: 'dmw_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+              name: String(name).trim(),
+              catalog: String(r.Category || r.category || 'Akhand Deep & Diya').trim(),
+              category: String(r.Metal || r.metal || 'Pure Brass').trim(),
+              price: String(r.Price || r.price || '').trim(),
+              size: String(r.Size || r.size || '').trim(),
+              weight: String(r.Weight || r.weight || '').trim(),
+              notes: String(r.Notes || r.notes || '').trim(),
+              images: imgArray,
+              variants: []
+            };
+            products.unshift(newItem);
+            importedCount++;
+          }
+        });
+
+        db.ref('catalog/products').set(products);
+        localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(products));
+        renderCatalog();
+
+        status.textContent = `✅ Successfully imported and synced ${importedCount} items!`;
+        setTimeout(() => {
+          document.getElementById('excelModalOverlay').classList.remove('show');
+          showToast(`Imported ${importedCount} items successfully!`);
+        }, 1200);
+
+      } catch (err) {
+        console.error("Excel import error:", err);
+        status.textContent = 'Error parsing file. Check format.';
+      }
+    };
+    reader.readAsArrayBuffer(file);
   };
 
   // Share Catalog Link
