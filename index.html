@@ -946,6 +946,12 @@
       .price-tag { font-size:14px; }
     }
 
+
+    @media (max-width: 520px) {
+      #viewModalOverlay .modal-foot { flex-wrap: wrap; }
+      #viewModalOverlay .modal-foot > button { flex: 1 1 45%; justify-content: center; }
+      #shareCategoryBtn { padding: 5px 8px !important; font-size: 10.5px !important; }
+    }
   </style>
 </head>
 <body>
@@ -1066,7 +1072,8 @@
   <div class="section-status-bar">
     <h2 id="currentCategoryHeading">All Collections</h2>
     <span id="productCounterLabel">0 items</span>
-    <a href="#" onclick="currentFilter.catalog = ''; currentFilter.metal = ''; renderCatalog(); return false;" style="font-size: 11.5px; color: var(--maroon); font-weight: 700; text-decoration: none; margin-left: auto;">Clear Filters</a>
+    <button class="btn-outline" id="shareCategoryBtn" onclick="shareCurrentCategory()" style="display:none; margin-left:auto; padding:5px 10px; font-size:11px;" title="Share this category">🔗 Share Category</button>
+    <a href="#" onclick="currentFilter.catalog = ''; currentFilter.metal = ''; renderCatalog(); return false;" style="font-size: 11.5px; color: var(--maroon); font-weight: 700; text-decoration: none; margin-left: 8px;">Clear Filters</a>
   </div>
   <div class="products-grid" id="productsGrid"></div>
   <div class="empty-state" id="emptyNotice" style="display:none; text-align:center; padding:50px 20px;">
@@ -1157,6 +1164,7 @@
     </div>
     <div class="modal-foot">
       <button class="btn-gold" id="modalAddToCartBtn">+ Add to Enquiry</button>
+      <button class="btn-outline" id="shareProductBtn" onclick="shareProduct(activeViewId)" title="Share this product">🔗 Share Product</button>
       <div class="admin-only" style="gap:6px;">
         <button class="btn-outline" id="modalEditBtn">Edit</button>
         <button class="btn-outline" id="modalDeleteBtn" style="color:var(--danger);">Delete</button>
@@ -1467,6 +1475,7 @@ let displayedItemCount = 12;
 let infiniteScrollObserver = null;
 let firebaseCatalogReady = false;
 let firebaseCatalogLoadFailed = false;
+let sharedDeepLinkApplied = false;
 // Maps each product's logical id to its existing Firebase child key.
 // This lets us update/delete one product without rewriting the entire catalog.
 const productStorageKeys = new Map();
@@ -1508,6 +1517,7 @@ db.ref('catalog').on('value', (snapshot) => {
   displayedItemCount = Math.min(Math.max(itemsPerPage, displayedItemCount), Math.max(products.length, itemsPerPage));
   renderCatalog();
   renderManageLists();
+  applySharedDeepLinkOnce();
   showToast(`Cloud catalog synced: ${products.length} products`);
 }, (error) => {
   firebaseCatalogLoadFailed = true;
@@ -1718,6 +1728,8 @@ function renderCatalog(options = {}) {
     if (currentFilter.metal) headingText += ` • ${currentFilter.metal}`;
     document.getElementById('currentCategoryHeading').textContent = headingText;
     document.getElementById('productCounterLabel').textContent = `Showing ${Math.min(displayedItemCount, allFilteredItems.length)} of ${allFilteredItems.length} items`;
+    const shareCategoryBtn = document.getElementById('shareCategoryBtn');
+    if (shareCategoryBtn) shareCategoryBtn.style.display = currentFilter.catalog ? 'inline-flex' : 'none';
     grid.innerHTML = '';
     empty.style.display = allFilteredItems.length ? 'none' : 'block';
   }
@@ -1776,6 +1788,136 @@ function getFilteredProducts() {
   if (currentFilter.sort === 'price-asc') list.sort((a, b) => num(a) - num(b));
   if (currentFilter.sort === 'price-desc') list.sort((a, b) => num(b) - num(a));
   return list;
+}
+
+
+// Product & Category deep links / sharing
+const PUBLIC_CATALOG_URL = 'https://arnavrastogi68-coder.github.io/Delight-Catalog/';
+
+function getCatalogBaseUrl() {
+  try {
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+      const u = new URL(window.location.href);
+      u.search = '';
+      u.hash = '';
+      if (u.pathname.endsWith('/index.html')) u.pathname = u.pathname.slice(0, -'index.html'.length);
+      return u.toString();
+    }
+  } catch (e) {}
+  return PUBLIC_CATALOG_URL;
+}
+
+function buildCategoryShareUrl(category) {
+  const u = new URL(getCatalogBaseUrl());
+  u.searchParams.set('category', category || '');
+  return u.toString();
+}
+
+function buildProductShareUrl(product) {
+  const u = new URL(getCatalogBaseUrl());
+  const key = (product && (product.sku || getProductSku(product) || product.id)) || '';
+  u.searchParams.set('product', key);
+  return u.toString();
+}
+
+async function shareCatalogLink(title, text, url, successMessage) {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text, url });
+      return;
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+      console.warn('Native share unavailable; using copy fallback:', err);
+    }
+  }
+  const copyText = `${text}\n${url}`;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(copyText);
+      showToast(successMessage || 'Share link copied!');
+    } else {
+      prompt('Copy this link:', url);
+    }
+  } catch (err) {
+    console.warn('Clipboard copy failed:', err);
+    prompt('Copy this link:', url);
+  }
+}
+
+async function shareProduct(id) {
+  const p = products.find(x => String(x.id) === String(id));
+  if (!p) return showToast('Product could not be found.');
+  const sku = p.sku || getProductSku(p);
+  const url = buildProductShareUrl(p);
+  await shareCatalogLink(
+    p.name,
+    `${p.name}${sku ? ` (${sku})` : ''} — ${company.name || 'House of Delight'}`,
+    url,
+    'Product link copied!'
+  );
+}
+
+async function shareCurrentCategory() {
+  const category = (currentFilter.catalog || '').trim();
+  if (!category) return showToast('Select a category first.');
+  const url = buildCategoryShareUrl(category);
+  const count = products.filter(p => p.catalog === category).length;
+  await shareCatalogLink(
+    category,
+    `${category} — ${company.name || 'House of Delight'}${count ? ` · ${count} products` : ''}`,
+    url,
+    'Category link copied!'
+  );
+}
+
+function findProductFromSharedKey(key) {
+  const q = String(key || '').trim().toLowerCase();
+  if (!q) return null;
+  return products.find(p => {
+    const candidates = [p.sku, getProductSku(p), p.id]
+      .filter(Boolean)
+      .map(v => String(v).trim().toLowerCase());
+    return candidates.includes(q);
+  }) || null;
+}
+
+function applySharedDeepLinkOnce() {
+  if (sharedDeepLinkApplied || !firebaseCatalogReady) return;
+  sharedDeepLinkApplied = true;
+
+  let params;
+  try { params = new URLSearchParams(window.location.search || ''); }
+  catch (e) { return; }
+
+  const requestedCategory = (params.get('category') || '').trim();
+  const requestedProduct = (params.get('product') || '').trim();
+  let categoryMatched = false;
+
+  if (requestedCategory) {
+    const availableCategories = [...new Set([...customCategories, ...products.map(p => p.catalog)])].filter(Boolean);
+    const match = availableCategories.find(c => String(c).trim().toLowerCase() === requestedCategory.toLowerCase());
+    if (match) {
+      currentFilter.catalog = match;
+      currentFilter.metal = '';
+      currentFilter.search = '';
+      displayedItemCount = itemsPerPage;
+      categoryMatched = true;
+      renderCatalog();
+    } else {
+      showToast(`Category not found: ${requestedCategory}`);
+    }
+  }
+
+  if (requestedProduct) {
+    const p = findProductFromSharedKey(requestedProduct);
+    if (p) setTimeout(() => openViewModal(p.id), 80);
+    else showToast(`Product not found: ${requestedProduct}`);
+  } else if (categoryMatched) {
+    setTimeout(() => {
+      const target = document.getElementById('catalogContentArea');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
 }
 
 function renderCategoryPills() {
@@ -2901,17 +3043,15 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsArrayBuffer(file);
   };
 
-  // Share Catalog Link
+  // Share the clean top-level catalog URL. Product/category sharing uses dedicated links.
   document.getElementById('shareCatalogBtn').onclick = async () => {
-    const shareUrl = window.location.protocol === 'file:' ? "https://arnavrastogi68-coder.github.io/Delight-Catalog/" : window.location.href;
-    const shareText = `🌟 *${company.name} — Wholesale Catalog*\nExplore our pure brass, copper & bronze metalware:\n👉 ${shareUrl}`;
-
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(shareText);
-      showToast('Catalog link copied to clipboard!');
-    } else {
-      prompt('Copy catalog link:', shareUrl);
-    }
+    const shareUrl = getCatalogBaseUrl();
+    await shareCatalogLink(
+      `${company.name} Wholesale Catalog`,
+      `${company.name} — Wholesale Catalog`,
+      shareUrl,
+      'Catalog link copied!'
+    );
   };
 
   // Save Offline Standalone File
