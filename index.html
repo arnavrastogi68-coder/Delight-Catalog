@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v7: Multi-sheet Excel Sync + Dealer UX/Admin Polish — 2026-09 -->
+  <!-- v8: Hidden Customer Admin + Reliable Multi-sheet Excel Export — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Handcrafted Brass, Pure Copper, and Authentic Kansa Bronze Metalware from Moradabad.">
@@ -968,7 +968,7 @@
     </div>
     <div class="header-actions">
       <button class="btn-outline" id="shareCatalogBtn" title="Copy Catalog Link">🔗 Share</button>
-      <button class="btn-outline" id="adminStatusBtn" title="Admin sign in / status">🔐 Admin</button>
+      <button class="btn-outline admin-only" id="adminStatusBtn" title="Admin account / sign out">✓ Admin</button>
       <button class="btn-outline admin-only" id="openSettingsBtn" title="Edit Brand Details">⚙️ Edit Brand</button>
       <button class="btn-outline admin-only" id="openExcelModalBtn" title="Bulk Import / Export Excel">📊 Excel Import</button>
       <button class="btn-outline" id="downloadPdfBtn" title="Export Full Catalog as PDF">📄 Export Catalog</button>
@@ -2626,41 +2626,89 @@ document.addEventListener('DOMContentLoaded', () => {
     XLSX.utils.book_append_sheet(wb, ws, 'README');
   }
 
+  function downloadWorkbookSafe(wb, filename) {
+    // More reliable than XLSX.writeFile on some browsers/GitHub Pages contexts.
+    const array = XLSX.write(wb, { bookType: 'xlsx', type: 'array', compression: true });
+    const blob = new Blob([array], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+
   document.getElementById('downloadExcelTemplateBtn').onclick = () => {
     if (typeof XLSX === 'undefined') return alert('Excel engine loading. Please retry in a moment.');
-    const wb = XLSX.utils.book_new();
-    addWorkbookGuide(wb);
-    const rows = [{
-      'Action':'', 'SKU':'', 'Name':'New Product Name', 'Category':'Akhand Deep & Diya', 'Metal':'Pure Brass',
-      'Price':'', 'MOQ':'', 'Stock':'Ready Stock', 'Size':'', 'Weight':'', 'Variants (Size => Weight)':'', 'Notes':'', 'Images':''
-    }];
-    const ws = XLSX.utils.json_to_sheet(rows);
-    styleExcelSheet(ws, rows);
-    XLSX.utils.book_append_sheet(wb, ws, 'New Products');
-    XLSX.writeFile(wb, 'Delight_Catalog_Editor_Template.xlsx');
+    try {
+      const wb = XLSX.utils.book_new();
+      addWorkbookGuide(wb);
+      const rows = [{
+        'Action':'', 'SKU':'', 'Name':'New Product Name', 'Category':'Akhand Deep & Diya', 'Metal':'Pure Brass',
+        'Price':'', 'MOQ':'', 'Stock':'Ready Stock', 'Size':'', 'Weight':'', 'Variants (Size => Weight)':'', 'Notes':'', 'Images':''
+      }];
+      const ws = XLSX.utils.json_to_sheet(rows);
+      styleExcelSheet(ws, rows);
+      XLSX.utils.book_append_sheet(wb, ws, 'New Products');
+      downloadWorkbookSafe(wb, 'Delight_Catalog_Editor_Template.xlsx');
+      showToast('Excel template downloaded');
+    } catch (err) {
+      console.error('Excel template download failed:', err);
+      alert('Could not create the Excel template. Please refresh the page and try again.');
+    }
   };
 
   document.getElementById('exportCatalogExcelBtn').onclick = () => {
+    const status = document.getElementById('excelImportStatus');
     if (typeof XLSX === 'undefined') return alert('Excel engine loading. Please retry in a moment.');
     if (!products.length) return alert('Catalog is still loading. Please wait and try again.');
-    const wb = XLSX.utils.book_new();
-    addWorkbookGuide(wb);
-    const groups = new Map();
-    products.forEach(p => {
-      const cat = p.catalog || 'Uncategorized';
-      if (!groups.has(cat)) groups.set(cat, []);
-      groups.get(cat).push(p);
-    });
-    const used = new Set(['readme']);
-    [...groups.keys()].sort((a,b)=>a.localeCompare(b)).forEach(cat => {
-      const rows = groups.get(cat).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(productToExcelRow);
-      const ws = XLSX.utils.json_to_sheet(rows);
-      styleExcelSheet(ws, rows);
-      XLSX.utils.book_append_sheet(wb, ws, safeSheetName(cat, used));
-    });
-    const stamp = new Date().toISOString().slice(0,10);
-    XLSX.writeFile(wb, `${(company.name || 'Delight').replace(/[^a-z0-9]+/gi,'_')}_Catalog_${stamp}.xlsx`);
-    showToast(`Excel exported: ${products.length} products across ${groups.size} category sheets`);
+
+    try {
+      if (status) {
+        status.style.display = 'block';
+        status.textContent = `Preparing ${products.length} products for Excel export...`;
+      }
+
+      const wb = XLSX.utils.book_new();
+      addWorkbookGuide(wb);
+      const groups = new Map();
+
+      products.forEach(p => {
+        const cat = String(p.catalog || 'Uncategorized').trim() || 'Uncategorized';
+        if (!groups.has(cat)) groups.set(cat, []);
+        groups.get(cat).push(p);
+      });
+
+      const used = new Set(['readme']);
+      const categories = [...groups.keys()].sort((a,b)=>String(a).localeCompare(String(b)));
+
+      categories.forEach(cat => {
+        const rows = groups.get(cat)
+          .slice()
+          .sort((a,b)=>String(a.name || '').localeCompare(String(b.name || '')))
+          .map(productToExcelRow);
+        const ws = XLSX.utils.json_to_sheet(rows, {
+          header: ['Action','SKU','Name','Category','Metal','Price','MOQ','Stock','Size','Weight','Variants (Size => Weight)','Notes','Images']
+        });
+        styleExcelSheet(ws, rows);
+        XLSX.utils.book_append_sheet(wb, ws, safeSheetName(cat, used));
+      });
+
+      const stamp = new Date().toISOString().slice(0,10);
+      const cleanCompany = (company.name || 'Delight').replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,'') || 'Delight';
+      const filename = `${cleanCompany}_Catalog_By_Category_${stamp}.xlsx`;
+      downloadWorkbookSafe(wb, filename);
+
+      if (status) status.textContent = `✅ Exported ${products.length} products into ${groups.size} category sheet(s).`;
+      showToast(`Excel exported: ${products.length} products • ${groups.size} category sheets`);
+    } catch (err) {
+      console.error('Category Excel export failed:', err);
+      if (status) status.textContent = '❌ Export failed. Open browser Console for details.';
+      alert(`Export by Category failed: ${err && err.message ? err.message : 'Unknown error'}`);
+    }
   };
 
   document.getElementById('executeExcelImportBtn').onclick = () => {
@@ -2840,8 +2888,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.toggle('is-admin', !!user);
     if (adminStatusBtn) {
       adminStatusBtn.classList.toggle('admin-live', !!user);
-      adminStatusBtn.textContent = user ? `✓ Admin: ${user.email.split('@')[0]}` : '🔐 Admin';
-      adminStatusBtn.title = user ? `Signed in as ${user.email}. Click to sign out.` : 'Click to sign in as admin';
+      adminStatusBtn.textContent = user ? `✓ Admin: ${user.email.split('@')[0]}` : '✓ Admin';
+      adminStatusBtn.title = user ? `Signed in as ${user.email}. Click to sign out.` : 'Admin account';
     }
     if (user) console.info('Admin authenticated:', user.email);
     renderCatalog();
