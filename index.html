@@ -709,7 +709,7 @@
     .modal-head {
       padding: 14px 20px;
       background: var(--cream);
-      border-bottom: 1.5px solid var(--border-line);
+      border-bottom: 1px solid var(--border-line);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -1369,9 +1369,10 @@ let customMetals = DEFAULT_METALS;
 let currentFilter = { catalog: '', metal: '', search: '', sort: 'name' };
 let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
 
-// Pagination State Variables for 400+ Products Performance
-let itemsPerPage = 24;
-let currentPage = 1;
+// High-Performance Infinite Scroll & Virtual Rendering State for 400+ Products
+let itemsPerPage = 20;
+let displayedItemCount = 20;
+let infiniteScrollObserver = null;
 
 // Render instantly from local cache
 renderCatalog();
@@ -1513,7 +1514,7 @@ function renderCatalog() {
   if (!grid) return;
 
   const allFilteredItems = getFilteredProducts();
-  const paginatedItems = allFilteredItems.slice(0, currentPage * itemsPerPage);
+  const paginatedItems = allFilteredItems.slice(0, displayedItemCount);
 
   let headingText = currentFilter.catalog || 'All Collections';
   if (currentFilter.metal) headingText += ` • ${currentFilter.metal}`;
@@ -1582,23 +1583,30 @@ function renderCatalog() {
     grid.appendChild(box);
   });
 
-  // Handle "Load More" Pagination Container for High Performance with 400+ items
-  let loadMoreContainer = document.getElementById('loadMoreContainer');
-  if (!loadMoreContainer) {
-    loadMoreContainer = document.createElement('div');
-    loadMoreContainer.id = 'loadMoreContainer';
-    loadMoreContainer.style.cssText = 'text-align: center; margin-top: 30px; width: 100%; grid-column: 1 / -1;';
-    grid.after(loadMoreContainer);
+  // Setup True Infinite Scroll Observer (Auto-loads next batch when scrolling near bottom)
+  let sentinel = document.getElementById('infiniteScrollSentinel');
+  if (!sentinel) {
+    sentinel = document.createElement('div');
+    sentinel.id = 'infiniteScrollSentinel';
+    sentinel.style.cssText = 'height: 40px; width: 100%; grid-column: 1 / -1; text-align: center; padding: 10px; font-size: 11.5px; color: var(--ink-muted);';
+    grid.after(sentinel);
   }
 
+  if (infiniteScrollObserver) infiniteScrollObserver.disconnect();
+
   if (paginatedItems.length < allFilteredItems.length) {
-    loadMoreContainer.innerHTML = `
-      <button class="btn-outline" onclick="currentPage++; renderCatalog();" style="padding: 11px 28px; font-weight: 700; border-color: var(--gold); color: var(--gold-dark); background: #ffffff;">
-        Load More Products (${allFilteredItems.length - paginatedItems.length} remaining) 🔻
-      </button>
-    `;
+    sentinel.textContent = `Loading more products (${allFilteredItems.length - paginatedItems.length} remaining)...`;
+    infiniteScrollObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          displayedItemCount += itemsPerPage;
+          renderCatalog();
+        }
+      });
+    }, { rootMargin: '200px' });
+    infiniteScrollObserver.observe(sentinel);
   } else {
-    loadMoreContainer.innerHTML = '';
+    sentinel.textContent = allFilteredItems.length > 0 ? '✨ All products loaded.' : '';
   }
 }
 
@@ -1632,14 +1640,14 @@ function renderCategoryPills() {
   const allPill = document.createElement('div');
   allPill.className = 'cat-pill' + (currentFilter.catalog === '' ? ' active' : '');
   allPill.textContent = 'All Collections';
-  allPill.onclick = () => { currentFilter.catalog = ''; currentPage = 1; renderCatalog(); };
+  allPill.onclick = () => { currentFilter.catalog = ''; displayedItemCount = 20; renderCatalog(); };
   row.appendChild(allPill);
 
   cats.forEach(c => {
     const pill = document.createElement('div');
     pill.className = 'cat-pill' + (currentFilter.catalog === c ? ' active' : '');
     pill.textContent = c;
-    pill.onclick = () => { currentFilter.catalog = c; currentPage = 1; renderCatalog(); };
+    pill.onclick = () => { currentFilter.catalog = c; displayedItemCount = 20; renderCatalog(); };
     row.appendChild(pill);
   });
 
@@ -1648,14 +1656,14 @@ function renderCategoryPills() {
   const allMetal = document.createElement('div');
   allMetal.className = 'metal-chip' + (currentFilter.metal === '' ? ' active' : '');
   allMetal.textContent = 'All Metals';
-  allMetal.onclick = () => { currentFilter.metal = ''; currentPage = 1; renderCatalog(); };
+  allMetal.onclick = () => { currentFilter.metal = ''; displayedItemCount = 20; renderCatalog(); };
   metalBar.appendChild(allMetal);
 
   customMetals.forEach(m => {
     const chip = document.createElement('div');
     chip.className = 'metal-chip' + (currentFilter.metal.toLowerCase() === m.toLowerCase() ? ' active' : '');
     chip.textContent = m;
-    chip.onclick = () => { currentFilter.metal = m; currentPage = 1; renderCatalog(); };
+    chip.onclick = () => { currentFilter.metal = m; displayedItemCount = 20; renderCatalog(); };
     metalBar.appendChild(chip);
   });
 
@@ -1898,13 +1906,13 @@ function switchFilterTab(tab) {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('searchInput').addEventListener('input', (e) => { 
     currentFilter.search = e.target.value; 
-    currentPage = 1; // Reset to page 1 on search
+    displayedItemCount = 20; // Reset batch count on search
     renderCatalog(); 
   });
   
   document.getElementById('sortSelect').addEventListener('change', (e) => { 
     currentFilter.sort = e.target.value; 
-    currentPage = 1; // Reset to page 1 on sort change
+    displayedItemCount = 20; // Reset batch count on sort change
     renderCatalog(); 
   });
 
