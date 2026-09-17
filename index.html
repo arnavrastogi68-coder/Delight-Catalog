@@ -3,10 +3,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v8: Hidden Customer Admin + Reliable Multi-sheet Excel Export — 2026-09 -->
+  <!-- v12: Premium Heritage Visual Redesign — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
-  <meta property="og:description" content="Handcrafted Brass, Pure Copper, and Authentic Kansa Bronze Metalware from Moradabad.">
+  <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
   <meta property="og:image" content="https://lh3.googleusercontent.com/aida-public/AB6AXuDV6FCmoL0oOdh9Sn5Gpjo0vf7YRF--t9gCyW8UZ82AWFF63l4KS2iMPUd-8B8z5BSDikONBwOsf1XRn3rxGaF_KZGGFh0XS_78k7GCNdremtL6w7WF9VzdCKLVNaMINdRwDo0ZrpV_QOsshBwwuihFKc-ovKKglDakuGCpiIYQAIDb3936fP9Pau__NIPPEXpO1jXOAFN-w7baIyzQ8GDO25BiM_7IGgy_T2QXZQO3vv3k_LLm_Y8g">
   <meta property="og:url" content="https://arnavrastogi68-coder.github.io/Delight-Catalog/">
   <meta property="og:type" content="website">
@@ -1255,6 +1255,979 @@
       .drawer-item-thumb { width: 56px; height: 56px; flex-basis: 56px; }
     }
 
+
+    /* =========================================================
+       v12 Premium Heritage Visual System
+       ========================================================= */
+
+    body {
+      background: #fbfaf7;
+    }
+
+    /* Premium compact header */
+    .premium-header-container {
+      min-height: 68px;
+      padding-top: 9px;
+      padding-bottom: 9px;
+      display: grid;
+      grid-template-columns: auto minmax(260px, 1fr) auto;
+      gap: 22px;
+    }
+    .premium-header-container .brand-block { min-width: 245px; }
+    .premium-header-container .logo-box {
+      height: 43px;
+      border-radius: 7px;
+      background: #160607;
+      padding: 3px 7px;
+    }
+    .premium-header-container .brand-text h1 { font-size: 17px; }
+    .premium-header-container .brand-text p { font-size: 9px; letter-spacing: 1.45px; }
+    .header-search-area {
+      width: 100%;
+      max-width: 620px;
+      justify-self: center;
+    }
+    .header-search-area .search-wrapper {
+      width: 100%;
+      min-width: 0;
+      background: #fbfaf7;
+      border: 1px solid #ded5c8;
+      border-radius: 8px;
+      padding: 8px 11px;
+    }
+    .header-search-area .search-wrapper:focus-within {
+      background: #fff;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(179,130,67,.10);
+    }
+    .header-search-area .search-wrapper input { font-size: 11.5px; }
+    .premium-header-actions { flex-wrap: nowrap; gap: 6px; justify-content: flex-end; }
+    .premium-header-actions .btn-outline {
+      border-color: transparent;
+      padding: 7px 9px;
+      white-space: nowrap;
+    }
+    .premium-header-actions .btn-outline:hover {
+      background: var(--cream);
+      border-color: var(--border-line);
+    }
+    .premium-enquiry-btn {
+      background: var(--maroon);
+      color: #fff;
+      border-color: var(--maroon);
+      border-radius: 7px;
+      padding: 8px 13px;
+      white-space: nowrap;
+    }
+    .premium-enquiry-btn:hover { background: var(--maroon-dark); border-color: var(--maroon-dark); }
+    .premium-enquiry-btn .cart-count-badge {
+      background: #fff;
+      color: var(--maroon);
+      min-width: 21px;
+      text-align: center;
+    }
+
+    /* Hero */
+    .premium-hero {
+      min-height: 390px;
+      max-height: 470px;
+      height: 44vw;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      background: #24110d;
+    }
+    .premium-hero-media {
+      position: absolute;
+      inset: 0;
+    }
+    .premium-hero-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transform: scale(1.01);
+    }
+    .premium-hero-shade {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(34,12,10,.88) 0%, rgba(48,17,12,.67) 38%, rgba(35,13,10,.18) 72%, rgba(35,13,10,.05) 100%),
+        linear-gradient(0deg, rgba(30,9,8,.28), transparent 46%);
+    }
+    .premium-hero-content {
+      position: relative;
+      z-index: 2;
+      width: min(1240px, calc(100% - 40px));
+      margin: 0 auto;
+      color: #fff;
+    }
+    .premium-hero-kicker {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2.3px;
+      color: #ecd1a8;
+      margin-bottom: 12px;
+    }
+    .premium-hero-content h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(38px, 5.2vw, 68px);
+      line-height: .98;
+      letter-spacing: -.7px;
+      font-weight: 600;
+      max-width: 760px;
+      text-shadow: 0 4px 25px rgba(0,0,0,.18);
+    }
+    .premium-hero-sub {
+      margin-top: 16px;
+      font-size: 12.5px;
+      color: #f6ede3;
+      letter-spacing: .3px;
+    }
+    .premium-hero-actions {
+      display: flex;
+      gap: 9px;
+      margin-top: 21px;
+    }
+    .hero-primary-btn,
+    .hero-secondary-btn {
+      min-height: 42px;
+      border-radius: 6px;
+      padding: 9px 16px;
+      font-size: 11.5px;
+      font-weight: 800;
+      border: 1px solid transparent;
+    }
+    .hero-primary-btn {
+      background: var(--maroon);
+      color: #fff;
+      border-color: #7c2830;
+      box-shadow: 0 5px 15px rgba(0,0,0,.18);
+    }
+    .hero-primary-btn:hover { background: #6a1820; transform: translateY(-1px); }
+    .hero-secondary-btn {
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      border-color: rgba(255,255,255,.62);
+      backdrop-filter: blur(4px);
+    }
+    .hero-secondary-btn:hover { background: rgba(255,255,255,.16); }
+    .premium-founder-line {
+      margin-top: 17px;
+      color: rgba(255,255,255,.82);
+      font-size: 10.5px;
+      letter-spacing: .15px;
+    }
+    .premium-founder-line strong { color: #f1d2a3; }
+
+    /* Heritage story */
+    .heritage-story-section {
+      background: #fff;
+      border-bottom: 1px solid var(--border-line);
+      padding: 48px 20px;
+      scroll-margin-top: 84px;
+    }
+    .heritage-story-wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 46px;
+      align-items: center;
+    }
+    .founder-legacy-card {
+      background:
+        radial-gradient(circle at 80% 10%, rgba(226,190,137,.17), transparent 36%),
+        linear-gradient(145deg, #3a0d10, #20080a);
+      min-height: 300px;
+      border-radius: 14px;
+      padding: 30px 26px;
+      color: #fff;
+      border: 1px solid rgba(226,190,137,.42);
+      box-shadow: 0 16px 38px rgba(58,13,16,.15);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .founder-legacy-card::after {
+      content: "HOD";
+      position: absolute;
+      right: -10px;
+      bottom: -27px;
+      font-family: 'Cinzel', serif;
+      font-size: 82px;
+      font-weight: 800;
+      color: rgba(255,255,255,.035);
+    }
+    .founder-legacy-kicker {
+      color: #e2be89;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+    .founder-year {
+      font-family: 'Cinzel', serif;
+      color: #e8c797;
+      font-size: 47px;
+      font-weight: 700;
+      margin: 8px 0 10px;
+      line-height: 1;
+    }
+    .founder-legacy-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 25px;
+      line-height: 1.08;
+      margin-bottom: 5px;
+      color: #fff;
+    }
+    .founder-legacy-card p { color: #ecdccf; font-size: 11.5px; }
+    .founder-divider { width: 42px; height: 1px; background: #b38243; margin: 18px 0 12px; }
+    .founder-legacy-card > span { color: #cdbbaa; font-size: 10px; }
+    .section-eyebrow {
+      font-size: 9.5px;
+      color: var(--gold-dark);
+      letter-spacing: 2px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .heritage-story-copy h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(27px, 3.2vw, 40px);
+      color: var(--maroon);
+      line-height: 1.13;
+      margin-bottom: 10px;
+    }
+    .heritage-story-copy h2 span { color: var(--gold-dark) !important; }
+    .founder-emphasis {
+      font-size: 12px;
+      color: var(--gold-dark);
+      border-left: 2px solid var(--gold);
+      padding-left: 10px;
+      margin-bottom: 14px;
+    }
+    .heritage-story-copy > p {
+      color: #514c44;
+      font-size: 13px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+      max-width: 790px;
+    }
+    .heritage-stats {
+      max-width: 720px;
+      gap: 8px;
+    }
+    .heritage-stats .stat-card {
+      box-shadow: none;
+      background: #fbfaf7;
+      padding: 10px 8px;
+    }
+    .heritage-stats .stat-num { font-size: 18px; }
+    .heritage-stats .stat-label { font-size: 8.5px; }
+
+    /* Visual categories */
+    .collection-showcase {
+      background: #f7f2e9;
+      padding: 34px 20px 38px;
+      border-bottom: 1px solid var(--border-line);
+      scroll-margin-top: 78px;
+    }
+    .collection-showcase-inner { max-width: 1240px; margin: 0 auto; }
+    .section-heading-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 17px;
+    }
+    .section-heading-row h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: var(--maroon);
+      line-height: 1.1;
+    }
+    .collection-view-all {
+      background: transparent;
+      border: 0;
+      color: var(--maroon);
+      padding: 6px 0;
+      font-size: 10.5px;
+      font-weight: 800;
+    }
+    .collection-view-all:hover { color: var(--gold-dark); }
+    .collection-tiles {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(142px, 1fr);
+      gap: 10px;
+      overflow-x: auto;
+      padding: 2px 1px 8px;
+      scrollbar-width: thin;
+      scroll-snap-type: x proximity;
+    }
+    .collection-tile {
+      border: 1px solid #e4d9ca;
+      background: #fff;
+      border-radius: 10px;
+      padding: 0;
+      overflow: hidden;
+      min-width: 142px;
+      text-align: left;
+      cursor: pointer;
+      scroll-snap-align: start;
+      transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+      display: block;
+    }
+    .collection-tile:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 9px 22px rgba(58,13,16,.09);
+      border-color: #cfab78;
+    }
+    .collection-tile-image {
+      height: 118px;
+      background: #fbfaf7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 8px;
+    }
+    .collection-tile-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: transform .3s ease;
+    }
+    .collection-tile:hover img { transform: scale(1.035); }
+    .collection-tile-copy {
+      padding: 10px 10px 11px;
+    }
+    .collection-tile-copy strong {
+      font-family: 'Playfair Display', serif;
+      font-size: 13.5px;
+      color: var(--ink);
+      display: block;
+      line-height: 1.15;
+    }
+    .collection-tile-copy span {
+      font-size: 9px;
+      color: var(--ink-muted);
+      margin-top: 3px;
+      display: block;
+    }
+
+    /* Cleaner filter bar */
+    .filter-section {
+      top: 68px;
+      padding: 10px 20px;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(8px);
+    }
+    .filter-container {
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .filter-container .custom-select { min-width: 170px; }
+    .segmented-tabs-container { margin-top: 8px; }
+
+    /* Premium product cards */
+    main.catalog-content {
+      background: #fbfaf7;
+      padding-top: 30px;
+    }
+    .section-status-bar {
+      border-bottom: 0;
+      padding-bottom: 0;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+    .section-status-bar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 27px;
+      letter-spacing: -.2px;
+    }
+    .products-grid {
+      grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+      gap: 16px;
+    }
+    .product-box {
+      border: 1px solid #e7dfd4;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(50,32,21,.035);
+      background: #fff;
+      transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+    }
+    .product-box:hover {
+      transform: translateY(-4px);
+      border-color: #d6bd98;
+      box-shadow: 0 12px 27px rgba(58,13,16,.09);
+    }
+    .product-thumb {
+      aspect-ratio: 1 / 1.02;
+      padding: 16px;
+      background: linear-gradient(180deg, #fbfaf7 0%, #f7f2ea 100%);
+    }
+    .product-thumb img {
+      transition: transform .32s ease, opacity .15s ease;
+    }
+    .product-box:hover .product-thumb img { transform: scale(1.025); }
+    .badge-metal-type {
+      background: rgba(255,255,255,.94);
+      color: var(--gold-dark);
+      border: 1px solid rgba(179,130,67,.34);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: .2px;
+      border-radius: 20px;
+      padding: 3px 7px;
+    }
+    .multi-photo-pill {
+      background: rgba(58,13,16,.82);
+      backdrop-filter: blur(4px);
+    }
+    .size-counter-pill {
+      border: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      font-size: 9.5px;
+    }
+    .product-details { padding: 13px 14px 14px; gap: 4px; }
+    .sku-line {
+      font-size: 8.5px;
+      color: #8d867e;
+      letter-spacing: .8px;
+    }
+    .product-name {
+      font-size: 16px;
+      line-height: 1.22;
+      min-height: 39px;
+    }
+    .product-meta-line { min-height: 18px; }
+    .stock-chip {
+      background: #f0f8f0;
+      color: #35623a;
+      border-color: #d8ead9;
+    }
+    .product-spec-line { font-size: 10.5px; }
+    .product-action-row {
+      padding-top: 10px;
+      margin-top: 7px;
+      gap: 8px;
+    }
+    .price-tag {
+      font-size: 15px;
+      color: var(--maroon);
+      white-space: nowrap;
+    }
+    .wholesale-price-label {
+      display: block;
+      font-size: 7.5px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--ink-muted);
+      line-height: 1.1;
+      margin-bottom: 2px;
+    }
+    .btn-add-order {
+      background: var(--maroon);
+      color: #fff;
+      border-color: var(--maroon);
+      border-radius: 6px;
+      padding: 6px 10px;
+      white-space: nowrap;
+    }
+    .btn-add-order:hover {
+      background: var(--maroon-dark);
+      border-color: var(--maroon-dark);
+    }
+
+    /* Premium product detail modal */
+    #viewModalOverlay {
+      background: rgba(20,9,7,.68);
+      backdrop-filter: blur(4px);
+    }
+    #viewModalCard.product-detail-modal {
+      max-width: 980px;
+      width: min(980px, 96vw);
+      border-radius: 14px;
+      overflow: hidden;
+      max-height: 92vh;
+      border: 0;
+      box-shadow: 0 24px 60px rgba(0,0,0,.26);
+    }
+    .product-detail-topbar {
+      min-height: 52px;
+      padding: 10px 15px 10px 18px;
+      border-bottom: 1px solid var(--border-line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+    }
+    .detail-brand-kicker {
+      display: block;
+      font-family: 'Cinzel', serif;
+      color: var(--maroon);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .detail-brand-sub {
+      display: block;
+      color: var(--ink-muted);
+      font-size: 8.5px;
+      margin-top: 1px;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+    }
+    .detail-close-btn {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 50%;
+      border: 1px solid var(--border-line);
+      background: #fff;
+      justify-content: center;
+      color: var(--ink);
+    }
+    .product-detail-layout {
+      display: grid;
+      grid-template-columns: 1.08fr .92fr;
+      min-height: 560px;
+      overflow-y: auto;
+    }
+    .product-detail-gallery {
+      padding: 20px;
+      background: #f8f4ed;
+      border-right: 1px solid var(--border-line);
+    }
+    .product-detail-gallery .modal-hero-img {
+      aspect-ratio: 1 / 1;
+      min-height: 400px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .gallery-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--border-line);
+      background: rgba(255,255,255,.92);
+      color: var(--maroon);
+      z-index: 4;
+      justify-content: center;
+      padding: 0;
+      box-shadow: 0 3px 10px rgba(0,0,0,.07);
+    }
+    .gallery-prev { left: 10px; }
+    .gallery-next { right: 10px; }
+    .premium-gallery-thumbs { margin-top: 10px; }
+    .craft-assurance-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      border-top: 1px solid #dfd4c5;
+      margin-top: 14px;
+      padding-top: 11px;
+      color: #746b61;
+      font-size: 8.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+    .product-detail-info {
+      padding: 30px 28px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .detail-category-line {
+      font-size: 9.5px;
+      font-weight: 800;
+      color: var(--gold-dark);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 6px;
+    }
+    .product-detail-info h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--maroon);
+      font-size: 32px;
+      line-height: 1.08;
+      margin-bottom: 6px;
+    }
+    .detail-sku-row {
+      color: var(--ink-muted);
+      font-size: 9.5px;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+    }
+    .detail-sku-row strong { color: var(--ink); }
+    .detail-price {
+      color: var(--maroon);
+      font-size: 24px;
+      font-weight: 800;
+      margin: 17px 0 14px;
+    }
+    .detail-variant-box {
+      background: #fbfaf7;
+      border: 1px solid var(--border-line);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .detail-variant-box label,
+    .detail-label {
+      display: block;
+      color: var(--ink-muted);
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .detail-variant-box select {
+      width: 100%;
+      border: 1px solid var(--border-line);
+      border-radius: 6px;
+      padding: 8px 9px;
+      background: #fff;
+      font-family: inherit;
+      font-size: 12px;
+    }
+    .detail-facts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      border-top: 1px solid var(--border-line);
+      border-bottom: 1px solid var(--border-line);
+      margin-bottom: 15px;
+    }
+    .detail-fact {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1ece5;
+    }
+    .detail-fact:last-child { border-bottom: 0; }
+    .detail-fact span {
+      color: var(--ink-muted);
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+    .detail-fact strong {
+      color: var(--ink);
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+    .detail-specification-box {
+      margin-bottom: 12px;
+    }
+    .detail-specification-box p {
+      font-size: 11.5px;
+      line-height: 1.62;
+      color: #514d47;
+    }
+    .detail-artisan-note {
+      background: #f8f2e8;
+      border-left: 3px solid var(--gold);
+      padding: 9px 10px;
+      border-radius: 5px;
+      color: #716557;
+      font-size: 9.5px;
+      line-height: 1.5;
+      margin-top: auto;
+    }
+    .product-detail-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-top: 15px;
+    }
+    .detail-enquiry-btn {
+      flex: 1 1 170px;
+      justify-content: center;
+      min-height: 41px;
+    }
+    .product-detail-actions #shareProductBtn {
+      justify-content: center;
+      min-height: 41px;
+    }
+
+    /* Premium footer */
+    .premium-footer {
+      background:
+        radial-gradient(circle at 8% 20%, rgba(179,130,67,.13), transparent 23%),
+        #28090c;
+      color: #e7d9ce;
+      padding: 0;
+      text-align: left;
+      border-top: 2px solid #8a5e30;
+    }
+    .premium-footer-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 42px 20px 34px;
+      display: grid;
+      grid-template-columns: 1.55fr .7fr .7fr 1.15fr;
+      gap: 36px;
+    }
+    .footer-brand-name {
+      font-family: 'Cinzel', serif;
+      color: #f3d09b;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .footer-brand-sub {
+      color: #c59c68;
+      font-size: 8px;
+      letter-spacing: 1.7px;
+      margin: 4px 0 12px;
+      font-weight: 800;
+    }
+    .footer-brand-col p,
+    .footer-founder-col p {
+      font-size: 10.5px;
+      line-height: 1.65;
+      color: #c8b9af;
+      max-width: 310px;
+    }
+    .footer-links-col {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .footer-links-col strong {
+      color: #f2d19f;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 3px;
+    }
+    .footer-links-col button,
+    .footer-links-col a {
+      display: block;
+      width: fit-content;
+      background: none;
+      border: 0;
+      color: #cfc1b7;
+      padding: 0;
+      font-size: 10.5px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .footer-links-col button:hover,
+    .footer-links-col a:hover { color: #fff; }
+    .footer-founder-col {
+      border-left: 1px solid rgba(226,190,137,.2);
+      padding-left: 24px;
+    }
+    .footer-founder-col > span {
+      color: #b98b54;
+      font-size: 8px;
+      letter-spacing: 1.4px;
+      font-weight: 800;
+    }
+    .footer-founder-col strong {
+      display: block;
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: #f4e4d2;
+      margin: 6px 0 5px;
+    }
+    .premium-footer-bottom {
+      border-top: 1px solid rgba(226,190,137,.18);
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 13px 20px 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      color: #aa9d94;
+      font-size: 8.5px;
+    }
+    .premium-footer-bottom strong { color: #d9b47f; }
+    .footer-notice { text-align: right; }
+
+    /* Gentle motion only */
+    .collection-tile,
+    .product-box,
+    .hero-primary-btn,
+    .hero-secondary-btn {
+      will-change: transform;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .001ms !important;
+        animation-duration: .001ms !important;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .premium-header-container {
+        grid-template-columns: auto 1fr;
+        gap: 8px 14px;
+      }
+      .header-search-area {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        max-width: none;
+      }
+      .premium-header-actions {
+        grid-column: 2;
+        grid-row: 1;
+      }
+      .header-pdf-btn { display: none; }
+      .filter-section { top: 116px; }
+      .heritage-story-wrap {
+        grid-template-columns: 240px 1fr;
+        gap: 28px;
+      }
+      .premium-footer-inner {
+        grid-template-columns: 1.4fr 1fr 1fr;
+      }
+      .footer-founder-col {
+        grid-column: 1 / -1;
+        border-left: 0;
+        border-top: 1px solid rgba(226,190,137,.18);
+        padding: 18px 0 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .notice-top-bar { font-size: 9px; padding: 5px 9px; }
+      .premium-header-container {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        padding: 8px 12px;
+      }
+      .premium-header-container .brand-block { min-width: 0; gap: 8px; }
+      .premium-header-container .logo-box { height: 37px; }
+      .premium-header-container .brand-text h1 { font-size: 14px; }
+      .premium-header-container .brand-text p { font-size: 7.5px; letter-spacing: 1px; }
+      .premium-header-actions {
+        width: auto;
+        overflow: visible;
+        padding: 0;
+        gap: 3px;
+      }
+      .premium-header-actions #shareCatalogBtn { display: none; }
+      .premium-header-actions .admin-only { display: none !important; }
+      body.is-admin .premium-header-actions .admin-only { display: none !important; }
+      .premium-enquiry-btn { padding: 7px 9px; font-size: 10.5px; }
+      .header-search-area { grid-column: 1 / -1; width: 100%; }
+      .header-search-area .search-wrapper { padding: 7px 9px; }
+
+      .premium-hero {
+        height: 420px;
+        min-height: 420px;
+        max-height: none;
+        align-items: flex-end;
+      }
+      .premium-hero-media img { object-position: 60% center; }
+      .premium-hero-shade {
+        background: linear-gradient(0deg, rgba(32,9,8,.94) 0%, rgba(32,9,8,.72) 48%, rgba(32,9,8,.18) 100%);
+      }
+      .premium-hero-content {
+        width: calc(100% - 28px);
+        padding-bottom: 28px;
+      }
+      .premium-hero-kicker { font-size: 8px; margin-bottom: 8px; }
+      .premium-hero-content h2 { font-size: 39px; }
+      .premium-hero-sub { font-size: 10px; margin-top: 11px; }
+      .premium-hero-actions { margin-top: 16px; }
+      .hero-primary-btn, .hero-secondary-btn { min-height: 38px; padding: 8px 11px; font-size: 10px; }
+      .premium-founder-line { font-size: 9px; margin-top: 13px; }
+
+      .heritage-story-section { padding: 30px 15px; }
+      .heritage-story-wrap { grid-template-columns: 1fr; gap: 20px; }
+      .founder-legacy-card { min-height: 205px; padding: 22px; }
+      .founder-year { font-size: 36px; }
+      .founder-legacy-card h3 { font-size: 23px; }
+      .heritage-story-copy h2 { font-size: 28px; }
+      .heritage-story-copy > p { font-size: 12px; line-height: 1.72; }
+      .heritage-stats { grid-template-columns: repeat(2, 1fr); }
+
+      .collection-showcase { padding: 27px 15px 30px; }
+      .section-heading-row h2 { font-size: 24px; }
+      .collection-view-all { font-size: 9px; }
+      .collection-tiles { grid-auto-columns: 137px; }
+      .collection-tile-image { height: 106px; }
+
+      .filter-section { top: 0; position: relative; padding: 9px 12px; }
+      .filter-container { justify-content: flex-start; overflow-x: auto; }
+      .filter-container .custom-select { min-width: 160px; }
+      main.catalog-content { padding: 22px 10px 80px; }
+      .section-status-bar h2 { font-size: 22px; }
+      .products-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 9px; }
+      .product-box { border-radius: 9px; }
+      .product-thumb { padding: 9px; }
+      .product-details { padding: 9px; }
+      .product-name { font-size: 13px; min-height: 32px; }
+      .sku-line { font-size: 7.5px; }
+      .product-meta-line { font-size: 8.5px; }
+      .product-spec-line { font-size: 8.8px; }
+      .price-tag { font-size: 12.5px; }
+      .btn-add-order { font-size: 9px; padding: 5px 7px; }
+      .wholesale-price-label { font-size: 6.8px; }
+
+      #viewModalCard.product-detail-modal {
+        width: 96vw;
+        max-height: 94vh;
+      }
+      .product-detail-layout { grid-template-columns: 1fr; min-height: 0; }
+      .product-detail-gallery {
+        padding: 12px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border-line);
+      }
+      .product-detail-gallery .modal-hero-img {
+        min-height: 300px;
+        aspect-ratio: 1.12 / 1;
+        padding: 14px;
+      }
+      .craft-assurance-row { display: none; }
+      .product-detail-info { padding: 18px 16px; }
+      .product-detail-info h2 { font-size: 26px; }
+      .detail-price { font-size: 21px; margin: 12px 0; }
+
+      .premium-footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px 18px;
+        padding: 30px 16px 26px;
+      }
+      .footer-brand-col { grid-column: 1 / -1; }
+      .footer-founder-col { grid-column: 1 / -1; }
+      .premium-footer-bottom {
+        flex-direction: column;
+        padding: 12px 16px 16px;
+        gap: 5px;
+      }
+      .footer-notice { text-align: left; }
+    }
+
+    @media (max-width: 430px) {
+      .premium-hero-content h2 { font-size: 34px; }
+      .premium-hero-actions { flex-wrap: wrap; }
+      .section-heading-row { align-items: flex-start; }
+      .collection-view-all { margin-top: 3px; }
+      .product-action-row { flex-direction: column; align-items: stretch; }
+      .btn-add-order { justify-content: center; }
+      .price-tag { text-align: left; }
+      .detail-facts-grid { margin-top: 2px; }
+      .premium-footer-inner { grid-template-columns: 1fr; }
+      .footer-links-col, .footer-founder-col { grid-column: 1; }
+    }
+
   </style>
 </head>
 <body>
@@ -1265,7 +2238,7 @@
 </div>
 
 <header class="master-header">
-  <div class="header-container">
+  <div class="header-container premium-header-container">
     <div class="brand-block">
       <div class="logo-box">
         <img alt="Delight Logo" id="headerLogoImg" src="">
@@ -1275,15 +2248,27 @@
         <p id="headerTagline">Delight Metal Works · Estd. 1970</p>
       </div>
     </div>
-    <div class="header-actions">
-      <button class="btn-outline" id="shareCatalogBtn" title="Copy Catalog Link">🔗 Share</button>
+
+    <div class="header-search-area">
+      <div class="search-wrapper">
+        <svg fill="none" height="15" stroke="#2b2a24" stroke-width="2" viewBox="0 0 24 24" width="15"><circle cx="11" cy="11" r="7"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+        <input id="searchInput" placeholder="Search product, SKU, category, metal, size..." type="text" autocomplete="off">
+        <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search">✕</button>
+        <div class="search-autocomplete" id="searchAutocomplete"></div>
+      </div>
+    </div>
+
+    <div class="header-actions premium-header-actions">
+      <button class="btn-outline" id="shareCatalogBtn" title="Share Catalog">↗ Share</button>
+      <button class="btn-outline header-pdf-btn" id="downloadPdfBtn" title="Export Full Catalog as PDF">Catalog PDF</button>
+
       <button class="btn-outline admin-only" id="adminStatusBtn" title="Admin account / sign out">✓ Admin</button>
-      <button class="btn-outline admin-only" id="openSettingsBtn" title="Edit Brand Details">⚙️ Edit Brand</button>
-      <button class="btn-outline admin-only" id="openExcelModalBtn" title="Bulk Import / Export Excel">📊 Excel Import</button>
-      <button class="btn-outline" id="downloadPdfBtn" title="Export Full Catalog as PDF">📄 Export Catalog</button>
-      <button class="btn-save admin-only" id="saveOfflineHtmlBtn" title="Save standalone Webpage">💾 Save Offline</button>
-      <button class="cart-trigger-btn" id="openCartBtn">
-        <span class="material-symbols-outlined" style="font-size: 18px;">shopping_cart</span>
+      <button class="btn-outline admin-only" id="openSettingsBtn" title="Edit Brand Details">⚙ Brand</button>
+      <button class="btn-outline admin-only" id="openExcelModalBtn" title="Bulk Import / Export Excel">Excel</button>
+      <button class="btn-save admin-only" id="saveOfflineHtmlBtn" title="Save standalone Webpage">Save</button>
+
+      <button class="cart-trigger-btn premium-enquiry-btn" id="openCartBtn">
+        <span>Enquiry</span>
         <span class="cart-count-badge" id="cartBadge">0</span>
       </button>
     </div>
@@ -1298,51 +2283,83 @@
   <button type="button" onclick="document.getElementById('openSettingsBtn').click()">⚙ Brand</button>
 </div>
 
-<!-- Story Hero Section -->
-<section class="story-hero reveal-on-scroll visible">
-  <div class="story-container">
-    <div class="story-header-pill">WHO WE ARE · ESTD. 1970</div>
-    <div class="story-grid">
-      <div class="story-desc">
-        <h2 id="storyHeading">Heritage of Moradabad Craftsmanship <br><span style="font-size: 0.7em; font-style: italic; color: var(--gold-dark);">by Jagdish Saran Rastogi</span></h2>
-        <p id="storyParagraph">
-          <strong>Delight Metal Works (House of Delight)</strong> is an integrated designing and manufacturing firm started in the year <strong>1970 by Mr. Jagdish Saran Rastogi</strong> in Moradabad—India’s celebrated <em>"Brass City"</em>. What began as a dedicated family workshop has flourished over five decades into a premier manufacturing and trading house spanning Pure Brass, Pure Copper, Authentic Kansa (Bronze), and Stainless Steel metalware, serving an extensive dealer and export network across India and globally. Because every piece is individually turned and polished by traditional Moradabad artisans, subtle variations in weight, polish, and texture are hallmarks of authentic metalcraft.
-        </p>
-        <div class="stats-strip" id="statsStrip">
-          <div class="stat-card">
-            <span class="stat-num">1970</span>
-            <span class="stat-label">In Moradabad</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-num">100+</span>
-            <span class="stat-label">Product Master</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-num">100%</span>
-            <span class="stat-label">Pure Metal</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-num">Global</span>
-            <span class="stat-label">B2B & Export</span>
-          </div>
+<!-- Premium Hero -->
+<section class="premium-hero reveal-on-scroll visible">
+  <div class="premium-hero-media">
+    <img alt="House of Delight heritage metalware" id="heroBannerImg" src="">
+  </div>
+  <div class="premium-hero-shade"></div>
+  <div class="premium-hero-content">
+    <div class="premium-hero-kicker">HOUSE OF DELIGHT · DELIGHT METAL WORKS</div>
+    <h2>Heritage Metalware,<br>Made for Modern Homes</h2>
+    <p class="premium-hero-sub">Pure Brass · Pure Copper · Authentic Kansa Bronze · Stainless Steel</p>
+    <div class="premium-hero-actions">
+      <button class="hero-primary-btn" type="button" onclick="document.getElementById('collectionShowcase').scrollIntoView({behavior:'smooth', block:'start'});">Browse Collections →</button>
+      <button class="hero-secondary-btn" type="button" onclick="document.getElementById('heritageStory').scrollIntoView({behavior:'smooth', block:'start'});">Our Story</button>
+    </div>
+    <div class="premium-founder-line">Founded in 1970 by <strong>Mr. Jagdish Saran Rastogi</strong> · Moradabad</div>
+  </div>
+</section>
+
+<!-- Heritage Story — intentionally retained as a core brand section -->
+<section class="heritage-story-section" id="heritageStory">
+  <div class="heritage-story-wrap">
+    <div class="founder-legacy-card">
+      <div class="founder-legacy-kicker">THE FOUNDER</div>
+      <div class="founder-year">1970</div>
+      <h3>Mr. Jagdish Saran Rastogi</h3>
+      <p>Founder, Delight Metal Works</p>
+      <div class="founder-divider"></div>
+      <span>Moradabad · India’s Brass City</span>
+    </div>
+
+    <div class="heritage-story-copy">
+      <div class="section-eyebrow">OUR HERITAGE</div>
+      <h2 id="storyHeading">A Legacy of Moradabad Craftsmanship</h2>
+      <div class="founder-emphasis">Established by <strong>Mr. Jagdish Saran Rastogi</strong>, whose tradition of metal craftsmanship continues through House of Delight.</div>
+      <p id="storyParagraph">
+        <strong>Delight Metal Works (House of Delight)</strong> is an integrated designing and manufacturing firm started in the year <strong>1970 by Mr. Jagdish Saran Rastogi</strong> in Moradabad—India’s celebrated <em>"Brass City"</em>. What began as a dedicated family workshop has flourished over five decades into a premier manufacturing and trading house spanning Pure Brass, Pure Copper, Authentic Kansa (Bronze), and Stainless Steel metalware, serving an extensive dealer and export network across India and globally. Because every piece is individually turned and polished by traditional Moradabad artisans, subtle variations in weight, polish, and texture are hallmarks of authentic metalcraft.
+      </p>
+
+      <div class="stats-strip heritage-stats" id="statsStrip">
+        <div class="stat-card">
+          <span class="stat-num">1970</span>
+          <span class="stat-label">Established</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">100+</span>
+          <span class="stat-label">Product Master</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">100%</span>
+          <span class="stat-label">Pure Metal</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">Global</span>
+          <span class="stat-label">B2B & Export</span>
         </div>
       </div>
-      <div class="hero-visual-frame">
-        <img alt="Featured Metalware Collection" id="heroBannerImg" src="">
-      </div>
     </div>
+  </div>
+</section>
+
+<!-- Visual Collection Navigation -->
+<section class="collection-showcase" id="collectionShowcase">
+  <div class="collection-showcase-inner">
+    <div class="section-heading-row">
+      <div>
+        <div class="section-eyebrow">EXPLORE THE RANGE</div>
+        <h2>Browse Our Collections</h2>
+      </div>
+      <button type="button" class="collection-view-all" onclick="currentFilter.catalog=''; currentFilter.metal=''; currentFilter.search=''; document.getElementById('searchInput').value=''; displayedItemCount=itemsPerPage; renderCatalog(); document.getElementById('catalogContentArea').scrollIntoView({behavior:'smooth'});">View All Products →</button>
+    </div>
+    <div class="collection-tiles" id="categoryVisualTiles"></div>
   </div>
 </section>
 
 <!-- Filter Section -->
 <div class="filter-section">
   <div class="filter-container">
-    <div class="search-wrapper">
-      <svg fill="none" height="15" stroke="#2b2a24" stroke-width="2" viewBox="0 0 24 24" width="15"><circle cx="11" cy="11" r="7"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-      <input id="searchInput" placeholder="Search product, SKU, category, metal, size..." type="text" autocomplete="off">
-      <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search">✕</button>
-      <div class="search-autocomplete" id="searchAutocomplete"></div>
-    </div>
     <select class="custom-select" id="sortSelect">
       <option value="name">Sort: Name (A to Z)</option>
       <option value="name-desc">Sort: Name (Z to A)</option>
@@ -1447,48 +2464,75 @@
   </div>
 </div>
 
-<!-- View Product Modal with Artisan Notice -->
+<!-- Premium Product Detail Modal -->
 <div class="modal-overlay" id="viewModalOverlay">
-  <div class="modal-card" id="viewModalCard">
-    <div class="modal-head">
-      <h3 id="viewItemName">Product Specifications</h3>
-      <button id="closeViewModalBtn" style="background:none; border:none; font-size:18px; cursor:pointer;">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-hero-img" id="modalHeroImgBox">
-        <button class="btn-outline" id="galleryPrevBtn" onclick="navigateModalGallery(-1)" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); display:none; background:rgba(255,255,255,0.85); padding:6px 10px;">❮</button>
-        <img alt="Product Image" id="viewItemImg">
-        <button class="btn-outline" id="galleryNextBtn" onclick="navigateModalGallery(1)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); display:none; background:rgba(255,255,255,0.85); padding:6px 10px;">❯</button>
+  <div class="modal-card product-detail-modal" id="viewModalCard">
+    <div class="product-detail-topbar">
+      <div>
+        <span class="detail-brand-kicker">HOUSE OF DELIGHT</span>
+        <span class="detail-brand-sub">Wholesale Collection</span>
       </div>
-      <div class="gallery-thumbs" id="modalGalleryThumbs"></div>
-      <div id="viewItemCategory" style="font-size:11px; font-weight:700; color:var(--gold-dark); text-transform:uppercase; letter-spacing:1px;"></div>
-      
-      <div id="viewVariantsContainer" style="display:none; margin: 4px 0;">
-        <label style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--ink-muted);">Select Size Option:</label>
-        <select id="viewVariantSelect" style="width:100%; padding: 8px 10px; border: 1px solid var(--border-line); border-radius: 5px; font-size: 13px; font-family: inherit; margin-top: 4px;" onchange="updateViewModalVariantWeight(this)"></select>
+      <button id="closeViewModalBtn" class="detail-close-btn" aria-label="Close product">✕</button>
+    </div>
+
+    <div class="product-detail-layout">
+      <div class="product-detail-gallery">
+        <div class="modal-hero-img" id="modalHeroImgBox">
+          <button class="gallery-nav-btn gallery-prev" id="galleryPrevBtn" onclick="navigateModalGallery(-1)">❮</button>
+          <img alt="Product Image" id="viewItemImg">
+          <button class="gallery-nav-btn gallery-next" id="galleryNextBtn" onclick="navigateModalGallery(1)">❯</button>
+        </div>
+        <div class="gallery-thumbs premium-gallery-thumbs" id="modalGalleryThumbs"></div>
+        <div class="craft-assurance-row">
+          <span>◈ Pure Metal</span>
+          <span>✦ Traditional Craft</span>
+          <span>▣ Bulk Orders</span>
+        </div>
       </div>
 
-      <table class="spec-table">
-        <tbody>
-          <tr><th>Wholesale Price</th><td id="viewItemPrice" style="font-weight:700; color:var(--maroon);">—</td></tr>
-          <tr><th>SKU / Product Code</th><td id="viewItemSku">—</td></tr>
-          <tr><th>MOQ / Stock</th><td id="viewItemTrade">—</td></tr>
-          <tr><th>Available Sizes</th><td id="viewItemSize">—</td></tr>
-          <tr><th>Weight / Gauge</th><td id="viewItemWeight">—</td></tr>
-          <tr><th>Specifications</th><td id="viewItemNotes">—</td></tr>
-        </tbody>
-      </table>
+      <div class="product-detail-info">
+        <div id="viewItemCategory" class="detail-category-line"></div>
+        <h2 id="viewItemName">Product Specifications</h2>
+        <div class="detail-sku-row">SKU <strong id="viewItemSku">—</strong></div>
+        <div class="detail-price" id="viewItemPrice">—</div>
 
-      <div style="font-size: 10.5px; color: var(--ink-muted); background: var(--cream-soft); padding: 8px 10px; border-radius: 4px; border-left: 3px solid var(--gold); margin-top: 4px;">
-        ℹ️ <em>Handcrafted finish may vary slightly from photographs. Final order confirmation depends on workshop stock availability.</em>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn-gold" id="modalAddToCartBtn">+ Add to Enquiry</button>
-      <button class="btn-outline" id="shareProductBtn" onclick="shareProduct(activeViewId)" title="Share this product">🔗 Share Product</button>
-      <div class="admin-only" style="gap:6px;">
-        <button class="btn-outline" id="modalEditBtn">Edit</button>
-        <button class="btn-outline" id="modalDeleteBtn" style="color:var(--danger);">Delete</button>
+        <div id="viewVariantsContainer" class="detail-variant-box" style="display:none;">
+          <label>Select Size / Variant</label>
+          <select id="viewVariantSelect" onchange="updateViewModalVariantWeight(this)"></select>
+        </div>
+
+        <div class="detail-facts-grid">
+          <div class="detail-fact">
+            <span>MOQ / Stock</span>
+            <strong id="viewItemTrade">—</strong>
+          </div>
+          <div class="detail-fact">
+            <span>Available Sizes</span>
+            <strong id="viewItemSize">—</strong>
+          </div>
+          <div class="detail-fact">
+            <span>Weight / Gauge</span>
+            <strong id="viewItemWeight">—</strong>
+          </div>
+        </div>
+
+        <div class="detail-specification-box">
+          <span class="detail-label">Specifications</span>
+          <p id="viewItemNotes">—</p>
+        </div>
+
+        <div class="detail-artisan-note">
+          Handcrafted metalware can show subtle variations in finish, weight and texture — characteristics of authentic artisan production.
+        </div>
+
+        <div class="product-detail-actions">
+          <button class="btn-maroon detail-enquiry-btn" id="modalAddToCartBtn">+ Add to Enquiry</button>
+          <button class="btn-outline" id="shareProductBtn" onclick="shareProduct(activeViewId)" title="Share this product">↗ Share Product</button>
+          <div class="admin-only" style="gap:6px;">
+            <button class="btn-outline" id="modalEditBtn">Edit</button>
+            <button class="btn-outline" id="modalDeleteBtn" style="color:var(--danger);">Delete</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1698,11 +2742,39 @@
 
 <div class="toast" id="toastBox">Saved successfully</div>
 
-<footer>
-  <div style="font-size: 11px; color: var(--ink-muted); margin-bottom: 6px;">
-    *Notice: Handcrafted brass, copper & bronze items are artisan-made and may differ slightly from photographs. All trade orders are confirmed subject to stock availability.
+<footer class="premium-footer">
+  <div class="premium-footer-inner">
+    <div class="footer-brand-col">
+      <div class="footer-brand-name">HOUSE OF DELIGHT</div>
+      <div class="footer-brand-sub">DELIGHT METAL WORKS · ESTD. 1970</div>
+      <p>Heritage metalware, made for modern homes. Crafted for wholesale, retail, gifting and export.</p>
+    </div>
+
+    <div class="footer-links-col">
+      <strong>Explore</strong>
+      <button type="button" onclick="document.getElementById('collectionShowcase').scrollIntoView({behavior:'smooth'});">Collections</button>
+      <button type="button" onclick="document.getElementById('heritageStory').scrollIntoView({behavior:'smooth'});">Our Heritage</button>
+      <button type="button" onclick="document.getElementById('catalogContentArea').scrollIntoView({behavior:'smooth'});">Full Catalog</button>
+    </div>
+
+    <div class="footer-links-col">
+      <strong>Trade</strong>
+      <button type="button" onclick="document.getElementById('orderDrawerOverlay').classList.add('show');">Wholesale Enquiry</button>
+      <button type="button" onclick="document.getElementById('shareCatalogBtn').click();">Share Catalog</button>
+      <a href="#" id="footerWhatsAppLink">WhatsApp</a>
+    </div>
+
+    <div class="footer-founder-col">
+      <span>FOUNDED IN MORADABAD</span>
+      <strong>Mr. Jagdish Saran Rastogi</strong>
+      <p>Carrying forward a family tradition of fine Indian metalcraft since 1970.</p>
+    </div>
   </div>
-  <div id="footerText">House of Delight — <strong>Delight Metal Works</strong> · Estd. 1970 by Mr. Jagdish Saran Rastogi · Moradabad, Uttar Pradesh</div>
+
+  <div class="premium-footer-bottom">
+    <div id="footerText">House of Delight — <strong>Delight Metal Works</strong> · Estd. 1970 by Mr. Jagdish Saran Rastogi · Moradabad, Uttar Pradesh</div>
+    <div class="footer-notice">Handcrafted items may vary slightly from photographs · Trade orders subject to stock confirmation</div>
+  </div>
 </footer>
 
 <div class="floating-action-bar">
@@ -1771,7 +2843,7 @@ var COMPANY_INFO = {
   location: "Moradabad, Uttar Pradesh",
   logo: "https://lh3.googleusercontent.com/aida-public/AB6AXuALCWSL0GG0YbQTXLlehjEorBOgLr84RgonsUDFtYoEoRzDH5QJwittLvk2kyGgWRZA2G0-eg9vpM6-LYPzaTq5s_hJDci7EqbYKX8QpskO2QknZr4s6USd7gbl0FQaDcBkcnq4SQywD6M0GQKxnnQIV7rbkX3_91qeOMp0447Mg-d9MUUM612MrLzxtty2Y5StXv8W7s1659sLY5qmrtJNzLFFhqT8FDPwS-DH33mCRNr0tKKLJRq3z9fgB9SpnRCdjQ",
   bannerImg: "https://lh3.googleusercontent.com/aida-public/AB6AXuDV6FCmoL0oOdh9Sn5Gpjo0vf7YRF--t9gCyW8UZ82AWFF63l4KS2iMPUd-8B8z5BSDikONBwOsf1XRn3rxGaF_KZGGFh0XS_78k7GCNdremtL6w7WF9VzdCKLVNaMINdRwDo0ZrpV_QOsshBwwuihFKc-ovKKglDakuGCpiIYQAIDb3936fP9Pau__NIPPEXpO1jXOAFN-w7baIyzQ8GDO25BiM_7IGgy_T2QXZQO3vv3k_LLm_Y8g",
-  storyHeading: "Heritage of Moradabad Craftsmanship <br><span style='font-size: 0.7em; font-style: italic; color: var(--gold-dark);'>by Jagdish Saran Rastogi</span>",
+  storyHeading: "A Legacy of Moradabad Craftsmanship",
   storyParagraph: "<strong>Delight Metal Works (House of Delight)</strong> is an integrated designing and manufacturing firm started in the year <strong>1970 by Mr. Jagdish Saran Rastogi</strong> in Moradabad—India’s celebrated <em>\"Brass City\"</em>. What began as a dedicated family workshop has flourished over five decades into a premier manufacturing and trading house spanning Pure Brass, Pure Copper, Authentic Kansa (Bronze), and Stainless Steel metalware, serving an extensive dealer and export network across India and globally. Because every piece is individually turned and polished by traditional Moradabad artisans, subtle variations in weight, polish, and texture are hallmarks of authentic metalcraft."
 };
 
@@ -2033,6 +3105,7 @@ function renderCatalog(options = {}) {
   if (!append) {
     updateCompanyHeader();
     renderCategoryPills();
+    renderCategoryVisualTiles();
     updateCartUI();
   }
 
@@ -2424,6 +3497,69 @@ function applySharedDeepLinkOnce() {
   }
 }
 
+
+function renderCategoryVisualTiles() {
+  const container = document.getElementById('categoryVisualTiles');
+  if (!container) return;
+
+  const categories = [...new Set([
+    ...(Array.isArray(customCategories) ? customCategories : []),
+    ...products.map(p => p.catalog).filter(Boolean)
+  ])].filter(Boolean);
+
+  container.innerHTML = '';
+
+  categories.forEach(category => {
+    const categoryProducts = products.filter(p => p.catalog === category);
+    const representative = categoryProducts.find(p => getProductImages(p).length) || categoryProducts[0];
+    const imageSrc = representative
+      ? (getProductImages(representative)[0] || getFallbackSvg(representative.category || 'Pure Metal', category))
+      : getFallbackSvg('Pure Metal', category);
+
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'collection-tile';
+    tile.setAttribute('aria-label', `Browse ${category}`);
+
+    const imageBox = document.createElement('div');
+    imageBox.className = 'collection-tile-image';
+    const img = document.createElement('img');
+    img.src = imageSrc;
+    img.alt = category;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.onerror = function() {
+      this.onerror = null;
+      this.src = getFallbackSvg('Pure Metal', category);
+    };
+    imageBox.appendChild(img);
+
+    const copy = document.createElement('div');
+    copy.className = 'collection-tile-copy';
+    const name = document.createElement('strong');
+    name.textContent = category;
+    const count = document.createElement('span');
+    count.textContent = `${categoryProducts.length} ${categoryProducts.length === 1 ? 'product' : 'products'}`;
+    copy.appendChild(name);
+    copy.appendChild(count);
+
+    tile.appendChild(imageBox);
+    tile.appendChild(copy);
+    tile.addEventListener('click', () => {
+      currentFilter.catalog = category;
+      currentFilter.metal = '';
+      currentFilter.search = '';
+      const input = document.getElementById('searchInput');
+      if (input) input.value = '';
+      displayedItemCount = itemsPerPage;
+      renderCatalog();
+      document.getElementById('catalogContentArea')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    container.appendChild(tile);
+  });
+}
+
 function renderCategoryPills() {
   const row = document.getElementById('categoryPillsRow');
   if (!row) return;
@@ -2488,6 +3624,7 @@ function updateCompanyHeader() {
   const waUrl = `https://wa.me/${waPhone}`;
   if (document.getElementById('floatWhatsAppBtn')) document.getElementById('floatWhatsAppBtn').href = waUrl;
   if (document.getElementById('mobileWhatsAppNavBtn')) document.getElementById('mobileWhatsAppNavBtn').href = waUrl;
+  if (document.getElementById('footerWhatsAppLink')) document.getElementById('footerWhatsAppLink').href = waUrl;
   if (document.getElementById('footerText')) {
     document.getElementById('footerText').innerHTML = `${company.name} — <strong>Delight Metal Works</strong> · Estd. ${company.estYear || '1970'} by ${company.founder || 'Mr. Jagdish Saran Rastogi'} · ${company.location || 'Moradabad, Uttar Pradesh'}`;
   }
