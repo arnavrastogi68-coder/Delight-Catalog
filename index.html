@@ -952,6 +952,309 @@
       #viewModalOverlay .modal-foot > button { flex: 1 1 45%; justify-content: center; }
       #shareCategoryBtn { padding: 5px 8px !important; font-size: 10.5px !important; }
     }
+
+    /* v11 — stronger search */
+    .search-wrapper { z-index: 8; }
+    .search-wrapper input { padding-right: 34px; }
+    .search-clear-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      color: var(--ink-muted);
+      font-size: 12px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    .search-clear-btn:hover { background: rgba(84,20,25,0.08); color: var(--maroon); }
+    .search-autocomplete {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 6px);
+      background: #fff;
+      border: 1px solid var(--border-line);
+      border-radius: 8px;
+      box-shadow: 0 14px 30px rgba(42,31,25,0.14);
+      max-height: 390px;
+      overflow-y: auto;
+      z-index: 120;
+    }
+    .search-autocomplete.show { display: block; }
+    .search-suggestion {
+      width: 100%;
+      border: 0;
+      background: #fff;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0ece5;
+      font-family: inherit;
+    }
+    .search-suggestion:last-child { border-bottom: 0; }
+    .search-suggestion:hover, .search-suggestion.active { background: var(--cream); }
+    .search-suggestion img {
+      width: 42px;
+      height: 42px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--border-line);
+      flex: 0 0 42px;
+      background: var(--cream);
+    }
+    .search-suggestion-copy { min-width: 0; flex: 1; }
+    .search-suggestion-name {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .search-suggestion-meta {
+      display: block;
+      font-size: 10.5px;
+      color: var(--ink-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .search-suggestion-type {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--gold-dark);
+      background: var(--cream-soft);
+      border: 1px solid var(--border-line);
+      padding: 3px 6px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .search-empty-hint {
+      padding: 12px;
+      font-size: 11.5px;
+      color: var(--ink-muted);
+      text-align: center;
+    }
+
+    /* v11 — image ordering */
+    .image-order-help {
+      font-size: 10.5px;
+      color: var(--ink-muted);
+      margin: 7px 0 5px;
+    }
+    .form-photo-chip {
+      width: 76px;
+      height: 76px;
+      overflow: visible;
+      cursor: grab;
+      transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
+    }
+    .form-photo-chip.dragging { opacity: .45; transform: scale(.96); }
+    .form-photo-chip.drag-over { box-shadow: 0 0 0 2px var(--gold); }
+    .form-photo-chip img {
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .photo-main-badge {
+      position: absolute;
+      left: 3px;
+      bottom: 3px;
+      background: var(--maroon);
+      color: #fff;
+      font-size: 8.5px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 10px;
+      z-index: 2;
+    }
+    .photo-order-controls {
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      display: flex;
+      gap: 2px;
+      z-index: 3;
+    }
+    .photo-order-btn {
+      width: 18px;
+      height: 18px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,.94);
+      color: var(--maroon);
+      box-shadow: 0 1px 4px rgba(0,0,0,.18);
+      font-size: 10px;
+      line-height: 18px;
+      padding: 0;
+      cursor: pointer;
+    }
+    .photo-order-btn:disabled { opacity: .3; cursor: default; }
+    .form-photo-delete-btn { z-index: 4; }
+
+    /* v11 — cleaner enquiry drawer */
+    .order-drawer { max-width: 455px; }
+    .drawer-head { padding: 16px 18px; }
+    .drawer-eyebrow {
+      font-size: 8.5px;
+      letter-spacing: 1.4px;
+      font-weight: 800;
+      color: var(--gold-dark);
+      margin-bottom: 2px;
+    }
+    .drawer-close-btn {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--border-line);
+      background: #fff;
+      border-radius: 50%;
+      font-size: 17px;
+      cursor: pointer;
+    }
+    .drawer-items-list { padding: 12px 14px; gap: 9px; }
+    .drawer-item-card {
+      background: #fff;
+      border-radius: 9px;
+      padding: 9px;
+      align-items: stretch;
+      box-shadow: 0 2px 8px rgba(42,31,25,.05);
+    }
+    .drawer-item-thumb {
+      width: 64px;
+      height: 64px;
+      flex: 0 0 64px;
+      border-radius: 7px;
+      object-fit: cover;
+      border: 1px solid var(--border-line);
+      background: var(--cream);
+    }
+    .drawer-item-main {
+      display: flex;
+      min-width: 0;
+      flex: 1;
+      gap: 9px;
+    }
+    .drawer-item-info {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .drawer-item-info strong {
+      font-family: 'Playfair Display', serif;
+      font-size: 13.5px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .drawer-item-info span { display: block; }
+    .drawer-sku { font-size: 9.5px !important; font-weight: 800; color: var(--gold-dark) !important; }
+    .drawer-variant { font-size: 10.5px !important; color: var(--ink) !important; }
+    .drawer-line-total { margin-top: 2px; font-weight: 800; color: var(--maroon) !important; }
+    .drawer-item-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .drawer-remove-btn {
+      background: none;
+      border: 0;
+      color: var(--ink-muted);
+      font-size: 10px;
+      cursor: pointer;
+      padding: 1px 2px;
+    }
+    .drawer-remove-btn:hover { color: var(--danger); }
+    .qty-counter-box { border-radius: 6px; }
+    .qty-counter-box button { padding: 5px 8px; }
+    .qty-counter-box input { width: 38px; }
+    .drawer-foot {
+      padding: 12px 14px 14px;
+      gap: 9px;
+      max-height: 52vh;
+    }
+    .drawer-summary-card {
+      background: var(--cream);
+      border: 1px solid var(--border-line);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .drawer-summary-line { font-size: 11.5px; padding: 2px 0; }
+    .drawer-grand-total {
+      margin-top: 5px;
+      padding-top: 7px;
+      border-top: 1px solid var(--border-line);
+      font-size: 14px;
+      color: var(--maroon);
+    }
+    .drawer-primary-actions {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 7px;
+    }
+    .drawer-primary-actions > * { min-height: 40px; justify-content: center; text-align: center; }
+    .drawer-primary-actions #downloadQuotationPdfBtn {
+      border-color: var(--gold);
+      color: var(--gold-dark);
+      font-weight: 700;
+    }
+    .drawer-secondary-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 7px;
+    }
+    .drawer-secondary-actions > button {
+      justify-content: center;
+      padding: 7px 9px;
+      font-size: 10.5px;
+    }
+    .drawer-secondary-actions #clearCartBtn {
+      color: var(--danger);
+      border-color: #f5c6cb;
+    }
+    .drawer-empty-state {
+      margin: auto;
+      text-align: center;
+      color: var(--ink-muted);
+      padding: 45px 20px;
+    }
+    .drawer-empty-state .empty-icon { font-size: 34px; margin-bottom: 8px; }
+    .drawer-empty-state strong {
+      display: block;
+      color: var(--maroon);
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      margin-bottom: 3px;
+    }
+
+    @media (max-width: 560px) {
+      .search-autocomplete {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: 132px;
+        max-height: 50vh;
+      }
+      .drawer-primary-actions { grid-template-columns: 1fr; }
+      .drawer-item-thumb { width: 56px; height: 56px; flex-basis: 56px; }
+    }
+
   </style>
 </head>
 <body>
@@ -1036,7 +1339,9 @@
   <div class="filter-container">
     <div class="search-wrapper">
       <svg fill="none" height="15" stroke="#2b2a24" stroke-width="2" viewBox="0 0 24 24" width="15"><circle cx="11" cy="11" r="7"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-      <input id="searchInput" placeholder="Search items, metals or sizes..." type="text">
+      <input id="searchInput" placeholder="Search product, SKU, category, metal, size..." type="text" autocomplete="off">
+      <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search">✕</button>
+      <div class="search-autocomplete" id="searchAutocomplete"></div>
     </div>
     <select class="custom-select" id="sortSelect">
       <option value="name">Sort: Name (A to Z)</option>
@@ -1087,16 +1392,27 @@
   <div class="order-drawer">
     <div class="drawer-head">
       <div>
-        <h3>Your Order Estimate</h3>
+        <div class="drawer-eyebrow">WHOLESALE ENQUIRY</div>
+        <h3>Your Enquiry List</h3>
         <span id="drawerItemsCount" style="font-size:11.5px; color:var(--ink-muted);">0 items selected</span>
       </div>
-      <button id="closeDrawerBtn" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      <button id="closeDrawerBtn" class="drawer-close-btn" aria-label="Close enquiry">✕</button>
     </div>
     <div class="drawer-items-list" id="drawerItemsList"></div>
     <div class="drawer-foot">
-      <div class="drawer-summary-line">
-        <span>Estimated Total</span>
-        <span id="drawerTotalAmount">₹ 0</span>
+      <div class="drawer-summary-card">
+        <div class="drawer-summary-line">
+          <span>Products</span>
+          <span id="drawerLineCount">0 lines</span>
+        </div>
+        <div class="drawer-summary-line">
+          <span>Total quantity</span>
+          <span id="drawerPieceCount">0 pcs</span>
+        </div>
+        <div class="drawer-summary-line drawer-grand-total">
+          <span>Estimated Total</span>
+          <span id="drawerTotalAmount">₹ 0</span>
+        </div>
       </div>
 
       <!-- Optional Dealer Customizer Fields for Quotation PDF -->
@@ -1115,13 +1431,18 @@
       <div style="font-size: 10px; color: var(--ink-muted); line-height: 1.45; background: var(--cream); padding: 8px; border-radius: 4px; border-left: 2.5px solid var(--gold);">
         *<strong>Wholesale Disclaimer:</strong> Order confirmation is subject to factory stock availability. Handcrafted metalware may vary slightly from pictures in finish, weight, and tone. Billing is based on certified dispatch scale weight & prevailing taxes.
       </div>
-      <a class="btn-send-whatsapp" href="#" id="sendWhatsAppOrderBtn">
-        💬 Send Order to Dealer WhatsApp
-      </a>
-      <button class="btn-outline" id="downloadQuotationPdfBtn" style="justify-content:center; border-color:var(--gold); color:var(--gold-dark); font-weight:700;">
-        📄 Download Formal Quotation (PDF)
-      </button>
-      <button class="btn-outline" id="clearCartBtn" style="justify-content:center; color:var(--danger); border-color:#f5c6cb;">Clear Order List</button>
+      <div class="drawer-primary-actions">
+        <a class="btn-send-whatsapp" href="#" id="sendWhatsAppOrderBtn">
+          💬 Send on WhatsApp
+        </a>
+        <button class="btn-outline" id="downloadQuotationPdfBtn">
+          📄 Quotation PDF
+        </button>
+      </div>
+      <div class="drawer-secondary-actions">
+        <button class="btn-outline" type="button" onclick="document.getElementById('orderDrawerOverlay').classList.remove('show')">← Continue Browsing</button>
+        <button class="btn-outline" id="clearCartBtn">Clear List</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1248,6 +1569,7 @@
             <div class="upload-progress" id="uploadProgress"><span id="uploadProgressBar"></span></div>
             <button type="button" class="btn-outline" id="retryFailedUploadsBtn" style="display:none;margin-top:7px;padding:5px 9px;font-size:10.5px;">↻ Retry failed uploads</button>
           </div>
+          <div class="image-order-help">Drag photos to reorder them. The first photo is the <strong>Main Image</strong>.</div>
           <div class="form-photos-preview-container" id="formPhotosPreviewContainer"></div>
         </div>
       </div>
@@ -1769,25 +2091,207 @@ function renderCatalog(options = {}) {
   }
 }
 
-function getFilteredProducts() {
-  let list = products.filter(p => {
-    if (currentFilter.catalog && p.catalog !== currentFilter.catalog) return false;
-    if (currentFilter.metal && !((p.category || '').toLowerCase().includes(currentFilter.metal.toLowerCase()))) return false;
-    if (currentFilter.search) {
-      const q = currentFilter.search.toLowerCase();
-      const variantStr = (p.variants || []).map(v => `${v.size} ${v.weight}`).join(' ');
-      const str = `${p.name} ${p.catalog} ${p.category} ${p.size || ''} ${p.weight || ''} ${variantStr} ${p.notes || ''}`.toLowerCase();
-      if (!str.includes(q)) return false;
-    }
-    return true;
+function normalizeSearchText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9\u0900-\u097f]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getProductSearchText(p) {
+  const variants = (p.variants || []).map(v => `${v.size || ''} ${v.weight || ''}`).join(' ');
+  return normalizeSearchText([
+    p.name, p.sku, getProductSku(p), p.id, p.catalog, p.category,
+    p.size, p.weight, variants, p.notes, p.moq, p.stock, p.price
+  ].filter(Boolean).join(' '));
+}
+
+function scoreProductSearch(p, rawQuery) {
+  const q = normalizeSearchText(rawQuery);
+  if (!q) return 0;
+
+  const tokens = q.split(' ').filter(Boolean);
+  const hay = getProductSearchText(p);
+  if (!tokens.every(t => hay.includes(t))) return -1;
+
+  const name = normalizeSearchText(p.name);
+  const sku = normalizeSearchText(p.sku || getProductSku(p));
+  const category = normalizeSearchText(p.catalog);
+  const metal = normalizeSearchText(p.category);
+
+  let score = 10;
+  if (sku === q) score += 1000;
+  else if (sku.startsWith(q)) score += 450;
+  else if (sku.includes(q)) score += 220;
+
+  if (name === q) score += 800;
+  else if (name.startsWith(q)) score += 300;
+  else if (name.includes(q)) score += 160;
+
+  if (category === q) score += 100;
+  else if (category.includes(q)) score += 55;
+
+  if (metal === q) score += 80;
+  else if (metal.includes(q)) score += 40;
+
+  tokens.forEach(t => {
+    if (name.startsWith(t)) score += 30;
+    else if (name.includes(t)) score += 15;
+    if (sku.includes(t)) score += 22;
   });
 
+  return score;
+}
+
+function getFilteredProducts() {
+  const q = currentFilter.search || '';
+  let list = products
+    .map((p, index) => ({ p, index, searchScore: q ? scoreProductSearch(p, q) : 0 }))
+    .filter(entry => {
+      const p = entry.p;
+      if (currentFilter.catalog && p.catalog !== currentFilter.catalog) return false;
+      if (currentFilter.metal && !((p.category || '').toLowerCase().includes(currentFilter.metal.toLowerCase()))) return false;
+      if (q && entry.searchScore < 0) return false;
+      return true;
+    });
+
   const num = p => parseFloat((p.price || '').replace(/[^0-9.]/g, '')) || 0;
-  if (currentFilter.sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name));
-  if (currentFilter.sort === 'name-desc') list.sort((a, b) => b.name.localeCompare(a.name));
-  if (currentFilter.sort === 'price-asc') list.sort((a, b) => num(a) - num(b));
-  if (currentFilter.sort === 'price-desc') list.sort((a, b) => num(b) - num(a));
-  return list;
+
+  if (q) {
+    // Search relevance comes first. The selected sort remains the tie-breaker.
+    list.sort((a, b) => {
+      if (b.searchScore !== a.searchScore) return b.searchScore - a.searchScore;
+      if (currentFilter.sort === 'name-desc') return b.p.name.localeCompare(a.p.name);
+      if (currentFilter.sort === 'price-asc') return num(a.p) - num(b.p);
+      if (currentFilter.sort === 'price-desc') return num(b.p) - num(a.p);
+      return a.p.name.localeCompare(b.p.name);
+    });
+  } else {
+    if (currentFilter.sort === 'name') list.sort((a, b) => a.p.name.localeCompare(b.p.name));
+    if (currentFilter.sort === 'name-desc') list.sort((a, b) => b.p.name.localeCompare(a.p.name));
+    if (currentFilter.sort === 'price-asc') list.sort((a, b) => num(a.p) - num(b.p));
+    if (currentFilter.sort === 'price-desc') list.sort((a, b) => num(b.p) - num(a.p));
+  }
+
+  return list.map(entry => entry.p);
+}
+
+let searchSuggestionIndex = -1;
+let currentSearchSuggestions = [];
+
+function getSearchSuggestions(rawQuery) {
+  const q = normalizeSearchText(rawQuery);
+  if (!q) return [];
+
+  const productMatches = products
+    .map(p => ({ type: 'product', product: p, score: scoreProductSearch(p, q) }))
+    .filter(x => x.score >= 0)
+    .sort((a, b) => b.score - a.score || a.product.name.localeCompare(b.product.name))
+    .slice(0, 6);
+
+  const categories = [...new Set(products.map(p => p.catalog).filter(Boolean))]
+    .filter(c => normalizeSearchText(c).includes(q))
+    .slice(0, 3)
+    .map(category => ({ type: 'category', category }));
+
+  return [...productMatches, ...categories].slice(0, 8);
+}
+
+function renderSearchAutocomplete(rawQuery) {
+  const panel = document.getElementById('searchAutocomplete');
+  const clearBtn = document.getElementById('searchClearBtn');
+  if (!panel) return;
+
+  const q = String(rawQuery || '').trim();
+  if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
+
+  if (!q) {
+    panel.classList.remove('show');
+    panel.innerHTML = '';
+    currentSearchSuggestions = [];
+    searchSuggestionIndex = -1;
+    return;
+  }
+
+  currentSearchSuggestions = getSearchSuggestions(q);
+  searchSuggestionIndex = -1;
+
+  if (!currentSearchSuggestions.length) {
+    panel.innerHTML = `<div class="search-empty-hint">No quick matches. Press Enter to search the full catalog.</div>`;
+    panel.classList.add('show');
+    return;
+  }
+
+  panel.innerHTML = currentSearchSuggestions.map((item, idx) => {
+    if (item.type === 'category') {
+      const count = products.filter(p => p.catalog === item.category).length;
+      return `
+        <button type="button" class="search-suggestion" data-suggestion-index="${idx}">
+          <div style="width:42px;height:42px;border-radius:6px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 42px;">▦</div>
+          <span class="search-suggestion-copy">
+            <span class="search-suggestion-name">${escapeStr(item.category)}</span>
+            <span class="search-suggestion-meta">${count} products</span>
+          </span>
+          <span class="search-suggestion-type">CATEGORY</span>
+        </button>`;
+    }
+
+    const p = item.product;
+    const imgs = getProductImages(p);
+    const img = imgs[0] || getFallbackSvg(p.category, p.name);
+    return `
+      <button type="button" class="search-suggestion" data-suggestion-index="${idx}">
+        <img src="${escapeStr(img)}" alt="" loading="lazy" onerror="this.src=getFallbackSvg('','Photo');">
+        <span class="search-suggestion-copy">
+          <span class="search-suggestion-name">${escapeStr(p.name)}</span>
+          <span class="search-suggestion-meta">${escapeStr(p.sku || getProductSku(p))} · ${escapeStr(p.catalog || '')} · ${escapeStr(p.category || '')}</span>
+        </span>
+        <span class="search-suggestion-type">PRODUCT</span>
+      </button>`;
+  }).join('');
+
+  panel.querySelectorAll('[data-suggestion-index]').forEach(btn => {
+    btn.addEventListener('mousedown', e => e.preventDefault());
+    btn.addEventListener('click', () => selectSearchSuggestion(Number(btn.dataset.suggestionIndex)));
+  });
+  panel.classList.add('show');
+}
+
+function updateSearchSuggestionHighlight() {
+  const panel = document.getElementById('searchAutocomplete');
+  if (!panel) return;
+  panel.querySelectorAll('.search-suggestion').forEach((el, idx) => {
+    el.classList.toggle('active', idx === searchSuggestionIndex);
+  });
+}
+
+function selectSearchSuggestion(index) {
+  const item = currentSearchSuggestions[index];
+  if (!item) return;
+  const input = document.getElementById('searchInput');
+  const panel = document.getElementById('searchAutocomplete');
+
+  if (item.type === 'category') {
+    currentFilter.catalog = item.category;
+    currentFilter.metal = '';
+    currentFilter.search = '';
+    if (input) input.value = '';
+    displayedItemCount = itemsPerPage;
+    renderCatalog();
+    panel?.classList.remove('show');
+    document.getElementById('catalogContentArea')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
+  const p = item.product;
+  if (input) input.value = p.name;
+  currentFilter.search = p.sku || getProductSku(p) || p.name;
+  displayedItemCount = itemsPerPage;
+  renderCatalog();
+  panel?.classList.remove('show');
+  setTimeout(() => openViewModal(p.id), 60);
 }
 
 
@@ -2037,35 +2541,62 @@ function updateCartUI() {
     item.weight = item.weight || '—';
     item.cartKey = item.cartKey || `${item.id}__${item.size}__${item.weight}`;
   });
+
   const count = cart.reduce((sum, item) => sum + item.qty, 0);
   const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  
+  const lineCount = cart.length;
+
   const badge = document.getElementById('cartBadge');
   if (!badge) return;
+
   badge.textContent = count;
   document.getElementById('floatCartCount').textContent = count;
   document.getElementById('mobileNavCartCount').textContent = count;
-  document.getElementById('drawerItemsCount').textContent = `${count} items selected`;
+  document.getElementById('drawerItemsCount').textContent = `${count} ${count === 1 ? 'piece' : 'pieces'} · ${lineCount} ${lineCount === 1 ? 'product' : 'products'}`;
   document.getElementById('drawerTotalAmount').textContent = `₹ ${total.toLocaleString()}`;
-  
+  const lineCountEl = document.getElementById('drawerLineCount');
+  const pieceCountEl = document.getElementById('drawerPieceCount');
+  if (lineCountEl) lineCountEl.textContent = `${lineCount} ${lineCount === 1 ? 'line' : 'lines'}`;
+  if (pieceCountEl) pieceCountEl.textContent = `${count} pcs`;
+
   const list = document.getElementById('drawerItemsList');
   if (list) {
-    list.innerHTML = cart.map(item => `
-      <div class="drawer-item-card">
-        <div class="drawer-item-info">
-          <span class="drawer-sku">${escapeStr(item.sku || '')}</span>
-          <strong>${escapeStr(item.name)}</strong>
-          <span class="drawer-variant">${escapeStr(item.size || 'Standard')} · ${escapeStr(item.weight || '—')}</span>
-          <span>₹ ${item.price} each${item.moq ? ` · MOQ ${escapeStr(item.moq)}` : ''}${item.stock ? ` · ${escapeStr(item.stock)}` : ''}</span>
-          <span class="drawer-line-total">Line total: ₹ ${(item.price * item.qty).toLocaleString()}</span>
-        </div>
-        <div class="qty-counter-box">
-          <button onclick="changeCartQty('${escapeStr(item.cartKey)}', -1)">−</button>
-          <input class="editable-qty" type="number" min="1" value="${item.qty}" onchange="setCartQty('${escapeStr(item.cartKey)}', this.value)">
-          <button onclick="changeCartQty('${escapeStr(item.cartKey)}', 1)">+</button>
-        </div>
-      </div>
-    `).join('');
+    if (!cart.length) {
+      list.innerHTML = `
+        <div class="drawer-empty-state">
+          <div class="empty-icon">🛒</div>
+          <strong>Your enquiry list is empty</strong>
+          <span>Add products from the catalog and they will appear here.</span>
+        </div>`;
+    } else {
+      list.innerHTML = cart.map(item => {
+        const product = products.find(p => p.id === item.id);
+        const imgs = product ? getProductImages(product) : [];
+        const thumb = imgs[0] || getFallbackSvg(item.category || '', item.name || 'Product');
+
+        return `
+          <div class="drawer-item-card">
+            <div class="drawer-item-main">
+              <img class="drawer-item-thumb" src="${escapeStr(thumb)}" alt="${escapeStr(item.name)}" loading="lazy" onerror="this.src=getFallbackSvg('','Photo');">
+              <div class="drawer-item-info">
+                <span class="drawer-sku">${escapeStr(item.sku || '')}</span>
+                <strong title="${escapeStr(item.name)}">${escapeStr(item.name)}</strong>
+                <span class="drawer-variant">${escapeStr(item.size || 'Standard')} · ${escapeStr(item.weight || '—')}</span>
+                <span>₹ ${Number(item.price || 0).toLocaleString()} each${item.moq ? ` · MOQ ${escapeStr(item.moq)}` : ''}</span>
+                <span class="drawer-line-total">₹ ${(item.price * item.qty).toLocaleString()}</span>
+              </div>
+            </div>
+            <div class="drawer-item-actions">
+              <button class="drawer-remove-btn" type="button" onclick="removeCartItem('${escapeStr(item.cartKey)}')">Remove</button>
+              <div class="qty-counter-box">
+                <button type="button" onclick="changeCartQty('${escapeStr(item.cartKey)}', -1)">−</button>
+                <input class="editable-qty" type="number" min="1" value="${item.qty}" onchange="setCartQty('${escapeStr(item.cartKey)}', this.value)">
+                <button type="button" onclick="changeCartQty('${escapeStr(item.cartKey)}', 1)">+</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
   }
 
   let waMsg = `*Enquiry from ${company.name} Catalog:*\n\n`;
@@ -2073,7 +2604,21 @@ function updateCartUI() {
     waMsg += `${idx + 1}. *${it.name}* (${it.sku || ''})\n   ${it.size || 'Standard'} · ${it.weight || '—'} · Qty: ${it.qty} · ₹${(it.price * it.qty).toLocaleString()}\n`;
   });
   waMsg += `\n*Estimated Total: ₹ ${total.toLocaleString()}*\n\n_Note: Final availability, weight and prevailing rates are subject to confirmation._\nPlease confirm availability and final quotation.`;
-  document.getElementById('sendWhatsAppOrderBtn').href = `https://wa.me/${(company.phone || '919758444444').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waMsg)}`;
+
+  const waBtn = document.getElementById('sendWhatsAppOrderBtn');
+  if (waBtn) {
+    waBtn.href = `https://wa.me/${(company.phone || '919758444444').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waMsg)}`;
+    waBtn.style.opacity = cart.length ? '1' : '.5';
+    waBtn.style.pointerEvents = cart.length ? 'auto' : 'none';
+  }
+}
+
+function removeCartItem(cartKey) {
+  const idx = cart.findIndex(x => (x.cartKey || `${x.id}__${x.size || 'Standard'}__${x.weight || '—'}`) === cartKey);
+  if (idx === -1) return;
+  cart.splice(idx, 1);
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  updateCartUI();
 }
 
 function changeCartQty(cartKey, delta) {
@@ -2181,14 +2726,68 @@ function openEditModal(id) {
   document.getElementById('editModalOverlay').classList.add('show');
 }
 
+let draggedPhotoIndex = null;
+
+function moveFormImage(fromIndex, toIndex) {
+  if (
+    fromIndex === toIndex ||
+    fromIndex < 0 || toIndex < 0 ||
+    fromIndex >= currentFormImages.length ||
+    toIndex >= currentFormImages.length
+  ) return;
+
+  const [moved] = currentFormImages.splice(fromIndex, 1);
+  currentFormImages.splice(toIndex, 0, moved);
+  renderFormPhotoChips();
+}
+
 function renderFormPhotoChips() {
   const container = document.getElementById('formPhotosPreviewContainer');
+  if (!container) return;
+
   container.innerHTML = currentFormImages.map((src, idx) => `
-    <div class="form-photo-chip">
+    <div class="form-photo-chip" draggable="true" data-photo-index="${idx}" title="Drag to reorder">
       <img src="${escapeStr(src)}" onerror="this.src=getFallbackSvg('','Photo');">
-      <button type="button" class="form-photo-delete-btn" onclick="currentFormImages.splice(${idx},1); renderFormPhotoChips();">✕</button>
+      <div class="photo-order-controls">
+        <button type="button" class="photo-order-btn" ${idx === 0 ? 'disabled' : ''} onclick="event.stopPropagation(); moveFormImage(${idx}, ${idx - 1})" title="Move left">‹</button>
+        <button type="button" class="photo-order-btn" ${idx === currentFormImages.length - 1 ? 'disabled' : ''} onclick="event.stopPropagation(); moveFormImage(${idx}, ${idx + 1})" title="Move right">›</button>
+      </div>
+      ${idx === 0 ? '<span class="photo-main-badge">MAIN</span>' : ''}
+      <button type="button" class="form-photo-delete-btn" onclick="event.stopPropagation(); currentFormImages.splice(${idx},1); renderFormPhotoChips();">✕</button>
     </div>
   `).join('');
+
+  container.querySelectorAll('.form-photo-chip').forEach(chip => {
+    chip.addEventListener('dragstart', e => {
+      draggedPhotoIndex = Number(chip.dataset.photoIndex);
+      chip.classList.add('dragging');
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(draggedPhotoIndex));
+      }
+    });
+
+    chip.addEventListener('dragend', () => {
+      draggedPhotoIndex = null;
+      container.querySelectorAll('.form-photo-chip').forEach(x => x.classList.remove('dragging', 'drag-over'));
+    });
+
+    chip.addEventListener('dragover', e => {
+      e.preventDefault();
+      chip.classList.add('drag-over');
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    });
+
+    chip.addEventListener('dragleave', () => chip.classList.remove('drag-over'));
+
+    chip.addEventListener('drop', e => {
+      e.preventDefault();
+      const toIndex = Number(chip.dataset.photoIndex);
+      const fromIndex = draggedPhotoIndex ?? Number(e.dataTransfer?.getData('text/plain'));
+      chip.classList.remove('drag-over');
+      if (Number.isFinite(fromIndex) && Number.isFinite(toIndex)) moveFormImage(fromIndex, toIndex);
+    });
+  });
 }
 
 function switchCatTab(tab) {
@@ -2248,11 +2847,67 @@ function debounce(fn, wait = 180) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('searchInput').addEventListener('input', debounce((e) => {
+  const searchInput = document.getElementById('searchInput');
+  const searchPanel = document.getElementById('searchAutocomplete');
+  const searchClearBtn = document.getElementById('searchClearBtn');
+
+  searchInput.addEventListener('input', debounce((e) => {
     currentFilter.search = e.target.value.trim();
     displayedItemCount = 12;
     renderCatalog();
-  }, 180));
+    renderSearchAutocomplete(e.target.value);
+  }, 120));
+
+  searchInput.addEventListener('focus', () => {
+    if (searchInput.value.trim()) renderSearchAutocomplete(searchInput.value);
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    const suggestions = currentSearchSuggestions;
+    const panelVisible = searchPanel?.classList.contains('show');
+
+    if (e.key === 'ArrowDown' && panelVisible && suggestions.length) {
+      e.preventDefault();
+      searchSuggestionIndex = Math.min(searchSuggestionIndex + 1, suggestions.length - 1);
+      updateSearchSuggestionHighlight();
+      return;
+    }
+    if (e.key === 'ArrowUp' && panelVisible && suggestions.length) {
+      e.preventDefault();
+      searchSuggestionIndex = Math.max(searchSuggestionIndex - 1, 0);
+      updateSearchSuggestionHighlight();
+      return;
+    }
+    if (e.key === 'Enter') {
+      if (panelVisible && searchSuggestionIndex >= 0) {
+        e.preventDefault();
+        selectSearchSuggestion(searchSuggestionIndex);
+      } else {
+        searchPanel?.classList.remove('show');
+        currentFilter.search = searchInput.value.trim();
+        displayedItemCount = 12;
+        renderCatalog();
+      }
+      return;
+    }
+    if (e.key === 'Escape') {
+      searchPanel?.classList.remove('show');
+      searchSuggestionIndex = -1;
+    }
+  });
+
+  searchClearBtn?.addEventListener('click', () => {
+    searchInput.value = '';
+    currentFilter.search = '';
+    displayedItemCount = 12;
+    renderSearchAutocomplete('');
+    renderCatalog();
+    searchInput.focus();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-wrapper')) searchPanel?.classList.remove('show');
+  });
   
   document.getElementById('sortSelect').addEventListener('change', (e) => { 
     currentFilter.sort = e.target.value; 
