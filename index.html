@@ -44,8 +44,8 @@
       --wa-green: #25d366;
       --wa-hover: #1ebd5a;
       --danger: #c53030;
-      --shadow-card: 0 4px 16px rgba(58, 13, 16, 0.06);
-      --shadow-hover: 0 12px 28px rgba(58, 13, 16, 0.12);
+      --shadow-card: 0 2px 8px rgba(58, 13, 16, 0.04);
+      --shadow-hover: 0 6px 16px rgba(58, 13, 16, 0.08);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
@@ -74,12 +74,7 @@
       border-bottom: 1px solid var(--gold);
     }
 
-    .reveal-on-scroll {
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .reveal-on-scroll.visible { opacity: 1; transform: translateY(0); }
+    .reveal-on-scroll { opacity: 1; transform: none; }
 
     header.master-header {
       background: #ffffff;
@@ -87,7 +82,7 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
     .header-container {
       max-width: 1240px;
@@ -146,12 +141,12 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.18s ease;
+      transition: background 0.15s ease;
     }
     .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #fff; }
-    .btn-gold:hover { background: linear-gradient(135deg, #c4914f, var(--gold)); transform: translateY(-1px); }
+    .btn-gold:hover { background: linear-gradient(135deg, #c4914f, var(--gold)); }
     .btn-maroon { background: var(--maroon); color: #fff; }
-    .btn-maroon:hover { background: var(--maroon-dark); transform: translateY(-1px); }
+    .btn-maroon:hover { background: var(--maroon-dark); }
     .btn-outline { background: transparent; color: var(--ink); border-color: var(--border-line); }
     .btn-outline:hover { border-color: var(--gold); color: var(--gold-dark); }
     .btn-save { background: #1b5e20; color: #fff; }
@@ -434,13 +429,12 @@
       display: flex;
       flex-direction: column;
       box-shadow: var(--shadow-card);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      transition: border-color 0.15s ease;
       cursor: pointer;
       position: relative;
+      content-visibility: auto; /* Browser-native performance boost for large lists */
     }
     .product-box:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-hover);
       border-color: var(--gold-light);
     }
     .product-thumb {
@@ -459,17 +453,15 @@
       width: auto;
       height: auto;
       object-fit: contain;
-      transition: transform 0.3s ease;
       display: block;
       margin: auto;
     }
-    .product-box:hover .product-thumb img { transform: scale(1.04); }
 
     .card-photo-arrow {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      background: rgba(255, 255, 255, 0.88);
+      background: rgba(255, 255, 255, 0.9);
       color: var(--maroon);
       border: 1px solid var(--border-line);
       border-radius: 50%;
@@ -483,7 +475,6 @@
       cursor: pointer;
       z-index: 5;
       padding: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     .card-photo-arrow.prev { left: 6px; }
     .card-photo-arrow.next { right: 6px; }
@@ -492,8 +483,7 @@
       position: absolute;
       top: 8px;
       left: 8px;
-      background: rgba(84, 20, 25, 0.88);
-      backdrop-filter: blur(4px);
+      background: rgba(84, 20, 25, 0.9);
       color: #fff;
       font-family: 'Cinzel', serif;
       font-size: 9px;
@@ -508,7 +498,7 @@
       position: absolute;
       top: 8px;
       right: 8px;
-      background: rgba(0, 0, 0, 0.65);
+      background: rgba(0, 0, 0, 0.7);
       color: #fff;
       font-size: 9.5px;
       font-weight: 700;
@@ -578,7 +568,6 @@
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(3px);
       z-index: 100;
       display: none;
       justify-content: flex-end;
@@ -631,7 +620,6 @@
     }
     .drawer-summary-line { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: var(--ink); }
     
-    /* Dealer Customizer Accordion Box */
     .dealer-customizer-box {
       background: var(--cream-soft);
       border: 1px solid var(--border-line);
@@ -684,8 +672,7 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(3px);
+      background: rgba(0,0,0,0.5);
       z-index: 100;
       display: none;
       align-items: center;
@@ -1369,9 +1356,9 @@ let customMetals = DEFAULT_METALS;
 let currentFilter = { catalog: '', metal: '', search: '', sort: 'name' };
 let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
 
-// High-Performance Infinite Scroll & Virtual Rendering State for 400+ Products
-let itemsPerPage = 20;
-let displayedItemCount = 20;
+// Ultra-Lightweight Rendering State (Loads only 12 items initially for instantaneous speed)
+let itemsPerPage = 12;
+let displayedItemCount = 12;
 let infiniteScrollObserver = null;
 
 // Render instantly from local cache
@@ -1583,7 +1570,7 @@ function renderCatalog() {
     grid.appendChild(box);
   });
 
-  // Setup True Infinite Scroll Observer (Auto-loads next batch when scrolling near bottom)
+  // Setup Optimized Infinite Scroll Sensor
   let sentinel = document.getElementById('infiniteScrollSentinel');
   if (!sentinel) {
     sentinel = document.createElement('div');
@@ -1603,7 +1590,7 @@ function renderCatalog() {
           renderCatalog();
         }
       });
-    }, { rootMargin: '200px' });
+    }, { rootMargin: '300px' });
     infiniteScrollObserver.observe(sentinel);
   } else {
     sentinel.textContent = allFilteredItems.length > 0 ? '✨ All products loaded.' : '';
@@ -1640,14 +1627,14 @@ function renderCategoryPills() {
   const allPill = document.createElement('div');
   allPill.className = 'cat-pill' + (currentFilter.catalog === '' ? ' active' : '');
   allPill.textContent = 'All Collections';
-  allPill.onclick = () => { currentFilter.catalog = ''; displayedItemCount = 20; renderCatalog(); };
+  allPill.onclick = () => { currentFilter.catalog = ''; displayedItemCount = 12; renderCatalog(); };
   row.appendChild(allPill);
 
   cats.forEach(c => {
     const pill = document.createElement('div');
     pill.className = 'cat-pill' + (currentFilter.catalog === c ? ' active' : '');
     pill.textContent = c;
-    pill.onclick = () => { currentFilter.catalog = c; displayedItemCount = 20; renderCatalog(); };
+    pill.onclick = () => { currentFilter.catalog = c; displayedItemCount = 12; renderCatalog(); };
     row.appendChild(pill);
   });
 
@@ -1656,14 +1643,14 @@ function renderCategoryPills() {
   const allMetal = document.createElement('div');
   allMetal.className = 'metal-chip' + (currentFilter.metal === '' ? ' active' : '');
   allMetal.textContent = 'All Metals';
-  allMetal.onclick = () => { currentFilter.metal = ''; displayedItemCount = 20; renderCatalog(); };
+  allMetal.onclick = () => { currentFilter.metal = ''; displayedItemCount = 12; renderCatalog(); };
   metalBar.appendChild(allMetal);
 
   customMetals.forEach(m => {
     const chip = document.createElement('div');
     chip.className = 'metal-chip' + (currentFilter.metal.toLowerCase() === m.toLowerCase() ? ' active' : '');
     chip.textContent = m;
-    chip.onclick = () => { currentFilter.metal = m; displayedItemCount = 20; renderCatalog(); };
+    chip.onclick = () => { currentFilter.metal = m; displayedItemCount = 12; renderCatalog(); };
     metalBar.appendChild(chip);
   });
 
@@ -1906,13 +1893,13 @@ function switchFilterTab(tab) {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('searchInput').addEventListener('input', (e) => { 
     currentFilter.search = e.target.value; 
-    displayedItemCount = 20; // Reset batch count on search
+    displayedItemCount = 12; 
     renderCatalog(); 
   });
   
   document.getElementById('sortSelect').addEventListener('change', (e) => { 
     currentFilter.sort = e.target.value; 
-    displayedItemCount = 20; // Reset batch count on sort change
+    displayedItemCount = 12; 
     renderCatalog(); 
   });
 
