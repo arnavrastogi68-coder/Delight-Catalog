@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v23: Instant Catalog PDF + Verified GitHub PDF Automation — 2026-09 -->
+  <!-- v24: Dynamic Category-only PDF Layout + Simplified Product Cards — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -5518,28 +5518,125 @@ document.addEventListener('DOMContentLoaded', () => {
     doc.text('Product photo unavailable', x + w / 2, y + h / 2 + 15, { align: 'center' });
   }
 
+
+  function getCatalogPdfAverageNameLength(items) {
+    if (!items || !items.length) return 0;
+    return items.reduce((sum, p) => sum + String((p && p.name) || '').trim().length, 0) / items.length;
+  }
+
+  function planCatalogPdfPagesForCategory(items) {
+    const pages = [];
+    let cursor = 0;
+
+    while (cursor < items.length) {
+      const remaining = items.length - cursor;
+      let count = 5;
+
+      if (remaining <= 6) {
+        count = remaining;
+      } else {
+        const sample = items.slice(cursor, cursor + 6);
+        const avgLen = getCatalogPdfAverageNameLength(sample);
+
+        if (avgLen <= 16) count = 6;
+        else if (avgLen >= 27) count = 4;
+        else count = 5;
+
+        const leftAfterThisPage = remaining - count;
+        if (leftAfterThisPage === 1) count = Math.max(4, count - 1);
+        if (count === 6 && leftAfterThisPage === 2) count = 5;
+      }
+
+      pages.push(items.slice(cursor, cursor + count));
+      cursor += count;
+    }
+
+    return pages;
+  }
+
+  function getCatalogPdfCardLayout(count) {
+    const twoColX1 = 13;
+    const twoColX2 = 110.5;
+    const centerX = 61.75;
+    const rowGap = 7.5;
+
+    if (count === 6) {
+      const h = 72;
+      return [
+        { x: twoColX1, y: 46, w: 86.5, h },
+        { x: twoColX2, y: 46, w: 86.5, h },
+        { x: twoColX1, y: 46 + h + rowGap, w: 86.5, h },
+        { x: twoColX2, y: 46 + h + rowGap, w: 86.5, h },
+        { x: twoColX1, y: 46 + (h + rowGap) * 2, w: 86.5, h },
+        { x: twoColX2, y: 46 + (h + rowGap) * 2, w: 86.5, h },
+      ];
+    }
+
+    if (count === 5) {
+      const h = 70;
+      return [
+        { x: twoColX1, y: 46, w: 86.5, h },
+        { x: twoColX2, y: 46, w: 86.5, h },
+        { x: twoColX1, y: 46 + h + 8, w: 86.5, h },
+        { x: twoColX2, y: 46 + h + 8, w: 86.5, h },
+        { x: centerX, y: 46 + (h + 8) * 2, w: 86.5, h },
+      ];
+    }
+
+    if (count === 4) {
+      const h = 103;
+      return [
+        { x: twoColX1, y: 47, w: 86.5, h },
+        { x: twoColX2, y: 47, w: 86.5, h },
+        { x: twoColX1, y: 47 + h + 9, w: 86.5, h },
+        { x: twoColX2, y: 47 + h + 9, w: 86.5, h },
+      ];
+    }
+
+    if (count === 3) {
+      const h = 92;
+      return [
+        { x: twoColX1, y: 56, w: 86.5, h },
+        { x: twoColX2, y: 56, w: 86.5, h },
+        { x: centerX, y: 56 + h + 11, w: 86.5, h },
+      ];
+    }
+
+    if (count === 2) {
+      const h = 126;
+      return [
+        { x: twoColX1, y: 76, w: 86.5, h },
+        { x: twoColX2, y: 76, w: 86.5, h },
+      ];
+    }
+
+    return [{ x: 44, y: 68, w: 122, h: 145 }];
+  }
+
   function drawCatalogPdfProductCard(doc, p, imageData, x, y, w, h) {
-    const maroon = [84, 20, 25];
-    const gold = [179, 130, 67];
     const ink = [41, 37, 33];
     const muted = [111, 102, 93];
+    const gold = [179, 130, 67];
     const cream = [250, 247, 240];
 
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(229, 220, 209);
     doc.roundedRect(x, y, w, h, 3, 3, 'FD');
 
-    const imageX = x + 3.5;
-    const imageY = y + 3.5;
-    const imageW = w - 7;
-    const imageH = 70;
+    const pad = 3.4;
+    const textReserve = Math.max(17, Math.min(24, h * 0.24));
+    const imageX = x + pad;
+    const imageY = y + pad;
+    const imageW = w - pad * 2;
+    const imageH = h - textReserve - pad * 2 - 1;
 
     doc.setFillColor(...cream);
     doc.setDrawColor(236, 228, 218);
     doc.roundedRect(imageX, imageY, imageW, imageH, 2.2, 2.2, 'FD');
+
     if (imageData) {
       try {
-        doc.addImage(imageData, 'JPEG', imageX + 1.5, imageY + 1.5, imageW - 3, imageH - 3, undefined, 'FAST');
+        doc.addImage(imageData, 'JPEG', imageX + 1.2, imageY + 1.2, imageW - 2.4, imageH - 2.4, undefined, 'FAST');
       } catch (err) {
         drawCatalogPdfImagePlaceholder(doc, imageX, imageY, imageW, imageH);
       }
@@ -5547,58 +5644,36 @@ document.addEventListener('DOMContentLoaded', () => {
       drawCatalogPdfImagePlaceholder(doc, imageX, imageY, imageW, imageH);
     }
 
-    const textX = x + 5;
-    let ty = imageY + imageH + 6;
-
     const material = truncatePdfText(p.category || 'Pure Metal', 28);
+    const badgeX = imageX + 4;
+    const badgeY = imageY + 4;
+    const badgeW = Math.min(imageW - 8, Math.max(18, doc.getTextWidth(material) + 8));
     doc.setFillColor(246, 238, 226);
     doc.setDrawColor(219, 198, 169);
-    const badgeW = Math.min(w - 10, Math.max(22, doc.getTextWidth(material) + 8));
-    doc.roundedRect(textX, ty - 3.8, badgeW, 6, 3, 3, 'FD');
+    doc.roundedRect(badgeX, badgeY, badgeW, 6.2, 3.1, 3.1, 'FD');
     doc.setTextColor(125, 84, 37);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.5);
-    doc.text(material, textX + 4, ty);
+    doc.setFontSize(w > 100 ? 7.2 : 6.6);
+    doc.text(material, badgeX + 4, badgeY + 4.3);
 
-    ty += 7;
+    const textX = x + 4.7;
+    let ty = imageY + imageH + 5.3;
+
     doc.setTextColor(...muted);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.3);
+    doc.setFontSize(h <= 75 ? 6.1 : 6.5);
     doc.text(`SKU ${catalogPdfSku(p)}`, textX, ty);
 
     ty += 5;
     doc.setTextColor(...ink);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.3);
-    const titleLines = doc.splitTextToSize(safePdfText(p.name || 'Product'), w - 10).slice(0, 2);
-    doc.text(titleLines, textX, ty);
-    ty += titleLines.length * 4.4 + 1.5;
-
-    doc.setTextColor(...maroon);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text(catalogPdfPrice(p), textX, ty);
-
-    ty += 5.2;
-    doc.setTextColor(...muted);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.7);
-    const sizeText = truncatePdfText(p.size || ((p.variants || []).map(v => v.size).filter(Boolean).join(', ')) || 'Standard sizes', 54);
-    doc.text(`Sizes: ${sizeText}`, textX, ty);
-
-    ty += 4.1;
-    const tradeParts = [];
-    if (p.moq) tradeParts.push(`MOQ ${safePdfText(p.moq)}`);
-    if (p.stock) tradeParts.push(safePdfText(p.stock));
-    if (tradeParts.length) doc.text(truncatePdfText(tradeParts.join(' | '), 54), textX, ty);
+    doc.setFontSize(h <= 75 ? 9.1 : (h <= 100 ? 9.6 : 10.5));
+    const nameLines = doc.splitTextToSize(safePdfText(p.name || 'Product'), w - 10).slice(0, 2);
+    doc.text(nameLines, textX, ty);
 
     const onlineUrl = typeof buildProductShareUrl === 'function' ? buildProductShareUrl(p) : '';
     if (onlineUrl) {
-      doc.setTextColor(...gold);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.5);
-      doc.text('View product online', x + w - 5, y + h - 5, { align: 'right' });
-      doc.link(x + w - 38, y + h - 9, 34, 6, { url: onlineUrl });
+      doc.link(x, y, w, h, { url: onlineUrl });
     }
   }
 
@@ -5617,14 +5692,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const groups = getCatalogPdfCategories();
-    const productsPerPage = 4;
     const tocItemsPerPage = 28;
     const tocPageCount = Math.max(1, Math.ceil(groups.length / tocItemsPerPage));
 
     let nextCategoryPage = 2 + tocPageCount;
     const categoryMeta = groups.map(group => {
-      const pageCount = Math.max(1, Math.ceil(group.products.length / productsPerPage));
-      const meta = { ...group, pageCount, startPage: nextCategoryPage };
+      const pages = planCatalogPdfPagesForCategory(group.products);
+      const pageCount = Math.max(1, pages.length);
+      const meta = { ...group, pages, pageCount, startPage: nextCategoryPage };
       nextCategoryPage += pageCount;
       return meta;
     });
@@ -5789,20 +5864,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let generatedProductCount = 0;
     const catalogPdfPhotoIssues = [];
     for (const meta of categoryMeta) {
-      const chunks = [];
-      for (let i = 0; i < meta.products.length; i += productsPerPage) {
-        chunks.push(meta.products.slice(i, i + productsPerPage));
-      }
-
-      for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      for (let pageIndex = 0; pageIndex < meta.pages.length; pageIndex++) {
         doc.addPage();
-        const pageNo = meta.startPage + chunkIndex;
-        const chunk = chunks[chunkIndex];
-        const subtitle = `${meta.products.length} products${chunks.length > 1 ? ` | Collection page ${chunkIndex + 1} of ${chunks.length}` : ''}`;
+        const pageNo = meta.startPage + pageIndex;
+        const chunk = meta.pages[pageIndex];
+        const subtitle = `${meta.products.length} products${meta.pages.length > 1 ? ` | Collection page ${pageIndex + 1} of ${meta.pages.length}` : ''}`;
         drawCatalogPdfBrandHeader(doc, meta.category, subtitle, pageNo, totalPages, 2);
 
-        // Prefer the main photo. If it fails after retries, automatically try
-        // the next product photos. The PDF still uses only ONE photo per product.
         const resolvedImages = await Promise.all(chunk.map(p => resolveCatalogPdfProductImage(p)));
         const imageData = resolvedImages.map(result => result.data);
 
@@ -5827,19 +5895,12 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
 
-        const cardW = 86.5;
-        const cardH = 111;
-        const gapX = 10;
-        const gapY = 8;
-        const startX = 13;
-        const startY = 46;
+        const layout = getCatalogPdfCardLayout(chunk.length);
 
         chunk.forEach((p, idx) => {
-          const col = idx % 2;
-          const row = Math.floor(idx / 2);
-          const x = startX + col * (cardW + gapX);
-          const y = startY + row * (cardH + gapY);
-          drawCatalogPdfProductCard(doc, p, imageData[idx], x, y, cardW, cardH);
+          const slot = layout[idx];
+          if (!slot) return;
+          drawCatalogPdfProductCard(doc, p, imageData[idx], slot.x, slot.y, slot.w, slot.h);
           generatedProductCount++;
         });
 
