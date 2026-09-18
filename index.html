@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v25: Website Polish + Dynamic Category-only PDF Layout — 2026-09 -->
+  <!-- v26: Website Polish + Dynamic Category-only PDF Layout — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -5465,7 +5465,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchCatalogImageBlob(url, attempt = 1) {
     const controller = new AbortController();
-    const timeoutMs = attempt === 1 ? 12000 : 18000;
+    const timeoutMs = attempt === 1 ? 15000 : (attempt === 2 ? 25000 : 35000);
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
@@ -5521,7 +5521,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const task = (async () => {
       let lastError = null;
 
-      for (let attempt = 1; attempt <= 2; attempt++) {
+      for (let attempt = 1; attempt <= 3; attempt++) {
         let objectUrl = null;
 
         try {
@@ -5533,12 +5533,26 @@ document.addEventListener('DOMContentLoaded', () => {
             source = objectUrl;
           }
 
-          const img = await decodeCatalogImageSource(source, attempt === 1 ? 10000 : 15000);
+          const img = await decodeCatalogImageSource(
+            source,
+            attempt === 1 ? 15000 : (attempt === 2 ? 22000 : 30000)
+          );
 
-          const target = 460;
+          const naturalW = img.naturalWidth || img.width || 1;
+          const naturalH = img.naturalHeight || img.height || 1;
+          if (naturalW < 2 || naturalH < 2) throw new Error('Invalid image dimensions');
+
+          // Preserve the product photo's real aspect ratio. Earlier versions
+          // converted everything to a square and then stretched that square into
+          // the PDF card, which made some products look shortened/squashed.
+          const maxSide = 560;
+          const scale = Math.min(1, maxSide / Math.max(naturalW, naturalH));
+          const outputW = Math.max(1, Math.round(naturalW * scale));
+          const outputH = Math.max(1, Math.round(naturalH * scale));
+
           const canvas = document.createElement('canvas');
-          canvas.width = target;
-          canvas.height = target;
+          canvas.width = outputW;
+          canvas.height = outputH;
 
           const ctx = canvas.getContext('2d', { alpha: false });
           if (!ctx) throw new Error('Canvas unavailable');
@@ -5546,23 +5560,10 @@ document.addEventListener('DOMContentLoaded', () => {
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, target, target);
+          ctx.fillRect(0, 0, outputW, outputH);
+          ctx.drawImage(img, 0, 0, outputW, outputH);
 
-          const naturalW = img.naturalWidth || img.width || 1;
-          const naturalH = img.naturalHeight || img.height || 1;
-
-          if (naturalW < 2 || naturalH < 2) throw new Error('Invalid image dimensions');
-
-          const inner = target - 22;
-          const scale = Math.min(inner / naturalW, inner / naturalH);
-          const drawW = naturalW * scale;
-          const drawH = naturalH * scale;
-          const drawX = (target - drawW) / 2;
-          const drawY = (target - drawH) / 2;
-
-          ctx.drawImage(img, drawX, drawY, drawW, drawH);
-
-          const data = canvas.toDataURL('image/jpeg', 0.76);
+          const data = canvas.toDataURL('image/jpeg', 0.80);
           if (!data || data.length < 1000) throw new Error('Image conversion failed');
 
           return data;
@@ -5570,9 +5571,8 @@ document.addEventListener('DOMContentLoaded', () => {
           lastError = err;
           console.warn(`Catalog PDF image attempt ${attempt} failed:`, key, err);
 
-          // Small backoff before the retry, especially helpful with image hosts.
-          if (attempt < 2) {
-            await new Promise(resolve => setTimeout(resolve, 350));
+          if (attempt < 3) {
+            await new Promise(resolve => setTimeout(resolve, attempt === 1 ? 600 : 1200));
           }
         } finally {
           if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -5584,14 +5584,18 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
 
     catalogPdfImageCache.set(key, task);
-    return await task;
+    const result = await task;
+
+    // Do not permanently cache a failure. This lets the final page-building pass
+    // retry a temporarily unavailable image host after the preload stage.
+    if (!result) catalogPdfImageCache.delete(key);
+    return result;
   }
 
   async function resolveCatalogPdfProductImage(product) {
     const candidates = getProductImages(product)
       .map(normalizeCatalogImageUrl)
-      .filter(Boolean)
-      .slice(0, 4);
+      .filter(Boolean);
 
     for (let i = 0; i < candidates.length; i++) {
       const data = await catalogImageToJpeg(candidates[i]);
@@ -5813,6 +5817,25 @@ document.addEventListener('DOMContentLoaded', () => {
     return [{ x: 44, y: 68, w: 122, h: 145 }];
   }
 
+  function addCatalogPdfImageContained(doc, imageData, x, y, w, h) {
+    const inset = 1.2;
+    const boxX = x + inset;
+    const boxY = y + inset;
+    const boxW = Math.max(1, w - inset * 2);
+    const boxH = Math.max(1, h - inset * 2);
+
+    const props = doc.getImageProperties(imageData);
+    const sourceW = Number(props && props.width) || 1;
+    const sourceH = Number(props && props.height) || 1;
+    const scale = Math.min(boxW / sourceW, boxH / sourceH);
+    const drawW = sourceW * scale;
+    const drawH = sourceH * scale;
+    const drawX = boxX + (boxW - drawW) / 2;
+    const drawY = boxY + (boxH - drawH) / 2;
+
+    doc.addImage(imageData, 'JPEG', drawX, drawY, drawW, drawH, undefined, 'FAST');
+  }
+
   function drawCatalogPdfProductCard(doc, p, imageData, x, y, w, h) {
     const ink = [41, 37, 33];
     const muted = [111, 102, 93];
@@ -5836,7 +5859,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (imageData) {
       try {
-        doc.addImage(imageData, 'JPEG', imageX + 1.2, imageY + 1.2, imageW - 2.4, imageH - 2.4, undefined, 'FAST');
+        addCatalogPdfImageContained(doc, imageData, imageX, imageY, imageW, imageH);
       } catch (err) {
         drawCatalogPdfImagePlaceholder(doc, imageX, imageY, imageW, imageH);
       }
@@ -5922,7 +5945,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const allMainImageUrls = [
       coverImageUrl,
-      ...products.map(p => getProductImages(p)[0] || '')
+      ...products.flatMap(p => getProductImages(p).slice(0, 2))
     ].map(normalizeCatalogImageUrl).filter(Boolean);
 
     const pdfBtn = document.getElementById('downloadPdfBtn');
@@ -5968,7 +5991,7 @@ document.addEventListener('DOMContentLoaded', () => {
     doc.setDrawColor(...gold);
     doc.roundedRect(coverX, coverY, coverW, coverH, 3, 3, 'FD');
     if (coverImage) {
-      doc.addImage(coverImage, 'JPEG', coverX + 2.5, coverY + 2.5, coverW - 5, coverH - 5, undefined, 'FAST');
+      addCatalogPdfImageContained(doc, coverImage, coverX + 1.3, coverY + 1.3, coverW - 2.6, coverH - 2.6);
     } else {
       // Elegant no-image fallback so the cover is never blank.
       doc.setDrawColor(...gold);
@@ -6071,7 +6094,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const subtitle = `${meta.products.length} products${meta.pages.length > 1 ? ` | Collection page ${pageIndex + 1} of ${meta.pages.length}` : ''}`;
         drawCatalogPdfBrandHeader(doc, meta.category, subtitle, pageNo, totalPages, 2);
 
-        const resolvedImages = await Promise.all(chunk.map(p => resolveCatalogPdfProductImage(p)));
+        let resolvedImages = await Promise.all(chunk.map(p => resolveCatalogPdfProductImage(p)));
+
+        // Final recovery pass: temporary image-host failures are common during a
+        // large automated build. Wait briefly, clear failed cache entries via the
+        // loader behavior above, and retry only the products still missing photos.
+        const missingIndexes = resolvedImages
+          .map((result, idx) => result && result.data ? -1 : idx)
+          .filter(idx => idx >= 0);
+
+        if (missingIndexes.length) {
+          await new Promise(resolve => setTimeout(resolve, 1600));
+          const retryResults = await Promise.all(
+            missingIndexes.map(idx => resolveCatalogPdfProductImage(chunk[idx]))
+          );
+          retryResults.forEach((result, retryIdx) => {
+            resolvedImages[missingIndexes[retryIdx]] = result;
+          });
+        }
+
         const imageData = resolvedImages.map(result => result.data);
 
         resolvedImages.forEach((result, idx) => {
