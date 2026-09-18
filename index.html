@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v19: Fast Parallel Catalog PDF Bugfix — 2026-09 -->
+  <!-- v21: Reliable Catalog PDF Photos + Retry/Fallback Report — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -5216,106 +5216,181 @@ document.addEventListener('DOMContentLoaded', () => {
     return clean.slice(0, Math.max(1, maxChars - 3)).trimEnd() + '...';
   }
 
+  function normalizeCatalogImageUrl(url) {
+    let value = String(url || '').trim();
+    if (!value) return '';
+
+    if (value.startsWith('//')) value = 'https:' + value;
+    if (window.location.protocol === 'https:' && value.startsWith('http://')) {
+      value = 'https://' + value.slice('http://'.length);
+    }
+
+    return value;
+  }
+
+  async function fetchCatalogImageBlob(url, attempt = 1) {
+    const controller = new AbortController();
+    const timeoutMs = attempt === 1 ? 12000 : 18000;
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        mode: 'cors',
+        cache: attempt === 1 ? 'force-cache' : 'reload',
+        signal: controller.signal
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const blob = await response.blob();
+      if (!blob || !blob.size) throw new Error('Empty image response');
+
+      return blob;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function decodeCatalogImageSource(source, timeoutMs = 12000) {
+    return await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.decoding = 'async';
+
+      const timer = setTimeout(() => {
+        img.src = '';
+        reject(new Error('Image decode timeout'));
+      }, timeoutMs);
+
+      img.onload = () => {
+        clearTimeout(timer);
+        resolve(img);
+      };
+
+      img.onerror = () => {
+        clearTimeout(timer);
+        reject(new Error('Image decode failed'));
+      };
+
+      img.src = source;
+    });
+  }
+
   async function catalogImageToJpeg(url) {
-    const key = String(url || '').trim();
+    const key = normalizeCatalogImageUrl(url);
     if (!key) return null;
-    if (catalogPdfImageCache.has(key)) return catalogPdfImageCache.get(key);
+
+    if (catalogPdfImageCache.has(key)) {
+      return await catalogPdfImageCache.get(key);
+    }
 
     const task = (async () => {
-      let objectUrl = null;
-      let abortController = null;
-      let fetchTimer = null;
+      let lastError = null;
 
-      try {
-        let source = key;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        let objectUrl = null;
 
-        if (!/^data:/i.test(key)) {
-          abortController = new AbortController();
-          fetchTimer = setTimeout(() => abortController.abort(), 9000);
+        try {
+          let source = key;
 
-          const response = await fetch(key, {
-            mode: 'cors',
-            cache: 'force-cache',
-            signal: abortController.signal
-          });
+          if (!/^data:/i.test(key)) {
+            const blob = await fetchCatalogImageBlob(key, attempt);
+            objectUrl = URL.createObjectURL(blob);
+            source = objectUrl;
+          }
 
-          if (!response.ok) throw new Error(`Image request failed (${response.status})`);
-          const blob = await response.blob();
-          objectUrl = URL.createObjectURL(blob);
-          source = objectUrl;
+          const img = await decodeCatalogImageSource(source, attempt === 1 ? 10000 : 15000);
+
+          const target = 460;
+          const canvas = document.createElement('canvas');
+          canvas.width = target;
+          canvas.height = target;
+
+          const ctx = canvas.getContext('2d', { alpha: false });
+          if (!ctx) throw new Error('Canvas unavailable');
+
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, target, target);
+
+          const naturalW = img.naturalWidth || img.width || 1;
+          const naturalH = img.naturalHeight || img.height || 1;
+
+          if (naturalW < 2 || naturalH < 2) throw new Error('Invalid image dimensions');
+
+          const inner = target - 22;
+          const scale = Math.min(inner / naturalW, inner / naturalH);
+          const drawW = naturalW * scale;
+          const drawH = naturalH * scale;
+          const drawX = (target - drawW) / 2;
+          const drawY = (target - drawH) / 2;
+
+          ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+          const data = canvas.toDataURL('image/jpeg', 0.76);
+          if (!data || data.length < 1000) throw new Error('Image conversion failed');
+
+          return data;
+        } catch (err) {
+          lastError = err;
+          console.warn(`Catalog PDF image attempt ${attempt} failed:`, key, err);
+
+          // Small backoff before the retry, especially helpful with image hosts.
+          if (attempt < 2) {
+            await new Promise(resolve => setTimeout(resolve, 350));
+          }
+        } finally {
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
         }
-
-        const img = await new Promise((resolve, reject) => {
-          const el = new Image();
-          el.decoding = 'async';
-
-          const timer = setTimeout(() => {
-            el.src = '';
-            reject(new Error('Image decode timeout'));
-          }, 7000);
-
-          el.onload = () => {
-            clearTimeout(timer);
-            resolve(el);
-          };
-          el.onerror = () => {
-            clearTimeout(timer);
-            reject(new Error('Image could not be decoded'));
-          };
-          el.src = source;
-        });
-
-        // The image is displayed at roughly 80 x 67 mm in the PDF.
-        // 440px is more than enough for a clean printed card while being
-        // dramatically faster and smaller than embedding full-resolution photos.
-        const target = 440;
-        const canvas = document.createElement('canvas');
-        canvas.width = target;
-        canvas.height = target;
-
-        const ctx = canvas.getContext('2d', { alpha: false });
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, target, target);
-
-        const naturalW = img.naturalWidth || img.width || 1;
-        const naturalH = img.naturalHeight || img.height || 1;
-        const inner = target - 24;
-        const scale = Math.min(inner / naturalW, inner / naturalH);
-        const drawW = naturalW * scale;
-        const drawH = naturalH * scale;
-        const drawX = (target - drawW) / 2;
-        const drawY = (target - drawH) / 2;
-
-        ctx.drawImage(img, drawX, drawY, drawW, drawH);
-
-        // Quality 0.70 is visually clean at the PDF card size and materially
-        // reduces both generation time and final PDF file size.
-        return canvas.toDataURL('image/jpeg', 0.70);
-      } catch (err) {
-        console.warn('Catalog PDF image skipped:', key, err);
-        return null;
-      } finally {
-        if (fetchTimer) clearTimeout(fetchTimer);
-        if (objectUrl) URL.revokeObjectURL(objectUrl);
       }
+
+      console.warn('Catalog PDF image unavailable after retries:', key, lastError);
+      return null;
     })();
 
     catalogPdfImageCache.set(key, task);
-    return task;
+    return await task;
+  }
+
+  async function resolveCatalogPdfProductImage(product) {
+    const candidates = getProductImages(product)
+      .map(normalizeCatalogImageUrl)
+      .filter(Boolean)
+      .slice(0, 4);
+
+    for (let i = 0; i < candidates.length; i++) {
+      const data = await catalogImageToJpeg(candidates[i]);
+      if (data) {
+        return {
+          data,
+          usedUrl: candidates[i],
+          usedIndex: i
+        };
+      }
+    }
+
+    return {
+      data: null,
+      usedUrl: '',
+      usedIndex: -1
+    };
   }
 
   async function preloadCatalogPdfImages(urls, onProgress) {
-    const uniqueUrls = [...new Set((urls || []).map(x => String(x || '').trim()).filter(Boolean))];
+    const uniqueUrls = [...new Set(
+      (urls || [])
+        .map(normalizeCatalogImageUrl)
+        .filter(Boolean)
+    )];
+
     if (!uniqueUrls.length) return;
 
     let cursor = 0;
     let completed = 0;
 
-    // 8 simultaneous image jobs is a good balance for desktop/mobile browsers:
-    // much faster than page-by-page loading without flooding memory/network.
-    const concurrency = Math.min(8, uniqueUrls.length);
+    // Reliability is more important than raw speed here. Four simultaneous
+    // image downloads is less likely to overwhelm image hosts or mobile browsers.
+    const concurrency = Math.min(4, uniqueUrls.length);
 
     async function worker() {
       while (true) {
@@ -5329,9 +5404,8 @@ document.addEventListener('DOMContentLoaded', () => {
           onProgress(completed, uniqueUrls.length);
         }
 
-        // Give the browser a chance to update the UI between heavy canvas jobs.
-        if (completed % 6 === 0) {
-          if (completed % 6 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+        if (completed % 4 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 0));
         }
       }
     }
@@ -5406,7 +5480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     doc.setTextColor(133, 117, 98);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.text('Main photo unavailable', x + w / 2, y + h / 2 + 15, { align: 'center' });
+    doc.text('Product photo unavailable', x + w / 2, y + h / 2 + 15, { align: 'center' });
   }
 
   function drawCatalogPdfProductCard(doc, p, imageData, x, y, w, h) {
@@ -5539,7 +5613,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const allMainImageUrls = [
       coverImageUrl,
       ...products.map(p => getProductImages(p)[0] || '')
-    ].filter(Boolean);
+    ].map(normalizeCatalogImageUrl).filter(Boolean);
 
     const pdfBtn = document.getElementById('downloadPdfBtn');
     const preloadPromise = preloadCatalogPdfImages(allMainImageUrls, (done, total) => {
@@ -5574,7 +5648,7 @@ document.addEventListener('DOMContentLoaded', () => {
     doc.text('HERITAGE METALWARE, MADE FOR MODERN HOMES', pageW / 2, 45, { align: 'center' });
 
     // The cover begins loading first while the remaining catalog photos continue in parallel.
-    const coverImage = coverImageUrl ? await catalogImageToJpeg(coverImageUrl) : null;
+    const coverImage = coverImageUrl ? await catalogImageToJpeg(normalizeCatalogImageUrl(coverImageUrl)) : null;
 
     const coverX = 21;
     const coverY = 61;
@@ -5678,6 +5752,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---------------- Product catalog pages ----------------
     let generatedProductCount = 0;
+    const catalogPdfPhotoIssues = [];
     for (const meta of categoryMeta) {
       const chunks = [];
       for (let i = 0; i < meta.products.length; i += productsPerPage) {
@@ -5691,12 +5766,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const subtitle = `${meta.products.length} products${chunks.length > 1 ? ` | Collection page ${chunkIndex + 1} of ${chunks.length}` : ''}`;
         drawCatalogPdfBrandHeader(doc, meta.category, subtitle, pageNo, totalPages, 2);
 
-        // Exactly one image per product: the first/main image only.
-        // These are already cached by the parallel preloader above.
-        const imageData = await Promise.all(chunk.map(p => {
-          const mainImage = getProductImages(p)[0] || '';
-          return mainImage ? catalogImageToJpeg(mainImage) : Promise.resolve(null);
-        }));
+        // Prefer the main photo. If it fails after retries, automatically try
+        // the next product photos. The PDF still uses only ONE photo per product.
+        const resolvedImages = await Promise.all(chunk.map(p => resolveCatalogPdfProductImage(p)));
+        const imageData = resolvedImages.map(result => result.data);
+
+        resolvedImages.forEach((result, idx) => {
+          const p = chunk[idx];
+          const allImages = getProductImages(p);
+
+          if (!result.data) {
+            catalogPdfPhotoIssues.push({
+              sku: catalogPdfSku(p),
+              name: p.name || 'Product',
+              status: 'No usable photo',
+              photoCount: allImages.length
+            });
+          } else if (result.usedIndex > 0) {
+            catalogPdfPhotoIssues.push({
+              sku: catalogPdfSku(p),
+              name: p.name || 'Product',
+              status: `Main photo failed; used photo ${result.usedIndex + 1}`,
+              photoCount: allImages.length
+            });
+          }
+        });
 
         const cardW = 86.5;
         const cardH = 111;
@@ -5725,6 +5819,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const filename = `${String(company.name || 'House_of_Delight').replace(/\s+/g, '_')}_Full_Wholesale_Catalog.pdf`;
     doc.save(filename);
+
+    // Report any remaining photo problems after the PDF is safely created.
+    const hardFailures = catalogPdfPhotoIssues.filter(x => x.status === 'No usable photo');
+    const fallbackUsed = catalogPdfPhotoIssues.filter(x => x.status !== 'No usable photo');
+
+    if (catalogPdfPhotoIssues.length) {
+      console.table(catalogPdfPhotoIssues);
+
+      const csvRows = [
+        ['SKU', 'Product', 'Status', 'Photos available'],
+        ...catalogPdfPhotoIssues.map(x => [x.sku, x.name, x.status, String(x.photoCount)])
+      ];
+
+      const csv = csvRows.map(row =>
+        row.map(value => `"${String(value || '').replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
+
+      const reportBlob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const reportUrl = URL.createObjectURL(reportBlob);
+      const reportLink = document.createElement('a');
+      reportLink.href = reportUrl;
+      reportLink.download = 'Catalog_PDF_Photo_Report.csv';
+      document.body.appendChild(reportLink);
+      reportLink.click();
+      reportLink.remove();
+      setTimeout(() => URL.revokeObjectURL(reportUrl), 1500);
+
+      const failureLines = hardFailures.slice(0, 12).map(x => `${x.sku} - ${x.name}`).join('\n');
+      const extra = hardFailures.length > 12 ? `\n...and ${hardFailures.length - 12} more.` : '';
+
+      if (hardFailures.length) {
+        alert(
+          `Catalog PDF created.\n\n` +
+          `${hardFailures.length} product(s) still had no usable photo after retries and fallback images.\n` +
+          `${fallbackUsed.length} product(s) used a backup photo because the main photo failed.\n\n` +
+          `A Catalog_PDF_Photo_Report.csv file has also been downloaded.\n\n` +
+          `Products still missing a photo:\n${failureLines}${extra}`
+        );
+      } else {
+        showToast(
+          fallbackUsed.length
+            ? `Catalog created. ${fallbackUsed.length} product photo(s) used a backup image.`
+            : 'Catalog created with all product photos.'
+        );
+      }
+    } else {
+      showToast('Catalog created with all product photos.');
+    }
+
     return filename;
   }
 
@@ -5734,7 +5877,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Preparing PDF...';
     try {
-      showToast('Preparing the full catalog — photos are being optimized in parallel...');
+      showToast('Preparing catalog photos with retry and fallback checks...');
       await generateFullCatalogPdf();
       showToast('Full catalog PDF downloaded!');
     } catch (err) {
