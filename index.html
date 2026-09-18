@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v18: Fast Parallel Clickable Catalog PDF — 2026-09 -->
+  <!-- v19: Fast Parallel Catalog PDF Bugfix — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -5331,7 +5331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Give the browser a chance to update the UI between heavy canvas jobs.
         if (completed % 6 === 0) {
-          if (generatedProductCount % 16 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+          if (completed % 6 === 0) await new Promise(resolve => setTimeout(resolve, 0));
         }
       }
     }
@@ -5719,7 +5719,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const percent = Math.max(1, Math.round((generatedProductCount / products.length) * 100));
           btn.textContent = `Building PDF ${percent}%`;
         }
-        await new Promise(resolve => setTimeout(resolve, 0));
+        if (generatedProductCount % 16 === 0) await new Promise(resolve => setTimeout(resolve, 0));
       }
     }
 
