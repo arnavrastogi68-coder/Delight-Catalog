@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v16: Header Button Sizing + Close Icon Alignment — 2026-09 -->
+  <!-- v17: Full Clickable Multi-page Catalog PDF — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -2710,7 +2710,7 @@
 
     <div class="header-actions premium-header-actions">
       <button class="btn-outline" id="shareCatalogBtn" title="Share Catalog">↗ Share</button>
-      <button class="btn-outline header-pdf-btn" id="downloadPdfBtn" title="Export Full Catalog as PDF">Catalog PDF</button>
+      <button class="btn-outline header-pdf-btn" id="downloadPdfBtn" title="Download the complete clickable wholesale catalog PDF">Catalog PDF</button>
 
       <button class="btn-outline admin-only" id="adminStatusBtn" title="Admin account / sign out">✓ Admin</button>
       <button class="btn-outline admin-only" id="openSettingsBtn" title="Edit Brand Details">⚙ Brand</button>
@@ -5173,57 +5173,485 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Brand details updated');
   };
 
-  // Full Catalog PDF Exporter
-  document.getElementById('downloadPdfBtn').onclick = () => {
-    loadPdfEngine(() => {
-      showToast('Generating Wholesale Catalog PDF...');
-      const pdfContainer = document.createElement('div');
-      pdfContainer.style.cssText = 'background: #ffffff; color: #1f1e1a; width: 210mm; margin: 0 auto; padding: 0;';
+  // Full, clickable wholesale catalog PDF.
+  // Uses direct jsPDF drawing instead of DOM screenshots so every product/category is included reliably.
+  const catalogPdfImageCache = new Map();
 
-      const heroCoverImg = company.bannerImg || getFallbackSvg('Pure Brass', 'Heritage Metalware');
-      const waCleanPhone = (company.phone || '919758444444').replace(/[^0-9]/g, '');
+  function getCatalogPdfCategories() {
+    const present = [...new Set(products.map(p => (p.catalog || 'Uncategorized').trim() || 'Uncategorized'))];
+    const ordered = [];
 
-      const page1 = `
-        <div style="page-break-after: always; height: 296mm; padding: 12mm; box-sizing: border-box; background: #3a0d10; color: #faf7f0;">
-          <div style="border: 2px solid #b38243; height: 100%; box-sizing: border-box; padding: 10mm; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(180deg, rgba(84,20,25,0.95) 0%, rgba(35,7,9,0.98) 100%);">
-            <div style="text-align: center;">
-              <div style="display: inline-block; background: #b38243; color: #fff; font-size: 10px; letter-spacing: 2px; font-weight: 800; padding: 4px 16px; border-radius: 20px; text-transform: uppercase;">Official Wholesale Catalog</div>
-              <h1 style="font-family: 'Cinzel', Georgia, serif; font-size: 28px; color: #e2be89; margin: 10px 0 2px;">${escapeStr(company.name)}</h1>
-              <p style="font-size: 11px; color: #f4eee1; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; font-weight: 600;">${escapeStr(company.tagline)}</p>
-            </div>
-            <div style="height: 105mm; width: 100%; border: 1.5px solid #b38243; border-radius: 6px; overflow: hidden; background: #1a0507;">
-              <img src="${escapeStr(heroCoverImg)}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='${getFallbackSvg('Pure Brass', 'Metalware')}';">
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.05); border-left: 3px solid #b38243; padding: 10px 14px; border-radius: 4px;">
-              <p style="font-size: 10px; line-height: 1.6; color: #f4eee1; margin: 0;">${escapeStr(company.storyParagraph).replace(/<[^>]*>/g, '')}</p>
-            </div>
-            <div style="border-top: 1px solid rgba(179,130,67,0.4); padding-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; color: #e2be89;">
-              <span>📍 ${escapeStr(company.location)}</span>
-              <span>📞 WhatsApp: +${waCleanPhone}</span>
-            </div>
-          </div>
-        </div>
-      `;
-
-      pdfContainer.innerHTML = page1;
-      document.body.appendChild(pdfContainer);
-
-      const opt = {
-        margin: 0,
-        filename: `${company.name.replace(/\s+/g, '_')}_Wholesale_Catalog.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      html2pdf().set(opt).from(pdfContainer).save().then(() => {
-        pdfContainer.remove();
-        showToast('Catalog PDF downloaded!');
-      }).catch(err => {
-        pdfContainer.remove();
-        window.print();
-      });
+    (Array.isArray(customCategories) ? customCategories : []).forEach(cat => {
+      const clean = String(cat || '').trim();
+      if (clean && present.includes(clean) && !ordered.includes(clean)) ordered.push(clean);
     });
+
+    present.forEach(cat => {
+      if (!ordered.includes(cat)) ordered.push(cat);
+    });
+
+    return ordered.map(category => ({
+      category,
+      products: products.filter(p => ((p.catalog || 'Uncategorized').trim() || 'Uncategorized') === category)
+    })).filter(group => group.products.length);
+  }
+
+  function catalogPdfPrice(p) {
+    const raw = String(p.price || '').trim();
+    if (!raw) return 'Price on request';
+    const numeric = Number(raw.replace(/[^0-9.]/g, ''));
+    if (Number.isFinite(numeric) && numeric > 0 && /^[^A-Za-z]*[0-9,.]+[^A-Za-z]*$/.test(raw)) {
+      return `Rs. ${numeric.toLocaleString('en-IN')} onwards`;
+    }
+    return safePdfText(raw);
+  }
+
+  function catalogPdfSku(p) {
+    return safePdfText(p.sku || getProductSku(p) || p.id || '');
+  }
+
+  function truncatePdfText(text, maxChars) {
+    const clean = safePdfText(text);
+    if (clean.length <= maxChars) return clean;
+    return clean.slice(0, Math.max(1, maxChars - 3)).trimEnd() + '...';
+  }
+
+  async function catalogImageToJpeg(url) {
+    const key = String(url || '').trim();
+    if (!key) return null;
+    if (catalogPdfImageCache.has(key)) return catalogPdfImageCache.get(key);
+
+    const task = (async () => {
+      let objectUrl = null;
+      try {
+        let source = key;
+        if (!/^data:/i.test(key)) {
+          const response = await fetch(key, { mode: 'cors', cache: 'force-cache' });
+          if (!response.ok) throw new Error(`Image request failed (${response.status})`);
+          const blob = await response.blob();
+          objectUrl = URL.createObjectURL(blob);
+          source = objectUrl;
+        }
+
+        const img = await new Promise((resolve, reject) => {
+          const el = new Image();
+          el.decoding = 'async';
+          el.onload = () => resolve(el);
+          el.onerror = () => reject(new Error('Image could not be decoded'));
+          el.src = source;
+        });
+
+        const target = 700;
+        const canvas = document.createElement('canvas');
+        canvas.width = target;
+        canvas.height = target;
+        const ctx = canvas.getContext('2d', { alpha: false });
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, target, target);
+
+        const naturalW = img.naturalWidth || img.width || 1;
+        const naturalH = img.naturalHeight || img.height || 1;
+        const scale = Math.min((target - 40) / naturalW, (target - 40) / naturalH);
+        const drawW = naturalW * scale;
+        const drawH = naturalH * scale;
+        const drawX = (target - drawW) / 2;
+        const drawY = (target - drawH) / 2;
+        ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+        return canvas.toDataURL('image/jpeg', 0.82);
+      } catch (err) {
+        console.warn('Catalog PDF image skipped:', key, err);
+        return null;
+      } finally {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+      }
+    })();
+
+    catalogPdfImageCache.set(key, task);
+    return task;
+  }
+
+  function drawCatalogPdfFooter(doc, pageNo, totalPages, contentsPageNo = 2) {
+    const pageW = 210;
+    const pageH = 297;
+    const margin = 13;
+    doc.setDrawColor(225, 216, 204);
+    doc.line(margin, pageH - 11, pageW - margin, pageH - 11);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(116, 105, 94);
+    doc.text('House of Delight | Delight Metal Works | Moradabad', margin, pageH - 6.5);
+    doc.text(`Page ${pageNo} of ${totalPages}`, pageW - margin, pageH - 6.5, { align: 'right' });
+
+    if (pageNo > contentsPageNo) {
+      doc.setTextColor(84, 20, 25);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Contents', pageW / 2, pageH - 6.5, { align: 'center' });
+      doc.link(pageW / 2 - 13, pageH - 10, 26, 6, { pageNumber: contentsPageNo });
+    }
+  }
+
+  function drawCatalogPdfBrandHeader(doc, title, subtitle, pageNo, totalPages, contentsPageNo = 2) {
+    const maroon = [84, 20, 25];
+    const gold = [179, 130, 67];
+    const pageW = 210;
+    const margin = 13;
+
+    doc.setFillColor(...maroon);
+    doc.rect(0, 0, pageW, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.text(safePdfText(company.name || 'House of Delight'), margin, 8.2);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.6);
+    doc.setTextColor(239, 213, 178);
+    doc.text('HERITAGE METALWARE | WHOLESALE CATALOG', margin, 13.2);
+
+    doc.setTextColor(...gold);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.2);
+    doc.text('DELIGHT METAL WORKS | ESTD. 1970', pageW - margin, 9.5, { align: 'right' });
+
+    doc.setTextColor(...maroon);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text(safePdfText(title), margin, 31);
+
+    if (subtitle) {
+      doc.setTextColor(108, 98, 88);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.2);
+      doc.text(safePdfText(subtitle), margin, 37);
+    }
+
+    drawCatalogPdfFooter(doc, pageNo, totalPages, contentsPageNo);
+  }
+
+  function drawCatalogPdfImagePlaceholder(doc, x, y, w, h) {
+    doc.setFillColor(249, 246, 239);
+    doc.setDrawColor(223, 212, 198);
+    doc.roundedRect(x, y, w, h, 2.2, 2.2, 'FD');
+    doc.setDrawColor(179, 130, 67);
+    doc.circle(x + w / 2, y + h / 2 - 3, 9, 'S');
+    doc.circle(x + w / 2, y + h / 2 - 3, 5, 'S');
+    doc.setTextColor(133, 117, 98);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.text('Main photo unavailable', x + w / 2, y + h / 2 + 15, { align: 'center' });
+  }
+
+  function drawCatalogPdfProductCard(doc, p, imageData, x, y, w, h) {
+    const maroon = [84, 20, 25];
+    const gold = [179, 130, 67];
+    const ink = [41, 37, 33];
+    const muted = [111, 102, 93];
+    const cream = [250, 247, 240];
+
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(229, 220, 209);
+    doc.roundedRect(x, y, w, h, 3, 3, 'FD');
+
+    const imageX = x + 3.5;
+    const imageY = y + 3.5;
+    const imageW = w - 7;
+    const imageH = 70;
+
+    doc.setFillColor(...cream);
+    doc.setDrawColor(236, 228, 218);
+    doc.roundedRect(imageX, imageY, imageW, imageH, 2.2, 2.2, 'FD');
+    if (imageData) {
+      try {
+        doc.addImage(imageData, 'JPEG', imageX + 1.5, imageY + 1.5, imageW - 3, imageH - 3, undefined, 'FAST');
+      } catch (err) {
+        drawCatalogPdfImagePlaceholder(doc, imageX, imageY, imageW, imageH);
+      }
+    } else {
+      drawCatalogPdfImagePlaceholder(doc, imageX, imageY, imageW, imageH);
+    }
+
+    const textX = x + 5;
+    let ty = imageY + imageH + 6;
+
+    const material = truncatePdfText(p.category || 'Pure Metal', 28);
+    doc.setFillColor(246, 238, 226);
+    doc.setDrawColor(219, 198, 169);
+    const badgeW = Math.min(w - 10, Math.max(22, doc.getTextWidth(material) + 8));
+    doc.roundedRect(textX, ty - 3.8, badgeW, 6, 3, 3, 'FD');
+    doc.setTextColor(125, 84, 37);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.text(material, textX + 4, ty);
+
+    ty += 7;
+    doc.setTextColor(...muted);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.3);
+    doc.text(`SKU ${catalogPdfSku(p)}`, textX, ty);
+
+    ty += 5;
+    doc.setTextColor(...ink);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.3);
+    const titleLines = doc.splitTextToSize(safePdfText(p.name || 'Product'), w - 10).slice(0, 2);
+    doc.text(titleLines, textX, ty);
+    ty += titleLines.length * 4.4 + 1.5;
+
+    doc.setTextColor(...maroon);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(catalogPdfPrice(p), textX, ty);
+
+    ty += 5.2;
+    doc.setTextColor(...muted);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.7);
+    const sizeText = truncatePdfText(p.size || ((p.variants || []).map(v => v.size).filter(Boolean).join(', ')) || 'Standard sizes', 54);
+    doc.text(`Sizes: ${sizeText}`, textX, ty);
+
+    ty += 4.1;
+    const tradeParts = [];
+    if (p.moq) tradeParts.push(`MOQ ${safePdfText(p.moq)}`);
+    if (p.stock) tradeParts.push(safePdfText(p.stock));
+    if (tradeParts.length) doc.text(truncatePdfText(tradeParts.join(' | '), 54), textX, ty);
+
+    const onlineUrl = typeof buildProductShareUrl === 'function' ? buildProductShareUrl(p) : '';
+    if (onlineUrl) {
+      doc.setTextColor(...gold);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.text('View product online', x + w - 5, y + h - 5, { align: 'right' });
+      doc.link(x + w - 38, y + h - 9, 34, 6, { url: onlineUrl });
+    }
+  }
+
+  async function generateFullCatalogPdf() {
+    if (!firebaseCatalogReady || !products.length) {
+      throw new Error('The cloud catalog is still loading. Please wait a moment and try again.');
+    }
+
+    const JsPDF = await loadJsPdfEngine();
+    const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    doc.setProperties({
+      title: `${company.name || 'House of Delight'} Wholesale Catalog`,
+      subject: 'Wholesale product catalog',
+      author: company.name || 'House of Delight',
+      creator: 'House of Delight Catalog'
+    });
+
+    const groups = getCatalogPdfCategories();
+    const productsPerPage = 4;
+    const tocItemsPerPage = 28;
+    const tocPageCount = Math.max(1, Math.ceil(groups.length / tocItemsPerPage));
+
+    let nextCategoryPage = 2 + tocPageCount;
+    const categoryMeta = groups.map(group => {
+      const pageCount = Math.max(1, Math.ceil(group.products.length / productsPerPage));
+      const meta = { ...group, pageCount, startPage: nextCategoryPage };
+      nextCategoryPage += pageCount;
+      return meta;
+    });
+    const totalPages = nextCategoryPage - 1;
+
+    const maroon = [84, 20, 25];
+    const gold = [179, 130, 67];
+    const cream = [250, 247, 240];
+    const pageW = 210;
+    const pageH = 297;
+    const margin = 14;
+
+    // ---------------- Cover: page 1 ----------------
+    doc.setFillColor(39, 9, 12);
+    doc.rect(0, 0, pageW, pageH, 'F');
+    doc.setDrawColor(...gold);
+    doc.setLineWidth(0.7);
+    doc.rect(8, 8, pageW - 16, pageH - 16, 'S');
+    doc.setLineWidth(0.2);
+    doc.rect(11, 11, pageW - 22, pageH - 22, 'S');
+
+    doc.setTextColor(233, 201, 153);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text('OFFICIAL WHOLESALE CATALOG', pageW / 2, 24, { align: 'center' });
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(25);
+    doc.text(safePdfText(company.name || 'House of Delight'), pageW / 2, 37, { align: 'center' });
+
+    doc.setTextColor(233, 201, 153);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('HERITAGE METALWARE, MADE FOR MODERN HOMES', pageW / 2, 45, { align: 'center' });
+
+    let coverImageUrl = String(company.bannerImg || '').trim();
+    if (!coverImageUrl) {
+      const firstWithImage = products.find(p => getProductImages(p).length);
+      coverImageUrl = firstWithImage ? getProductImages(firstWithImage)[0] : '';
+    }
+    const coverImage = coverImageUrl ? await catalogImageToJpeg(coverImageUrl) : null;
+
+    const coverX = 21;
+    const coverY = 61;
+    const coverW = pageW - 42;
+    const coverH = 115;
+    doc.setFillColor(248, 244, 235);
+    doc.setDrawColor(...gold);
+    doc.roundedRect(coverX, coverY, coverW, coverH, 3, 3, 'FD');
+    if (coverImage) {
+      doc.addImage(coverImage, 'JPEG', coverX + 2.5, coverY + 2.5, coverW - 5, coverH - 5, undefined, 'FAST');
+    } else {
+      // Elegant no-image fallback so the cover is never blank.
+      doc.setDrawColor(...gold);
+      doc.setLineWidth(0.6);
+      for (let r = 12; r <= 42; r += 10) doc.circle(pageW / 2, coverY + coverH / 2, r, 'S');
+      doc.line(coverX + 25, coverY + coverH / 2, coverX + coverW - 25, coverY + coverH / 2);
+    }
+
+    doc.setTextColor(239, 224, 205);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.4);
+    doc.text('Pure Brass  |  Pure Copper  |  Authentic Kansa Bronze  |  Stainless Steel', pageW / 2, 191, { align: 'center' });
+
+    doc.setFillColor(57, 14, 18);
+    doc.setDrawColor(116, 72, 46);
+    doc.roundedRect(24, 205, pageW - 48, 39, 3, 3, 'FD');
+    doc.setTextColor(235, 205, 162);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.text('A FAMILY METALCRAFT LEGACY SINCE 1970', pageW / 2, 216, { align: 'center' });
+    doc.setTextColor(246, 237, 226);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.2);
+    const coverCopy = doc.splitTextToSize('Designed and manufactured in Moradabad for wholesale, retail, gifting and export markets across India and beyond.', pageW - 68);
+    doc.text(coverCopy, pageW / 2, 225, { align: 'center' });
+
+    doc.setTextColor(229, 196, 148);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.7);
+    doc.text('Moradabad, Uttar Pradesh', 24, 264);
+    doc.text('+91 97584 44444  |  +91 76786 54362', pageW - 24, 264, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${products.length} PRODUCTS  |  ${groups.length} COLLECTIONS`, pageW / 2, 276, { align: 'center' });
+
+    // ---------------- Contents: page 2 (+ continuation if needed) ----------------
+    for (let tocIndex = 0; tocIndex < tocPageCount; tocIndex++) {
+      doc.addPage();
+      const pageNo = 2 + tocIndex;
+      drawCatalogPdfBrandHeader(
+        doc,
+        tocIndex === 0 ? 'Catalog Contents' : 'Catalog Contents - Continued',
+        'Click any collection below to jump directly to its catalog pages.',
+        pageNo,
+        totalPages,
+        2
+      );
+
+      const slice = categoryMeta.slice(tocIndex * tocItemsPerPage, (tocIndex + 1) * tocItemsPerPage);
+      const cols = 2;
+      const rowsPerCol = 14;
+      const colGap = 10;
+      const colW = (pageW - margin * 2 - colGap) / cols;
+      const startY = 49;
+      const rowH = 15.4;
+
+      slice.forEach((meta, idx) => {
+        const col = Math.floor(idx / rowsPerCol);
+        const row = idx % rowsPerCol;
+        const x = margin + col * (colW + colGap);
+        const y = startY + row * rowH;
+
+        doc.setFillColor(...cream);
+        doc.setDrawColor(229, 220, 207);
+        doc.roundedRect(x, y, colW, 11.5, 2, 2, 'FD');
+
+        doc.setTextColor(...maroon);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.2);
+        doc.text(truncatePdfText(meta.category, 37), x + 4, y + 5.1);
+
+        doc.setTextColor(113, 103, 93);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.6);
+        doc.text(`${meta.products.length} products`, x + 4, y + 8.9);
+
+        doc.setTextColor(...gold);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.3);
+        doc.text(`Page ${meta.startPage}`, x + colW - 4, y + 6.5, { align: 'right' });
+
+        // Entire row is a clickable internal PDF link.
+        doc.link(x, y, colW, 11.5, { pageNumber: meta.startPage });
+      });
+    }
+
+    // ---------------- Product catalog pages ----------------
+    let generatedProductCount = 0;
+    for (const meta of categoryMeta) {
+      const chunks = [];
+      for (let i = 0; i < meta.products.length; i += productsPerPage) {
+        chunks.push(meta.products.slice(i, i + productsPerPage));
+      }
+
+      for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+        doc.addPage();
+        const pageNo = meta.startPage + chunkIndex;
+        const chunk = chunks[chunkIndex];
+        const subtitle = `${meta.products.length} products${chunks.length > 1 ? ` | Collection page ${chunkIndex + 1} of ${chunks.length}` : ''}`;
+        drawCatalogPdfBrandHeader(doc, meta.category, subtitle, pageNo, totalPages, 2);
+
+        // Resolve exactly one image per product: the first/main image only.
+        const imageData = await Promise.all(chunk.map(async p => {
+          const mainImage = getProductImages(p)[0] || '';
+          return mainImage ? await catalogImageToJpeg(mainImage) : null;
+        }));
+
+        const cardW = 86.5;
+        const cardH = 111;
+        const gapX = 10;
+        const gapY = 8;
+        const startX = 13;
+        const startY = 46;
+
+        chunk.forEach((p, idx) => {
+          const col = idx % 2;
+          const row = Math.floor(idx / 2);
+          const x = startX + col * (cardW + gapX);
+          const y = startY + row * (cardH + gapY);
+          drawCatalogPdfProductCard(doc, p, imageData[idx], x, y, cardW, cardH);
+          generatedProductCount++;
+        });
+
+        const btn = document.getElementById('downloadPdfBtn');
+        if (btn) {
+          const percent = Math.max(1, Math.round((generatedProductCount / products.length) * 100));
+          btn.textContent = `Building PDF ${percent}%`;
+        }
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+    }
+
+    const filename = `${String(company.name || 'House_of_Delight').replace(/\s+/g, '_')}_Full_Wholesale_Catalog.pdf`;
+    doc.save(filename);
+    return filename;
+  }
+
+  document.getElementById('downloadPdfBtn').onclick = async () => {
+    const btn = document.getElementById('downloadPdfBtn');
+    const oldLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Preparing PDF...';
+    try {
+      showToast('Building the complete catalog PDF...');
+      await generateFullCatalogPdf();
+      showToast('Full catalog PDF downloaded!');
+    } catch (err) {
+      console.error('Full catalog PDF generation failed:', err);
+      alert(`Could not create the catalog PDF: ${err.message || err}`);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = oldLabel;
+    }
   };
 
   // Reliable direct PDF statement generator.
