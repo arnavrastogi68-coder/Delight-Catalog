@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v22: Instant Ready-made Catalog PDF + Automated GitHub Build — 2026-09 -->
+  <!-- v23: Instant Catalog PDF + Verified GitHub PDF Automation — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -5858,48 +5858,58 @@ document.addEventListener('DOMContentLoaded', () => {
     // Report any remaining photo problems after the PDF is safely created.
     const hardFailures = catalogPdfPhotoIssues.filter(x => x.status === 'No usable photo');
     const fallbackUsed = catalogPdfPhotoIssues.filter(x => x.status !== 'No usable photo');
+    const isAutomatedCatalogBuild =
+      new URLSearchParams(window.location.search || '').get('buildCatalogPdf') === '1';
 
     if (catalogPdfPhotoIssues.length) {
       console.table(catalogPdfPhotoIssues);
 
-      const csvRows = [
-        ['SKU', 'Product', 'Status', 'Photos available'],
-        ...catalogPdfPhotoIssues.map(x => [x.sku, x.name, x.status, String(x.photoCount)])
-      ];
-
-      const csv = csvRows.map(row =>
-        row.map(value => `"${String(value || '').replace(/"/g, '""')}"`).join(',')
-      ).join('\n');
-
-      const reportBlob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-      const reportUrl = URL.createObjectURL(reportBlob);
-      const reportLink = document.createElement('a');
-      reportLink.href = reportUrl;
-      reportLink.download = 'Catalog_PDF_Photo_Report.csv';
-      document.body.appendChild(reportLink);
-      reportLink.click();
-      reportLink.remove();
-      setTimeout(() => URL.revokeObjectURL(reportUrl), 1500);
-
-      const failureLines = hardFailures.slice(0, 12).map(x => `${x.sku} - ${x.name}`).join('\n');
-      const extra = hardFailures.length > 12 ? `\n...and ${hardFailures.length - 12} more.` : '';
-
-      if (hardFailures.length) {
-        alert(
-          `Catalog PDF created.\n\n` +
-          `${hardFailures.length} product(s) still had no usable photo after retries and fallback images.\n` +
-          `${fallbackUsed.length} product(s) used a backup photo because the main photo failed.\n\n` +
-          `A Catalog_PDF_Photo_Report.csv file has also been downloaded.\n\n` +
-          `Products still missing a photo:\n${failureLines}${extra}`
+      if (isAutomatedCatalogBuild) {
+        // During GitHub Actions produce ONLY catalog.pdf.
+        console.log(
+          `Catalog photo report: ${hardFailures.length} hard failure(s), ` +
+          `${fallbackUsed.length} fallback image(s) used.`
         );
       } else {
-        showToast(
-          fallbackUsed.length
-            ? `Catalog created. ${fallbackUsed.length} product photo(s) used a backup image.`
-            : 'Catalog created with all product photos.'
-        );
+        const csvRows = [
+          ['SKU', 'Product', 'Status', 'Photos available'],
+          ...catalogPdfPhotoIssues.map(x => [x.sku, x.name, x.status, String(x.photoCount)])
+        ];
+
+        const csv = csvRows.map(row =>
+          row.map(value => `"${String(value || '').replace(/"/g, '""')}"`).join(',')
+        ).join('\\n');
+
+        const reportBlob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const reportUrl = URL.createObjectURL(reportBlob);
+        const reportLink = document.createElement('a');
+        reportLink.href = reportUrl;
+        reportLink.download = 'Catalog_PDF_Photo_Report.csv';
+        document.body.appendChild(reportLink);
+        reportLink.click();
+        reportLink.remove();
+        setTimeout(() => URL.revokeObjectURL(reportUrl), 1500);
+
+        const failureLines = hardFailures.slice(0, 12).map(x => `${x.sku} - ${x.name}`).join('\\n');
+        const extra = hardFailures.length > 12 ? `\\n...and ${hardFailures.length - 12} more.` : '';
+
+        if (hardFailures.length) {
+          alert(
+            `Catalog PDF created.\\n\\n` +
+            `${hardFailures.length} product(s) still had no usable photo after retries and fallback images.\\n` +
+            `${fallbackUsed.length} product(s) used a backup photo because the main photo failed.\\n\\n` +
+            `A Catalog_PDF_Photo_Report.csv file has also been downloaded.\\n\\n` +
+            `Products still missing a photo:\\n${failureLines}${extra}`
+          );
+        } else {
+          showToast(
+            fallbackUsed.length
+              ? `Catalog created. ${fallbackUsed.length} product photo(s) used a backup image.`
+              : 'Catalog created with all product photos.'
+          );
+        }
       }
-    } else {
+    } else if (!isAutomatedCatalogBuild) {
       showToast('Catalog created with all product photos.');
     }
 
