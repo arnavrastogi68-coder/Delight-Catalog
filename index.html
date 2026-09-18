@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v24: Dynamic Category-only PDF Layout + Simplified Product Cards — 2026-09 -->
+  <!-- v25: Website Polish + Dynamic Category-only PDF Layout — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -2704,6 +2704,184 @@
       }
     }
 
+  
+
+    /* =========================================================
+       v25 — Website polish: sticky collection rail, image hover,
+       refined cards, and floating enquiry summary
+       ========================================================= */
+
+    /* Existing filter area already sticks below the header; v25 makes it
+       read visually as a dedicated quick-navigation rail. */
+    .filter-section {
+      background: rgba(255,255,255,.97);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 7px 22px rgba(58,13,16,.045);
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+    .segmented-tabs-container {
+      position: relative;
+    }
+    .category-nav-bar,
+    .metal-filter-bar {
+      padding: 7px 2px 4px;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+    }
+    .category-nav-bar::-webkit-scrollbar,
+    .metal-filter-bar::-webkit-scrollbar { display: none; }
+    .cat-pill,
+    .metal-chip {
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #fff;
+      box-shadow: 0 1px 0 rgba(58,13,16,.02);
+    }
+    .cat-pill.active {
+      box-shadow: 0 5px 14px rgba(84,20,25,.16);
+    }
+
+    /* Refined result/category header */
+    .section-status-bar {
+      background: #fff;
+      border: 1px solid #eee5da;
+      border-radius: 12px;
+      padding: 13px 15px;
+      box-shadow: 0 3px 14px rgba(58,13,16,.035);
+    }
+    .section-status-bar h2 {
+      font-size: 25px;
+      line-height: 1.08;
+    }
+    #productCounterLabel {
+      font-size: 10px;
+      font-weight: 700;
+      color: #8a8178;
+      letter-spacing: .2px;
+    }
+
+    /* Product photography is the focus. Desktop hover reveals image #2;
+       touch devices retain the existing arrow controls. */
+    .product-thumb .product-thumb-primary {
+      position: relative;
+      z-index: 1;
+      transition: transform .34s ease, opacity .22s ease;
+    }
+    .product-thumb .product-thumb-hover {
+      position: absolute;
+      inset: 16px;
+      width: calc(100% - 32px);
+      height: calc(100% - 32px);
+      max-width: none;
+      max-height: none;
+      object-fit: contain;
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+      transform: scale(1.018);
+      transition: opacity .24s ease, transform .34s ease;
+    }
+
+    @media (hover: hover) and (pointer: fine) and (min-width: 769px) {
+      .product-box.has-hover-photo:hover .product-thumb-primary {
+        opacity: 0;
+        transform: scale(.99);
+      }
+      .product-box.has-hover-photo:hover .product-thumb-hover {
+        opacity: 1;
+        transform: scale(1.035);
+      }
+      .product-box.has-hover-photo .card-photo-arrow { display: none; }
+    }
+
+    /* Card hierarchy: slightly more image, calmer text, cleaner CTA. */
+    .product-thumb {
+      aspect-ratio: 1 / 1.04;
+      padding: 14px;
+    }
+    .product-details {
+      min-height: 160px;
+      padding: 12px 14px 14px;
+      gap: 4px;
+    }
+    .sku-line {
+      font-size: 8px;
+      letter-spacing: .95px;
+      color: #999087;
+    }
+    .product-name {
+      font-size: 16.5px;
+      line-height: 1.18;
+      min-height: 39px;
+    }
+    .product-meta-line,
+    .product-spec-line {
+      font-size: 10px;
+    }
+    .product-action-row {
+      border-top-color: #eee6dc;
+      padding-top: 9px;
+      margin-top: 6px;
+    }
+    .btn-add-order {
+      border-radius: 999px;
+      padding: 6px 11px;
+      min-height: 31px;
+    }
+    .badge-metal-type {
+      z-index: 4;
+      box-shadow: 0 3px 9px rgba(58,13,16,.06);
+    }
+    .multi-photo-pill,
+    .size-counter-pill,
+    .card-photo-arrow,
+    .admin-quick-edit { z-index: 5; }
+
+    /* Floating enquiry summary becomes useful only after items are selected. */
+    .float-cart {
+      min-width: 210px;
+      justify-content: center;
+      border-radius: 14px;
+      padding: 11px 15px;
+      background: rgba(84,20,25,.97);
+      box-shadow: 0 10px 30px rgba(58,13,16,.20);
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .float-cart:hover {
+      transform: translateY(-2px);
+      background: var(--maroon-dark);
+      box-shadow: 0 14px 34px rgba(58,13,16,.24);
+    }
+    .float-cart-summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .float-cart.has-items {
+      border-color: #d7ad72;
+    }
+
+    @media (max-width: 980px) {
+      .filter-section {
+        box-shadow: 0 4px 14px rgba(58,13,16,.04);
+      }
+      .section-status-bar {
+        border-radius: 9px;
+        padding: 11px 12px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .product-thumb { padding: 10px; }
+      .product-thumb .product-thumb-hover { display: none !important; }
+      .product-details { min-height: 0; }
+      .floating-action-bar { display: none; }
+    }
+
   </style>
 </head>
 <body>
@@ -3285,7 +3463,9 @@
 <div class="floating-action-bar">
   <a class="float-btn float-wa" href="#" id="floatWhatsAppBtn">💬 WhatsApp Order</a>
   <button class="float-btn float-cart" id="floatCartBtn" onclick="document.getElementById('orderDrawerOverlay').classList.add('show');">
-    📋 Order (<span id="floatCartCount">0</span>)
+    <span aria-hidden="true">📋</span>
+    <span class="float-cart-summary" id="floatCartSummary">Enquiry · View</span>
+    <span id="floatCartCount" style="display:none;">0</span>
   </button>
 </div>
 
@@ -3873,7 +4053,7 @@ window.navigateCardPhoto = function(productId, direction, event) {
   if (imgs.length <= 1) return;
 
   const card = event.target.closest('.product-box');
-  const imgElem = card.querySelector('.product-thumb img');
+  const imgElem = card.querySelector('.product-thumb-primary') || card.querySelector('.product-thumb img');
   let currentIdx = parseInt(imgElem.dataset.photoIndex || '0', 10);
   currentIdx = (currentIdx + direction + imgs.length) % imgs.length;
   imgElem.dataset.photoIndex = currentIdx;
@@ -3911,6 +4091,8 @@ function createProductCard(p) {
   const fallbackImg = getFallbackSvg(p.category, p.name);
   const primaryImg = imgs[0] || fallbackImg;
   const hasMultiplePhotos = imgs.length > 1;
+  if (hasMultiplePhotos) box.classList.add('has-hover-photo');
+  const hoverImg = hasMultiplePhotos ? imgs[1] : '';
   const multiPhotoBadge = hasMultiplePhotos ? `<div class="multi-photo-pill">📷 ${imgs.length}</div>` : '';
   const photoArrowsHtml = hasMultiplePhotos ? `
     <button type="button" class="card-photo-arrow prev" onclick="navigateCardPhoto('${p.id}', -1, event)">❮</button>
@@ -3934,7 +4116,8 @@ function createProductCard(p) {
 
   box.innerHTML = `
     <div class="product-thumb">
-      <img src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='${fallbackImg}';">
+      <img class="product-thumb-primary" src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='${fallbackImg}';">
+      ${hoverImg ? `<img class="product-thumb-hover" src="${escapeStr(hoverImg)}" alt="" loading="lazy" decoding="async" aria-hidden="true" onerror="this.style.display='none';">` : ''}
       ${photoArrowsHtml}
       <div class="badge-metal-type">${escapeStr(p.category || 'Pure Brass')}</div>
       ${multiPhotoBadge}
@@ -4522,6 +4705,14 @@ function renderCategoryPills() {
     metalBar.appendChild(chip);
   });
 
+  requestAnimationFrame(() => {
+    const activeCategoryPill = row.querySelector('.cat-pill.active');
+    if (activeCategoryPill) {
+      try { activeCategoryPill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }
+      catch (e) {}
+    }
+  });
+
   document.getElementById('categorySuggestions').innerHTML = cats.map(c => `<option value="${escapeStr(c)}">`).join('');
   document.getElementById('metalSuggestions').innerHTML = customMetals.map(m => `<option value="${escapeStr(m)}">`).join('');
 }
@@ -4619,7 +4810,16 @@ function updateCartUI() {
     const labelSpan = enquiryTrigger.querySelector('span:first-child');
     if (labelSpan) labelSpan.textContent = count ? `Enquiry · ${count}` : 'Enquiry';
   }
-  document.getElementById('floatCartCount').textContent = count;
+  const floatCartCount = document.getElementById('floatCartCount');
+  if (floatCartCount) floatCartCount.textContent = count;
+  const floatCartBtn = document.getElementById('floatCartBtn');
+  const floatCartSummary = document.getElementById('floatCartSummary');
+  if (floatCartBtn) floatCartBtn.classList.toggle('has-items', count > 0);
+  if (floatCartSummary) {
+    floatCartSummary.textContent = count
+      ? `Enquiry · ${lineCount} ${lineCount === 1 ? 'item' : 'items'} · ${count} pcs · View`
+      : 'Enquiry · View';
+  }
   document.getElementById('mobileNavCartCount').textContent = count;
   document.getElementById('drawerItemsCount').textContent = `${count} ${count === 1 ? 'piece' : 'pieces'} · ${lineCount} ${lineCount === 1 ? 'product' : 'products'}`;
   document.getElementById('drawerTotalAmount').textContent = `₹ ${total.toLocaleString()}`;
