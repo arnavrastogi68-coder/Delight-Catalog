@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v15: Direct PDF Enquiries + Dual WhatsApp + Founder Cleanup — 2026-09 -->
+  <!-- v16: Header Button Sizing + Close Icon Alignment — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -2588,6 +2588,94 @@
       .enquiry-recipient-links {
         grid-template-columns: 1fr;
       }
+    }
+
+
+    /* =========================================================
+       v16 — Desktop header buttons + perfectly centered close X
+       ========================================================= */
+
+    /* Desktop header actions */
+    @media (min-width: 769px) {
+      .premium-header-actions {
+        gap: 9px;
+      }
+
+      .premium-header-actions #shareCatalogBtn,
+      .premium-header-actions #downloadPdfBtn {
+        min-height: 40px;
+        padding: 9px 15px;
+        border: 1px solid #d8c9b8;
+        border-radius: 7px;
+        background: #fff;
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+
+      .premium-header-actions #shareCatalogBtn:hover,
+      .premium-header-actions #downloadPdfBtn:hover {
+        background: #f8f2e9;
+        border-color: var(--gold);
+        color: var(--maroon);
+        transform: translateY(-1px);
+      }
+
+      .premium-enquiry-btn {
+        min-height: 40px;
+        padding: 9px 15px;
+        font-size: 12px;
+      }
+    }
+
+    /* Enquiry drawer close button */
+    .drawer-close-btn {
+      width: 38px;
+      height: 38px;
+      min-width: 38px;
+      min-height: 38px;
+      padding: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 1 !important;
+      text-align: center;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 24px !important;
+      font-weight: 300;
+      color: var(--ink);
+      border-radius: 50%;
+      box-sizing: border-box;
+      vertical-align: middle;
+    }
+
+    .drawer-close-btn:hover {
+      background: #f8f2e9;
+      color: var(--maroon);
+      border-color: var(--gold);
+    }
+
+    /* Product modal close button — use same visual alignment */
+    .detail-close-btn {
+      width: 38px;
+      height: 38px;
+      min-width: 38px;
+      min-height: 38px;
+      padding: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 1 !important;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 22px !important;
+      font-weight: 300;
+      box-sizing: border-box;
     }
 
   </style>
