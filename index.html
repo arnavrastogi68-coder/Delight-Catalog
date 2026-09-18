@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v17: Full Clickable Multi-page Catalog PDF — 2026-09 -->
+  <!-- v18: Fast Parallel Clickable Catalog PDF — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -5223,10 +5223,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const task = (async () => {
       let objectUrl = null;
+      let abortController = null;
+      let fetchTimer = null;
+
       try {
         let source = key;
+
         if (!/^data:/i.test(key)) {
-          const response = await fetch(key, { mode: 'cors', cache: 'force-cache' });
+          abortController = new AbortController();
+          fetchTimer = setTimeout(() => abortController.abort(), 9000);
+
+          const response = await fetch(key, {
+            mode: 'cors',
+            cache: 'force-cache',
+            signal: abortController.signal
+          });
+
           if (!response.ok) throw new Error(`Image request failed (${response.status})`);
           const blob = await response.blob();
           objectUrl = URL.createObjectURL(blob);
@@ -5236,39 +5248,95 @@ document.addEventListener('DOMContentLoaded', () => {
         const img = await new Promise((resolve, reject) => {
           const el = new Image();
           el.decoding = 'async';
-          el.onload = () => resolve(el);
-          el.onerror = () => reject(new Error('Image could not be decoded'));
+
+          const timer = setTimeout(() => {
+            el.src = '';
+            reject(new Error('Image decode timeout'));
+          }, 7000);
+
+          el.onload = () => {
+            clearTimeout(timer);
+            resolve(el);
+          };
+          el.onerror = () => {
+            clearTimeout(timer);
+            reject(new Error('Image could not be decoded'));
+          };
           el.src = source;
         });
 
-        const target = 700;
+        // The image is displayed at roughly 80 x 67 mm in the PDF.
+        // 440px is more than enough for a clean printed card while being
+        // dramatically faster and smaller than embedding full-resolution photos.
+        const target = 440;
         const canvas = document.createElement('canvas');
         canvas.width = target;
         canvas.height = target;
+
         const ctx = canvas.getContext('2d', { alpha: false });
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, target, target);
 
         const naturalW = img.naturalWidth || img.width || 1;
         const naturalH = img.naturalHeight || img.height || 1;
-        const scale = Math.min((target - 40) / naturalW, (target - 40) / naturalH);
+        const inner = target - 24;
+        const scale = Math.min(inner / naturalW, inner / naturalH);
         const drawW = naturalW * scale;
         const drawH = naturalH * scale;
         const drawX = (target - drawW) / 2;
         const drawY = (target - drawH) / 2;
+
         ctx.drawImage(img, drawX, drawY, drawW, drawH);
 
-        return canvas.toDataURL('image/jpeg', 0.82);
+        // Quality 0.70 is visually clean at the PDF card size and materially
+        // reduces both generation time and final PDF file size.
+        return canvas.toDataURL('image/jpeg', 0.70);
       } catch (err) {
         console.warn('Catalog PDF image skipped:', key, err);
         return null;
       } finally {
+        if (fetchTimer) clearTimeout(fetchTimer);
         if (objectUrl) URL.revokeObjectURL(objectUrl);
       }
     })();
 
     catalogPdfImageCache.set(key, task);
     return task;
+  }
+
+  async function preloadCatalogPdfImages(urls, onProgress) {
+    const uniqueUrls = [...new Set((urls || []).map(x => String(x || '').trim()).filter(Boolean))];
+    if (!uniqueUrls.length) return;
+
+    let cursor = 0;
+    let completed = 0;
+
+    // 8 simultaneous image jobs is a good balance for desktop/mobile browsers:
+    // much faster than page-by-page loading without flooding memory/network.
+    const concurrency = Math.min(8, uniqueUrls.length);
+
+    async function worker() {
+      while (true) {
+        const index = cursor++;
+        if (index >= uniqueUrls.length) return;
+
+        await catalogImageToJpeg(uniqueUrls[index]);
+        completed++;
+
+        if (typeof onProgress === 'function') {
+          onProgress(completed, uniqueUrls.length);
+        }
+
+        // Give the browser a chance to update the UI between heavy canvas jobs.
+        if (completed % 6 === 0) {
+          if (generatedProductCount % 16 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+        }
+      }
+    }
+
+    await Promise.all(Array.from({ length: concurrency }, () => worker()));
   }
 
   function drawCatalogPdfFooter(doc, pageNo, totalPages, contentsPageNo = 2) {
@@ -5460,6 +5528,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageH = 297;
     const margin = 14;
 
+    // Start all image work up-front instead of waiting page-by-page.
+    // Put the cover first so it is normally ready almost immediately.
+    let coverImageUrl = String(company.bannerImg || '').trim();
+    if (!coverImageUrl) {
+      const firstWithImage = products.find(p => getProductImages(p).length);
+      coverImageUrl = firstWithImage ? getProductImages(firstWithImage)[0] : '';
+    }
+
+    const allMainImageUrls = [
+      coverImageUrl,
+      ...products.map(p => getProductImages(p)[0] || '')
+    ].filter(Boolean);
+
+    const pdfBtn = document.getElementById('downloadPdfBtn');
+    const preloadPromise = preloadCatalogPdfImages(allMainImageUrls, (done, total) => {
+      if (pdfBtn) {
+        const percent = Math.max(1, Math.round((done / total) * 100));
+        pdfBtn.textContent = `Optimizing photos ${percent}%`;
+      }
+    });
+
     // ---------------- Cover: page 1 ----------------
     doc.setFillColor(39, 9, 12);
     doc.rect(0, 0, pageW, pageH, 'F');
@@ -5484,11 +5573,7 @@ document.addEventListener('DOMContentLoaded', () => {
     doc.setFontSize(10);
     doc.text('HERITAGE METALWARE, MADE FOR MODERN HOMES', pageW / 2, 45, { align: 'center' });
 
-    let coverImageUrl = String(company.bannerImg || '').trim();
-    if (!coverImageUrl) {
-      const firstWithImage = products.find(p => getProductImages(p).length);
-      coverImageUrl = firstWithImage ? getProductImages(firstWithImage)[0] : '';
-    }
+    // The cover begins loading first while the remaining catalog photos continue in parallel.
     const coverImage = coverImageUrl ? await catalogImageToJpeg(coverImageUrl) : null;
 
     const coverX = 21;
@@ -5585,6 +5670,12 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Finish any remaining photo optimization before laying out product pages.
+    // At this point most/all images have already been processed in parallel.
+    await preloadPromise;
+
+    if (pdfBtn) pdfBtn.textContent = 'Building catalog pages...';
+
     // ---------------- Product catalog pages ----------------
     let generatedProductCount = 0;
     for (const meta of categoryMeta) {
@@ -5600,10 +5691,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const subtitle = `${meta.products.length} products${chunks.length > 1 ? ` | Collection page ${chunkIndex + 1} of ${chunks.length}` : ''}`;
         drawCatalogPdfBrandHeader(doc, meta.category, subtitle, pageNo, totalPages, 2);
 
-        // Resolve exactly one image per product: the first/main image only.
-        const imageData = await Promise.all(chunk.map(async p => {
+        // Exactly one image per product: the first/main image only.
+        // These are already cached by the parallel preloader above.
+        const imageData = await Promise.all(chunk.map(p => {
           const mainImage = getProductImages(p)[0] || '';
-          return mainImage ? await catalogImageToJpeg(mainImage) : null;
+          return mainImage ? catalogImageToJpeg(mainImage) : Promise.resolve(null);
         }));
 
         const cardW = 86.5;
@@ -5642,7 +5734,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Preparing PDF...';
     try {
-      showToast('Building the complete catalog PDF...');
+      showToast('Preparing the full catalog — photos are being optimized in parallel...');
       await generateFullCatalogPdf();
       showToast('Full catalog PDF downloaded!');
     } catch (err) {
