@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v21: Reliable Catalog PDF Photos + Retry/Fallback Report — 2026-09 -->
+  <!-- v22: Instant Ready-made Catalog PDF + Automated GitHub Build — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -2678,6 +2678,32 @@
       box-sizing: border-box;
     }
 
+
+    /* v22 — instant ready-made wholesale catalog */
+    .catalog-pdf-header-wrap {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      flex: 0 0 auto;
+    }
+
+    .catalog-pdf-caption {
+      color: #827970;
+      font-size: 7px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: .15px;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .catalog-pdf-header-wrap {
+        display: none;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2710,7 +2736,10 @@
 
     <div class="header-actions premium-header-actions">
       <button class="btn-outline" id="shareCatalogBtn" title="Share Catalog">↗ Share</button>
-      <button class="btn-outline header-pdf-btn" id="downloadPdfBtn" title="Download the complete clickable wholesale catalog PDF">Catalog PDF</button>
+      <div class="catalog-pdf-header-wrap">
+        <button class="btn-outline header-pdf-btn" id="downloadPdfBtn" title="Open Latest Wholesale Catalog">Catalog PDF</button>
+        <span class="catalog-pdf-caption">Latest Wholesale Catalog</span>
+      </div>
 
       <button class="btn-outline admin-only" id="adminStatusBtn" title="Admin account / sign out">✓ Admin</button>
       <button class="btn-outline admin-only" id="openSettingsBtn" title="Edit Brand Details">⚙ Brand</button>
@@ -4202,6 +4231,12 @@ const PUBLIC_CATALOG_URL = 'https://arnavrastogi68-coder.github.io/Delight-Catal
 
 function getCatalogBaseUrl() {
   try {
+    const params = new URLSearchParams(window.location.search || '');
+    const isAutomatedBuild = params.get('buildCatalogPdf') === '1';
+    const localHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
+
+    if (isAutomatedBuild || localHost) return PUBLIC_CATALOG_URL;
+
     if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
       const u = new URL(window.location.href);
       u.search = '';
@@ -5817,7 +5852,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const filename = `${String(company.name || 'House_of_Delight').replace(/\s+/g, '_')}_Full_Wholesale_Catalog.pdf`;
+    const filename = 'catalog.pdf';
     doc.save(filename);
 
     // Report any remaining photo problems after the PDF is safely created.
@@ -5871,23 +5906,47 @@ document.addEventListener('DOMContentLoaded', () => {
     return filename;
   }
 
-  document.getElementById('downloadPdfBtn').onclick = async () => {
-    const btn = document.getElementById('downloadPdfBtn');
-    const oldLabel = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Preparing PDF...';
-    try {
-      showToast('Preparing catalog photos with retry and fallback checks...');
-      await generateFullCatalogPdf();
-      showToast('Full catalog PDF downloaded!');
-    } catch (err) {
-      console.error('Full catalog PDF generation failed:', err);
-      alert(`Could not create the catalog PDF: ${err.message || err}`);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = oldLabel;
-    }
+  function getHostedCatalogPdfUrl() {
+    return new URL('catalog.pdf', PUBLIC_CATALOG_URL).toString();
+  }
+
+  document.getElementById('downloadPdfBtn').onclick = () => {
+    const pdfUrl = `${getHostedCatalogPdfUrl()}?v=${Date.now()}`;
+    window.open(pdfUrl, '_blank', 'noopener');
   };
+
+  async function runAutomatedCatalogPdfBuildIfRequested() {
+    const params = new URLSearchParams(window.location.search || '');
+    if (params.get('buildCatalogPdf') !== '1') return;
+
+    const started = Date.now();
+    const maxWaitMs = 120000;
+
+    while (!firebaseCatalogReady && (Date.now() - started) < maxWaitMs) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    if (!firebaseCatalogReady || !products.length) {
+      document.title = 'CATALOG_BUILD_FAILED';
+      throw new Error('Cloud catalog did not become ready in time.');
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 800));
+    document.title = 'CATALOG_BUILD_RUNNING';
+
+    try {
+      await generateFullCatalogPdf();
+      document.title = 'CATALOG_BUILD_DONE';
+    } catch (err) {
+      document.title = 'CATALOG_BUILD_FAILED';
+      console.error('Automated catalog PDF build failed:', err);
+      throw err;
+    }
+  }
+
+  setTimeout(() => {
+    runAutomatedCatalogPdfBuildIfRequested().catch(err => console.error(err));
+  }, 0);
 
   // Reliable direct PDF statement generator.
   // This intentionally does not screenshot DOM content, which avoids blank PDFs.
