@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v14: Full Premium Visual Polish + Product Modal Scroll Fix — 2026-09 -->
+  <!-- v15: Direct PDF Enquiries + Dual WhatsApp + Founder Cleanup — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -2531,6 +2531,65 @@
       }
     }
 
+
+    /* =========================================================
+       v15 — PDF enquiry sharing + dual WhatsApp recipients
+       ========================================================= */
+    .enquiry-recipient-box {
+      border: 1px solid #ded3c4;
+      background: #fbf8f2;
+      border-radius: 8px;
+      padding: 9px 10px;
+    }
+    .enquiry-recipient-title {
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 1.1px;
+      color: var(--gold-dark);
+      margin-bottom: 5px;
+    }
+    .enquiry-recipient-links {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .enquiry-recipient-links a {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 31px;
+      border: 1px solid #cfe5d3;
+      background: #f5fbf6;
+      color: #176b2d;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 9.5px;
+      font-weight: 800;
+      text-align: center;
+    }
+    .enquiry-recipient-links a:hover {
+      background: #edf8ef;
+      border-color: #9ecfaa;
+    }
+    .enquiry-recipient-note {
+      font-size: 8.5px;
+      line-height: 1.45;
+      color: var(--ink-muted);
+      margin-top: 6px;
+    }
+    #sendWhatsAppOrderBtn {
+      border: 0;
+      cursor: pointer;
+    }
+    #sendWhatsAppOrderBtn:disabled {
+      cursor: default;
+    }
+    @media (max-width: 560px) {
+      .enquiry-recipient-links {
+        grid-template-columns: 1fr;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2601,7 +2660,7 @@
       <button class="hero-secondary-btn" type="button" onclick="document.getElementById('featuredProductsSection').scrollIntoView({behavior:'smooth', block:'start'});">Featured Products</button>
       <button class="hero-link-btn" type="button" onclick="document.getElementById('heritageStory').scrollIntoView({behavior:'smooth', block:'start'});">Our Story</button>
     </div>
-    <div class="premium-founder-line">Founded in 1970 by <strong>Mr. Jagdish Saran Rastogi</strong> · Moradabad</div>
+    <div class="premium-founder-line">Crafted in Moradabad · A family metalwork tradition since 1970</div>
   </div>
 </section>
 
@@ -2620,7 +2679,7 @@
     <div class="heritage-story-copy">
       <div class="section-eyebrow">OUR HERITAGE</div>
       <h2 id="storyHeading">A Legacy of Moradabad Craftsmanship</h2>
-      <div class="founder-emphasis">Established by <strong>Mr. Jagdish Saran Rastogi</strong>, whose tradition of metal craftsmanship continues through House of Delight.</div>
+      <div class="founder-emphasis">Built on a family tradition of fine metal craftsmanship that continues through House of Delight.</div>
       <p id="storyParagraph">
         <strong>Delight Metal Works (House of Delight)</strong> is an integrated designing and manufacturing firm started in the year <strong>1970 by Mr. Jagdish Saran Rastogi</strong> in Moradabad—India’s celebrated <em>"Brass City"</em>. What began as a dedicated family workshop has flourished over five decades into a premier manufacturing and trading house spanning Pure Brass, Pure Copper, Authentic Kansa (Bronze), and Stainless Steel metalware, serving an extensive dealer and export network across India and globally. Because every piece is individually turned and polished by traditional Moradabad artisans, subtle variations in weight, polish, and texture are hallmarks of authentic metalcraft.
       </p>
@@ -2768,12 +2827,20 @@
       <div style="font-size: 10px; color: var(--ink-muted); line-height: 1.45; background: var(--cream); padding: 8px; border-radius: 4px; border-left: 2.5px solid var(--gold);">
         *<strong>Wholesale Disclaimer:</strong> Order confirmation is subject to factory stock availability. Handcrafted metalware may vary slightly from pictures in finish, weight, and tone. Billing is based on certified dispatch scale weight & prevailing taxes.
       </div>
+      <div class="enquiry-recipient-box">
+        <div class="enquiry-recipient-title">ENQUIRY RECIPIENTS</div>
+        <div class="enquiry-recipient-links">
+          <a id="enquiryWhatsApp1" href="https://wa.me/919758444444" target="_blank" rel="noopener">WhatsApp · +91 97584 44444</a>
+          <a id="enquiryWhatsApp2" href="https://wa.me/917678654362" target="_blank" rel="noopener">WhatsApp · +91 76786 54362</a>
+        </div>
+        <div class="enquiry-recipient-note">On supported phones, “Share Enquiry PDF” opens the device share sheet with the PDF attached. In WhatsApp you can select either or both enquiry chats.</div>
+      </div>
       <div class="drawer-primary-actions">
-        <a class="btn-send-whatsapp" href="#" id="sendWhatsAppOrderBtn">
-          💬 Send on WhatsApp
-        </a>
+        <button class="btn-send-whatsapp" type="button" id="sendWhatsAppOrderBtn">
+          📎 Share Enquiry PDF
+        </button>
         <button class="btn-outline" id="downloadQuotationPdfBtn">
-          📄 Quotation PDF
+          📄 Download PDF
         </button>
       </div>
       <div class="drawer-secondary-actions">
@@ -3081,18 +3148,19 @@
       <strong>Trade</strong>
       <button type="button" onclick="document.getElementById('orderDrawerOverlay').classList.add('show');">Wholesale Enquiry</button>
       <button type="button" onclick="document.getElementById('shareCatalogBtn').click();">Share Catalog</button>
-      <a href="#" id="footerWhatsAppLink">WhatsApp</a>
+      <a href="https://wa.me/919758444444" id="footerWhatsAppLink" target="_blank" rel="noopener">WhatsApp · 97584 44444</a>
+      <a href="https://wa.me/917678654362" id="footerWhatsAppLink2" target="_blank" rel="noopener">WhatsApp · 76786 54362</a>
     </div>
 
     <div class="footer-founder-col">
-      <span>FOUNDED IN MORADABAD</span>
-      <strong>Mr. Jagdish Saran Rastogi</strong>
-      <p>Carrying forward a family tradition of fine Indian metalcraft since 1970.</p>
+      <span>MORADABAD · SINCE 1970</span>
+      <strong>A Family Metalcraft Legacy</strong>
+      <p>Carrying forward a tradition of fine Indian metalcraft across generations.</p>
     </div>
   </div>
 
   <div class="premium-footer-bottom">
-    <div id="footerText">House of Delight — <strong>Delight Metal Works</strong> · Estd. 1970 by Mr. Jagdish Saran Rastogi · Moradabad, Uttar Pradesh</div>
+    <div id="footerText">House of Delight — <strong>Delight Metal Works</strong> · Estd. 1970 · Moradabad, Uttar Pradesh</div>
     <div class="footer-notice">Handcrafted items may vary slightly from photographs · Trade orders subject to stock confirmation</div>
   </div>
 </footer>
@@ -3258,6 +3326,358 @@ function loadPdfEngine(callback) {
   s.onload = callback;
   document.body.appendChild(s);
 }
+
+
+const ENQUIRY_WHATSAPP_NUMBERS = ['919758444444', '917678654362'];
+
+function getEnquiryWhatsAppNumbers() {
+  return [...ENQUIRY_WHATSAPP_NUMBERS];
+}
+
+function loadJsPdfEngine() {
+  return new Promise((resolve, reject) => {
+    if (window.jspdf && window.jspdf.jsPDF) {
+      resolve(window.jspdf.jsPDF);
+      return;
+    }
+
+    const existing = document.getElementById('jspdfDirectEngine');
+    if (existing) {
+      existing.addEventListener('load', () => resolve(window.jspdf.jsPDF), { once: true });
+      existing.addEventListener('error', () => reject(new Error('Could not load PDF engine.')), { once: true });
+      return;
+    }
+
+    showToast('Loading PDF generator...');
+    const script = document.createElement('script');
+    script.id = 'jspdfDirectEngine';
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.async = true;
+    script.onload = () => {
+      if (window.jspdf && window.jspdf.jsPDF) resolve(window.jspdf.jsPDF);
+      else reject(new Error('PDF engine loaded but jsPDF was unavailable.'));
+    };
+    script.onerror = () => reject(new Error('Could not load PDF engine. Check your internet connection.'));
+    document.head.appendChild(script);
+  });
+}
+
+function safePdfText(value) {
+  return String(value ?? '')
+    .replace(/[₹]/g, 'Rs. ')
+    .replace(/[–—]/g, '-')
+    .replace(/[•·]/g, ' - ')
+    .replace(/[^\x20-\x7E\u00A0-\u00FF]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function pdfMoney(value) {
+  const num = Number(value || 0);
+  return `Rs. ${num.toLocaleString('en-IN')}`;
+}
+
+async function createEnquiryPdfAsset() {
+  if (!cart || !cart.length) throw new Error('Your enquiry list is empty.');
+
+  const JsPDF = await loadJsPdfEngine();
+  const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+
+  const pageW = 210;
+  const pageH = 297;
+  const margin = 14;
+  const contentW = pageW - margin * 2;
+  const maroon = [84, 20, 25];
+  const gold = [179, 130, 67];
+  const ink = [36, 34, 30];
+  const muted = [105, 98, 90];
+  const cream = [250, 247, 240];
+
+  const now = new Date();
+  const quoteNo = 'ENQ-' + Date.now().toString().slice(-7);
+  const today = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  const filename = `${String(company.name || 'House_of_Delight').replace(/\s+/g, '_')}_Enquiry_${quoteNo}.pdf`;
+  const total = cart.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.qty || 0)), 0);
+  const totalQty = cart.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+
+  const buyerFirm = (document.getElementById('quoteBuyerFirm')?.value || '').trim();
+  const buyerLoc = (document.getElementById('quoteBuyerLocation')?.value || '').trim();
+  const buyerGst = (document.getElementById('quoteBuyerGst')?.value || '').trim();
+
+  function drawHeader() {
+    doc.setFillColor(...maroon);
+    doc.rect(0, 0, pageW, 31, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(17);
+    doc.text(safePdfText(company.name || 'House of Delight'), margin, 12);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.text('DELIGHT METAL WORKS  |  WHOLESALE ENQUIRY STATEMENT', margin, 18);
+
+    doc.setFontSize(7.5);
+    doc.text(safePdfText(company.location || 'Moradabad, Uttar Pradesh'), margin, 24);
+
+    doc.setTextColor(238, 210, 168);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text(`${quoteNo}  |  ${today}`, pageW - margin, 12, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.2);
+    doc.text('+91 97584 44444  |  +91 76786 54362', pageW - margin, 18, { align: 'right' });
+    doc.text('Wholesale / Dealer Enquiries', pageW - margin, 24, { align: 'right' });
+  }
+
+  function drawTableHeader(y) {
+    doc.setFillColor(...cream);
+    doc.setDrawColor(...gold);
+    doc.rect(margin, y, contentW, 9, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.4);
+    doc.setTextColor(...maroon);
+
+    const xs = [margin + 3, margin + 12, margin + 86, margin + 125, margin + 140, margin + 160];
+    doc.text('#', xs[0], y + 5.8);
+    doc.text('PRODUCT / SKU', xs[1], y + 5.8);
+    doc.text('VARIANT', xs[2], y + 5.8);
+    doc.text('QTY', xs[3], y + 5.8, { align: 'center' });
+    doc.text('RATE', xs[4], y + 5.8);
+    doc.text('AMOUNT', xs[5], y + 5.8);
+    return y + 9;
+  }
+
+  function drawBuyerBlock(y) {
+    if (!buyerFirm && !buyerLoc && !buyerGst) return y;
+
+    const parts = [];
+    if (buyerFirm) parts.push(safePdfText(buyerFirm));
+    if (buyerLoc) parts.push(safePdfText(buyerLoc));
+    if (buyerGst) parts.push(`GSTIN: ${safePdfText(buyerGst)}`);
+
+    doc.setFillColor(...cream);
+    doc.setDrawColor(224, 215, 202);
+    doc.roundedRect(margin, y, contentW, 18, 2, 2, 'FD');
+
+    doc.setTextColor(...gold);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.3);
+    doc.text('ENQUIRY FROM / QUOTED TO', margin + 4, y + 5.3);
+
+    doc.setTextColor(...ink);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.text(parts.join('  |  '), margin + 4, y + 11.5, { maxWidth: contentW - 8 });
+
+    return y + 23;
+  }
+
+  drawHeader();
+  let y = 39;
+  y = drawBuyerBlock(y);
+
+  doc.setTextColor(...muted);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.8);
+  doc.text(`Total product lines: ${cart.length}   |   Total quantity: ${totalQty} pcs`, margin, y);
+  y += 5;
+
+  y = drawTableHeader(y);
+
+  cart.forEach((item, idx) => {
+    const productName = safePdfText(item.name || 'Product');
+    const sku = safePdfText(item.sku || '');
+    const category = safePdfText(item.category || '');
+    const variant = safePdfText(`${item.size || 'Standard'} / ${item.weight || '-'}`);
+    const qty = Number(item.qty || 0);
+    const rate = Number(item.price || 0);
+    const amount = rate * qty;
+
+    const productLines = doc.splitTextToSize(productName, 67);
+    const subLines = doc.splitTextToSize([sku, category].filter(Boolean).join(' | '), 67);
+    const variantLines = doc.splitTextToSize(variant, 34);
+    const rowHeight = Math.max(13, 5 + productLines.length * 4 + Math.min(subLines.length, 2) * 3.2, 5 + variantLines.length * 4);
+
+    if (y + rowHeight > 266) {
+      doc.addPage();
+      drawHeader();
+      y = drawTableHeader(39);
+    }
+
+    doc.setDrawColor(232, 225, 216);
+    doc.line(margin, y + rowHeight, pageW - margin, y + rowHeight);
+
+    doc.setTextColor(...muted);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.4);
+    doc.text(String(idx + 1), margin + 3, y + 6);
+
+    doc.setTextColor(...ink);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.4);
+    doc.text(productLines, margin + 12, y + 5.5);
+
+    doc.setTextColor(...muted);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.7);
+    const productSubY = y + 5.5 + productLines.length * 4;
+    doc.text(subLines.slice(0, 2), margin + 12, productSubY);
+
+    doc.setTextColor(...ink);
+    doc.setFontSize(7.5);
+    doc.text(variantLines, margin + 86, y + 5.5);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text(String(qty), margin + 125, y + 6, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.text(pdfMoney(rate), margin + 140, y + 6);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...maroon);
+    doc.text(pdfMoney(amount), margin + 160, y + 6);
+
+    y += rowHeight;
+  });
+
+  if (y > 225) {
+    doc.addPage();
+    drawHeader();
+    y = 42;
+  } else {
+    y += 7;
+  }
+
+  doc.setDrawColor(...gold);
+  doc.setFillColor(...cream);
+  doc.roundedRect(pageW - margin - 76, y, 76, 29, 2, 2, 'FD');
+
+  doc.setTextColor(...muted);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.text(`Total quantity (${totalQty} pcs)`, pageW - margin - 71, y + 8);
+  doc.text(pdfMoney(total), pageW - margin - 5, y + 8, { align: 'right' });
+
+  doc.setDrawColor(224, 215, 202);
+  doc.line(pageW - margin - 71, y + 13, pageW - margin - 5, y + 13);
+
+  doc.setTextColor(...maroon);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('ESTIMATED TOTAL', pageW - margin - 71, y + 22);
+  doc.text(pdfMoney(total), pageW - margin - 5, y + 22, { align: 'right' });
+
+  y += 38;
+
+  doc.setTextColor(...maroon);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.8);
+  doc.text('WHOLESALE & TRADE TERMS', margin, y);
+
+  const terms = [
+    'Order confirmation and dispatch schedule are subject to physical stock availability.',
+    'Handcrafted items may vary slightly in finish, weight, colour tone or texture.',
+    'Metal weights and billing are finalized according to dispatch scale weight.',
+    'GST, insurance and freight are extra as applicable unless specifically quoted.'
+  ];
+
+  doc.setTextColor(...muted);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.1);
+  let ty = y + 5;
+  terms.forEach((term, i) => {
+    const lines = doc.splitTextToSize(`${i + 1}. ${safePdfText(term)}`, contentW - 4);
+    doc.text(lines, margin + 2, ty);
+    ty += lines.length * 3.5 + 1;
+  });
+
+  doc.setTextColor(...ink);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.2);
+  doc.text('For House of Delight / Delight Metal Works', pageW - margin, Math.min(281, ty + 8), { align: 'right' });
+
+  const pageCount = doc.getNumberOfPages();
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    doc.setDrawColor(232, 225, 216);
+    doc.line(margin, 288, pageW - margin, 288);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.6);
+    doc.setTextColor(...muted);
+    doc.text('Generated from the House of Delight wholesale catalog', margin, 292);
+    doc.text(`Page ${p} of ${pageCount}`, pageW - margin, 292, { align: 'right' });
+  }
+
+  const blob = doc.output('blob');
+  let file = null;
+  try {
+    file = new File([blob], filename, { type: 'application/pdf' });
+  } catch (e) {
+    blob.name = filename;
+  }
+
+  return { doc, blob, file, filename, quoteNo };
+}
+
+async function downloadEnquiryPdf() {
+  if (!cart || !cart.length) {
+    alert('Your enquiry list is empty. Add products first.');
+    return;
+  }
+
+  try {
+    showToast('Creating enquiry PDF...');
+    const asset = await createEnquiryPdfAsset();
+    asset.doc.save(asset.filename);
+    showToast('Enquiry PDF downloaded!');
+  } catch (err) {
+    console.error('PDF generation failed:', err);
+    alert(`Could not create the PDF: ${err.message || err}`);
+  }
+}
+
+async function shareEnquiryPdf() {
+  if (!cart || !cart.length) {
+    alert('Your enquiry list is empty. Add products first.');
+    return;
+  }
+
+  try {
+    showToast('Preparing enquiry PDF...');
+    const asset = await createEnquiryPdfAsset();
+
+    if (asset.file && navigator.share) {
+      let canShareFiles = true;
+      if (navigator.canShare) {
+        try { canShareFiles = navigator.canShare({ files: [asset.file] }); }
+        catch (e) { canShareFiles = false; }
+      }
+
+      if (canShareFiles) {
+        await navigator.share({ files: [asset.file] });
+        showToast('PDF opened in your share sheet.');
+        return;
+      }
+    }
+
+    // Desktop / unsupported browser fallback:
+    asset.doc.save(asset.filename);
+    showToast('PDF downloaded. Attach it in WhatsApp to either or both enquiry numbers.');
+    alert(
+      'The enquiry PDF has been downloaded.\\n\\n' +
+      'Please attach it in WhatsApp and send it to:\\n' +
+      '+91 97584 44444\\n' +
+      '+91 76786 54362\\n\\n' +
+      'Your browser does not support sharing PDF attachments directly.'
+    );
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;
+    console.error('PDF share failed:', err);
+    alert(`Could not share the enquiry PDF: ${err.message || err}`);
+  }
+}
+
 
 function getDefaultLogoSvg() {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" width="100%" height="100%"><defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#541419"/><stop offset="100%" stop-color="#875d27"/></linearGradient></defs><rect width="240" height="60" rx="8" fill="url(#lg)"/><circle cx="32" cy="30" r="18" fill="#b38243" stroke="#e2be89" stroke-width="1.5"/><text x="32" y="37" font-size="18" font-family="serif" text-anchor="middle" fill="#ffffff">🪔</text><text x="62" y="32" font-size="16" font-weight="bold" font-family="'Cinzel', serif" fill="#ffffff" letter-spacing="1">DELIGHT</text><text x="62" y="46" font-size="9" font-weight="bold" font-family="'Plus Jakarta Sans', sans-serif" fill="#e2be89" letter-spacing="1.5">METAL WORKS</text></svg>`);
@@ -4007,9 +4427,10 @@ function updateCompanyHeader() {
   const waUrl = `https://wa.me/${waPhone}`;
   if (document.getElementById('floatWhatsAppBtn')) document.getElementById('floatWhatsAppBtn').href = waUrl;
   if (document.getElementById('mobileWhatsAppNavBtn')) document.getElementById('mobileWhatsAppNavBtn').href = waUrl;
-  if (document.getElementById('footerWhatsAppLink')) document.getElementById('footerWhatsAppLink').href = waUrl;
+  if (document.getElementById('footerWhatsAppLink')) document.getElementById('footerWhatsAppLink').href = 'https://wa.me/919758444444';
+  if (document.getElementById('footerWhatsAppLink2')) document.getElementById('footerWhatsAppLink2').href = 'https://wa.me/917678654362';
   if (document.getElementById('footerText')) {
-    document.getElementById('footerText').innerHTML = `${company.name} — <strong>Delight Metal Works</strong> · Estd. ${company.estYear || '1970'} by ${company.founder || 'Mr. Jagdish Saran Rastogi'} · ${company.location || 'Moradabad, Uttar Pradesh'}`;
+    document.getElementById('footerText').innerHTML = `${company.name} — <strong>Delight Metal Works</strong> · Estd. ${company.estYear || '1970'} · ${company.location || 'Moradabad, Uttar Pradesh'}`;
   }
 }
 
@@ -4124,18 +4545,18 @@ function updateCartUI() {
     }
   }
 
-  let waMsg = `*Enquiry from ${company.name} Catalog:*\n\n`;
-  cart.forEach((it, idx) => {
-    waMsg += `${idx + 1}. *${it.name}* (${it.sku || ''})\n   ${it.size || 'Standard'} · ${it.weight || '—'} · Qty: ${it.qty} · ₹${(it.price * it.qty).toLocaleString()}\n`;
-  });
-  waMsg += `\n*Estimated Total: ₹ ${total.toLocaleString()}*\n\n_Note: Final availability, weight and prevailing rates are subject to confirmation._\nPlease confirm availability and final quotation.`;
 
   const waBtn = document.getElementById('sendWhatsAppOrderBtn');
   if (waBtn) {
-    waBtn.href = `https://wa.me/${(company.phone || '919758444444').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waMsg)}`;
+    waBtn.disabled = !cart.length;
     waBtn.style.opacity = cart.length ? '1' : '.5';
     waBtn.style.pointerEvents = cart.length ? 'auto' : 'none';
   }
+
+  const enquiryWa1 = document.getElementById('enquiryWhatsApp1');
+  const enquiryWa2 = document.getElementById('enquiryWhatsApp2');
+  if (enquiryWa1) enquiryWa1.href = 'https://wa.me/919758444444';
+  if (enquiryWa2) enquiryWa2.href = 'https://wa.me/917678654362';
 }
 
 function removeCartItem(cartKey) {
@@ -4717,152 +5138,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // Formal B2B Quotation PDF Generator with Optional Dealer Customizer
-  document.getElementById('downloadQuotationPdfBtn').onclick = () => {
-    if (!cart || cart.length === 0) {
-      alert('Your order list is empty. Add products to generate a quotation.');
-      return;
-    }
+  // Reliable direct PDF statement generator.
+  // This intentionally does not screenshot DOM content, which avoids blank PDFs.
+  document.getElementById('downloadQuotationPdfBtn').onclick = async () => {
+    await downloadEnquiryPdf();
+  };
 
-    loadPdfEngine(() => {
-      showToast('Creating Formal Wholesale Quotation...');
-      const waCleanPhone = (company.phone || '919758444444').replace(/[^0-9]/g, '');
-      const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-      const quoteNo = 'QTN-' + Date.now().toString().slice(-6);
-      const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-
-      const buyerFirm = (document.getElementById('quoteBuyerFirm')?.value || '').trim();
-      const buyerLoc = (document.getElementById('quoteBuyerLocation')?.value || '').trim();
-      const buyerGst = (document.getElementById('quoteBuyerGst')?.value || '').trim();
-
-      const dealerInfoBlock = buyerFirm ? `
-        <div style="background: #faf7f0; border: 1.5px solid #b38243; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;">
-          <div style="font-size: 10px; font-weight: bold; color: #875d27; text-transform: uppercase; letter-spacing: 0.5px;">Billed / Quoted To:</div>
-          <div style="font-size: 13px; font-weight: bold; color: #541419; margin-top: 2px;">${escapeStr(buyerFirm)}</div>
-          <div style="font-size: 10.5px; color: #4a463c; margin-top: 2px;">
-            ${buyerLoc ? `<span>📍 ${escapeStr(buyerLoc)}</span> ` : ''}
-            ${buyerGst ? `| <span>GSTIN: ${escapeStr(buyerGst)}</span>` : ''}
-          </div>
-        </div>
-      ` : '';
-
-      const quoteContainer = document.createElement('div');
-      quoteContainer.id = 'quotePdfMasterWrapper';
-      quoteContainer.style.cssText = `
-        background: #ffffff;
-        color: #1f1e1a;
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-        width: 210mm;
-        padding: 16mm 14mm;
-        box-sizing: border-box;
-        position: absolute;
-        left: -9999px;
-        top: 0;
-      `;
-
-      const tableRowsHtml = cart.map((item, idx) => `
-        <tr style="border-bottom: 1px solid #e6dfd1; font-size: 11px;">
-          <td style="padding: 10px 8px; text-align: center; color: #6b665c;">${idx + 1}</td>
-          <td style="padding: 10px 8px;">
-            <strong style="color: #541419; font-size: 12px; display: block;">${escapeStr(item.name)}</strong>
-            <span style="font-size: 9.5px; color: #875d27;">${escapeStr(item.sku || '')} · ${escapeStr(item.category || 'Pure Metal')}</span>
-          </td>
-          <td style="padding: 10px 8px; text-align: center; color: #4a463c;">${escapeStr(item.size || 'Standard')}<br><span style="font-size:9px;color:#6b665c;">${escapeStr(item.weight || '—')}</span></td>
-          <td style="padding: 10px 8px; text-align: center; font-weight: 700;">${item.qty}</td>
-          <td style="padding: 10px 8px; text-align: right; color: #1f1e1a;">₹ ${item.price.toLocaleString()}</td>
-          <td style="padding: 10px 8px; text-align: right; font-weight: 800; color: #541419;">₹ ${(item.price * item.qty).toLocaleString()}</td>
-        </tr>
-      `).join('');
-
-      quoteContainer.innerHTML = `
-        <div style="border: 1.5px solid #b38243; border-radius: 8px; padding: 14mm 12mm; background: #fff;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #541419; padding-bottom: 14px; margin-bottom: 16px;">
-            <div>
-              <h1 style="font-family: 'Cinzel', serif; font-size: 24px; color: #541419; margin: 0; line-height: 1.1;">${escapeStr(company.name)}</h1>
-              <p style="font-size: 11px; text-transform: uppercase; color: #875d27; font-weight: 700; margin: 4px 0 0; letter-spacing: 1px;">${escapeStr(company.tagline)}</p>
-              <p style="font-size: 10px; color: #6b665c; margin: 4px 0 0;">${escapeStr(company.location)}</p>
-            </div>
-            <div style="text-align: right;">
-              <span style="display: inline-block; background: #541419; color: #fff; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 4px; letter-spacing: 1px; text-transform: uppercase;">Wholesale Quotation</span>
-              <div style="font-size: 11px; color: #1f1e1a; margin-top: 8px;"><strong>Quotation Ref:</strong> #${quoteNo}</div>
-              <div style="font-size: 10.5px; color: #6b665c; margin-top: 2px;"><strong>Date:</strong> ${today}</div>
-            </div>
-          </div>
-
-          ${dealerInfoBlock}
-
-          <div style="display: flex; justify-content: space-between; background: #faf7f0; border: 1px solid #e6dfd1; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 11px;">
-            <div><strong>Order Type:</strong> Dealer Wholesale Order</div>
-            <div><strong>Supplier WhatsApp:</strong> +${waCleanPhone}</div>
-            <div><strong>Total Articles:</strong> ${totalQty} Units</div>
-          </div>
-
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
-            <thead>
-              <tr style="background: #f4eee1; border-bottom: 1.5px solid #b38243; font-family: 'Cinzel', serif; font-size: 10px; text-transform: uppercase; color: #541419;">
-                <th style="padding: 8px; text-align: center; width: 40px;">#</th>
-                <th style="padding: 8px; text-align: left;">Product Details</th>
-                <th style="padding: 8px; text-align: center; width: 100px;">Size / Gauge</th>
-                <th style="padding: 8px; text-align: center; width: 60px;">Qty</th>
-                <th style="padding: 8px; text-align: right; width: 90px;">Rate (₹)</th>
-                <th style="padding: 8px; text-align: right; width: 100px;">Total (₹)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${tableRowsHtml}
-            </tbody>
-          </table>
-
-          <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-            <div style="width: 240px; background: #faf7f0; border: 1px solid #b38243; border-radius: 6px; padding: 10px 14px;">
-              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; color: #6b665c;">
-                <span>Subtotal (${totalQty} units):</span>
-                <span>₹ ${total.toLocaleString()}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; color: #541419; border-top: 1px solid #e6dfd1; padding-top: 6px;">
-                <span>Estimated Total:</span>
-                <span>₹ ${total.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-
-          <div style="background: #ffffff; border-top: 1px dashed #b38243; padding-top: 12px; font-size: 9.5px; color: #6b665c; line-height: 1.5;">
-            <strong style="color: #541419; text-transform: uppercase;">Wholesale & Trade Terms:</strong>
-            <ol style="margin: 4px 0 0 16px; padding: 0;">
-              <li>Order confirmation and dispatch schedules are strictly subject to physical stock availability.</li>
-              <li>Due to traditional casting and handcrafting methods, actual products may differ slightly in color tone, finish, or texture from catalog photographs.</li>
-              <li>Metal weights and billing are finalized according to certified scales upon dispatch from Moradabad.</li>
-              <li>Applicable GST, insurance, and freight charges are charged extra at actuals.</li>
-            </ol>
-          </div>
-
-          <div style="text-align: right; margin-top: 24px; font-size: 11px; color: #541419; font-weight: 700;">
-            For ${escapeStr(company.name)}<br>
-            <span style="font-size: 9px; color: #875d27; font-weight: normal;">Authorized Trade Signatory</span>
-          </div>
-        </div>
-      `;
-
-      document.body.appendChild(quoteContainer);
-
-      const opt = {
-        margin: 0,
-        filename: `${company.name.replace(/\s+/g, '_')}_Quotation_${quoteNo}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      html2pdf().set(opt).from(quoteContainer).save().then(() => {
-        quoteContainer.remove();
-        showToast('Formal Quotation PDF downloaded!');
-      }).catch(err => {
-        quoteContainer.remove();
-        console.error(err);
-        alert('Error generating PDF.');
-      });
-    });
+  document.getElementById('sendWhatsAppOrderBtn').onclick = async () => {
+    await shareEnquiryPdf();
   };
 
   // v9 Excel Catalog Sync — one sheet per category, safe SKU-based upsert/delete.
