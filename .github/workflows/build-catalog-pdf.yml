@@ -32,7 +32,7 @@ jobs:
           python3 -m http.server 8000 > /tmp/catalog-server.log 2>&1 &
           sleep 3
 
-      - name: Generate catalog.pdf
+      - name: Generate and verify catalog.pdf
         run: |
           node <<'NODE'
           const { chromium } = require('playwright');
@@ -44,22 +44,32 @@ jobs:
               acceptDownloads: true,
               viewport: { width: 1440, height: 1000 }
             });
-
             const page = await context.newPage();
 
             page.on('console', msg => {
               if (msg.text()) console.log(`[browser:${msg.type()}] ${msg.text()}`);
             });
-
             page.on('pageerror', err => console.error('[browser error]', err));
-
             page.on('dialog', async dialog => {
               console.log(`[dialog] ${dialog.message()}`);
               await dialog.dismiss();
             });
 
-            const downloadPromise = page.waitForEvent('download', {
-              timeout: 15 * 60 * 1000
+            const pdfDownloadPromise = new Promise((resolve, reject) => {
+              const timer = setTimeout(() => reject(new Error('Timed out waiting for catalog.pdf')), 15 * 60 * 1000);
+
+              page.on('download', async download => {
+                const suggested = download.suggestedFilename();
+                console.log(`[download] ${suggested}`);
+
+                if (suggested.toLowerCase().endsWith('.pdf')) {
+                  clearTimeout(timer);
+                  resolve(download);
+                } else {
+                  console.log(`[download] Ignoring non-PDF download: ${suggested}`);
+                  try { await download.cancel(); } catch (_) {}
+                }
+              });
             });
 
             await page.goto(
@@ -67,15 +77,20 @@ jobs:
               { waitUntil: 'domcontentloaded', timeout: 120000 }
             );
 
-            const download = await downloadPromise;
+            const download = await pdfDownloadPromise;
             await download.saveAs('catalog.pdf');
 
-            const stat = fs.statSync('catalog.pdf');
-            if (stat.size < 5000) {
-              throw new Error(`catalog.pdf looks invalid (${stat.size} bytes)`);
+            const bytes = fs.readFileSync('catalog.pdf');
+            const signature = bytes.subarray(0, 5).toString('ascii');
+
+            if (signature !== '%PDF-') {
+              throw new Error(`Invalid PDF signature: ${JSON.stringify(signature)}. File is not a real PDF.`);
+            }
+            if (bytes.length < 20000) {
+              throw new Error(`catalog.pdf is unexpectedly small (${bytes.length} bytes).`);
             }
 
-            console.log(`catalog.pdf created: ${stat.size} bytes`);
+            console.log(`Valid catalog.pdf created: ${bytes.length} bytes`);
             await browser.close();
           })().catch(err => {
             console.error(err);
@@ -83,9 +98,10 @@ jobs:
           });
           NODE
 
-      - name: Verify catalog PDF
+      - name: Verify PDF file again
         run: |
           test -s catalog.pdf
+          test "$(head -c 5 catalog.pdf)" = "%PDF-"
           ls -lh catalog.pdf
 
       - name: Commit refreshed catalog
