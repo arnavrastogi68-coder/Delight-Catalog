@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v27: Website Polish + Dynamic Category-only PDF Layout — 2026-09 -->
+  <!-- v30: Website Polish + Dynamic Category-only PDF Layout — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -2952,7 +2952,6 @@
     <p class="premium-hero-sub">Pure Brass · Pure Copper · Authentic Kansa Bronze · Stainless Steel</p>
     <div class="premium-hero-actions">
       <button class="hero-primary-btn" type="button" onclick="document.getElementById('collectionShowcase').scrollIntoView({behavior:'smooth', block:'start'});">Browse Collections →</button>
-      <button class="hero-secondary-btn" type="button" onclick="document.getElementById('featuredProductsSection').scrollIntoView({behavior:'smooth', block:'start'});">Featured Products</button>
       <button class="hero-link-btn" type="button" onclick="document.getElementById('heritageStory').scrollIntoView({behavior:'smooth', block:'start'});">Our Story</button>
     </div>
     <div class="premium-founder-line">Crafted in Moradabad · A family metalwork tradition since 1970</div>
@@ -3015,21 +3014,6 @@
   </div>
 </section>
 
-
-<!-- Featured Products -->
-<section class="featured-products-section" id="featuredProductsSection">
-  <div class="featured-products-inner">
-    <div class="section-heading-row featured-heading-row">
-      <div>
-        <div class="section-eyebrow">CURATED SELECTION</div>
-        <h2>Featured Products</h2>
-        <p class="featured-subcopy">A selection of signature pieces from our current wholesale catalog.</p>
-      </div>
-      <button type="button" class="collection-view-all" onclick="document.getElementById('catalogContentArea').scrollIntoView({behavior:'smooth', block:'start'});">View Full Catalog →</button>
-    </div>
-    <div class="featured-products-track" id="featuredProductsTrack"></div>
-  </div>
-</section>
 
 <!-- Filter Section -->
 <div class="filter-section">
@@ -4079,7 +4063,7 @@ function getProductSku(p) {
   return `DMW-${cat}-${tail}`;
 }
 
-function createProductCard(p) {
+function createProductCard(p, renderIndex = 999) {
   const box = document.createElement('div');
   box.className = 'product-box reveal-on-scroll visible';
   box.dataset.productId = p.id;
@@ -4093,6 +4077,9 @@ function createProductCard(p) {
   const hasMultiplePhotos = imgs.length > 1;
   if (hasMultiplePhotos) box.classList.add('has-hover-photo');
   const hoverImg = hasMultiplePhotos ? imgs[1] : '';
+  const isPriorityPhoto = renderIndex < 4;
+  const primaryLoading = isPriorityPhoto ? 'eager' : 'lazy';
+  const primaryPriority = isPriorityPhoto ? 'high' : 'low';
   const multiPhotoBadge = hasMultiplePhotos ? `<div class="multi-photo-pill">📷 ${imgs.length}</div>` : '';
   const photoArrowsHtml = hasMultiplePhotos ? `
     <button type="button" class="card-photo-arrow prev" onclick="navigateCardPhoto('${p.id}', -1, event)">❮</button>
@@ -4116,8 +4103,8 @@ function createProductCard(p) {
 
   box.innerHTML = `
     <div class="product-thumb">
-      <img class="product-thumb-primary" src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='${fallbackImg}';">
-      ${hoverImg ? `<img class="product-thumb-hover" src="${escapeStr(hoverImg)}" alt="" loading="lazy" decoding="async" aria-hidden="true" onerror="this.style.display='none';">` : ''}
+      <img class="product-thumb-primary" src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="${primaryLoading}" decoding="async" fetchpriority="${primaryPriority}" onerror="this.src='${fallbackImg}';">
+      ${hoverImg ? `<img class="product-thumb-hover" data-src="${escapeStr(hoverImg)}" alt="" decoding="async" aria-hidden="true" onerror="this.style.display='none';">` : ''}
       ${photoArrowsHtml}
       <div class="badge-metal-type">${escapeStr(p.category || 'Pure Brass')}</div>
       ${multiPhotoBadge}
@@ -4137,6 +4124,24 @@ function createProductCard(p) {
         <button class="btn-add-order" onclick="addCardToCart('${p.id}', event)">+ Enquiry</button>
       </div>
     </div>`;
+
+  // Preserve the existing second-photo hover feature, but do not download
+  // that extra image until the customer actually interacts with the card.
+  if (hoverImg) {
+    const loadHoverPhoto = () => {
+      const hoverEl = box.querySelector('.product-thumb-hover[data-src]');
+      if (!hoverEl) return;
+      const src = hoverEl.getAttribute('data-src');
+      if (src) {
+        hoverEl.src = src;
+        hoverEl.removeAttribute('data-src');
+      }
+    };
+
+    box.addEventListener('pointerenter', loadHoverPhoto, { once: true, passive: true });
+    box.addEventListener('focusin', loadHoverPhoto, { once: true });
+  }
+
   return box;
 }
 
@@ -4146,7 +4151,6 @@ function renderCatalog(options = {}) {
     updateCompanyHeader();
     renderCategoryPills();
     renderCategoryVisualTiles();
-    renderFeaturedProducts();
     updateCartUI();
   }
 
@@ -4171,7 +4175,7 @@ function renderCatalog(options = {}) {
   }
 
   const frag = document.createDocumentFragment();
-  chunk.forEach(p => frag.appendChild(createProductCard(p)));
+  chunk.forEach((p, idx) => frag.appendChild(createProductCard(p, startAt + idx)));
   grid.appendChild(frag);
 
   let sentinel = document.getElementById('infiniteScrollSentinel');
@@ -4587,7 +4591,7 @@ function renderFeaturedProducts() {
     card.className = 'featured-product-card';
     card.innerHTML = `
       <button type="button" class="featured-product-image" aria-label="View ${escapeStr(p.name)}">
-        <img src="${escapeStr(image)}" alt="${escapeStr(p.name)}" loading="lazy" decoding="async" onerror="this.src=getFallbackSvg('','Photo');">
+        <img src="${escapeStr(image)}" alt="${escapeStr(p.name)}" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src=getFallbackSvg('','Photo');">
         <span class="featured-material-badge">${escapeStr(p.category || 'Pure Metal')}</span>
       </button>
       <div class="featured-product-copy">
@@ -4637,6 +4641,7 @@ function renderCategoryVisualTiles() {
     img.alt = category;
     img.loading = 'lazy';
     img.decoding = 'async';
+    img.fetchPriority = 'low';
     img.onerror = function() {
       this.onerror = null;
       this.src = getFallbackSvg('Pure Metal', category);
