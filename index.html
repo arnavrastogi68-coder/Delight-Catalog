@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v30: Website Polish + Dynamic Category-only PDF Layout — 2026-09 -->
+  <!-- v31: Website Polish + Dynamic Category-only PDF Layout — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -2883,6 +2883,8 @@
     }
 
   </style>
+<link rel="preconnect" href="https://wsrv.nl" crossorigin>
+<link rel="dns-prefetch" href="//wsrv.nl">
 </head>
 <body>
 
@@ -3993,6 +3995,45 @@ function getProductImages(p) {
   return [];
 }
 
+
+function getFastWebsiteImageUrl(url, width = 560, quality = 72) {
+  const raw = String(url || '').trim();
+  if (!raw || !/^https?:\/\//i.test(raw)) return raw;
+
+  try {
+    const parsed = new URL(raw);
+    if (parsed.hostname === 'wsrv.nl' || parsed.hostname === 'images.weserv.nl') return raw;
+
+    const source = raw.replace(/^https?:\/\//i, '');
+    return `https://wsrv.nl/?url=${encodeURIComponent(source)}&w=${Math.max(80, Math.round(width))}&output=webp&q=${Math.max(45, Math.min(90, Math.round(quality)))}`;
+  } catch (err) {
+    return raw;
+  }
+}
+
+function handleFastWebsiteImageError(img) {
+  if (!img) return;
+
+  const original = img.dataset.originalSrc || '';
+  if (original) {
+    img.dataset.originalSrc = '';
+    img.src = original;
+    return;
+  }
+
+  const fallback = img.dataset.fallbackSrc || '';
+  if (fallback) {
+    img.onerror = null;
+    img.src = fallback;
+    return;
+  }
+
+  if (img.dataset.hideIfFailed === '1') {
+    img.onerror = null;
+    img.style.display = 'none';
+  }
+}
+
 function addSizeWeightPair(sizeVal = '', weightVal = '') {
   const container = document.getElementById('sizeWeightRowsContainer');
   if (!container) return;
@@ -4041,7 +4082,9 @@ window.navigateCardPhoto = function(productId, direction, event) {
   let currentIdx = parseInt(imgElem.dataset.photoIndex || '0', 10);
   currentIdx = (currentIdx + direction + imgs.length) % imgs.length;
   imgElem.dataset.photoIndex = currentIdx;
-  imgElem.src = imgs[currentIdx];
+  imgElem.dataset.originalSrc = imgs[currentIdx];
+  imgElem.dataset.fallbackSrc = getFallbackSvg(product.category, product.name);
+  imgElem.src = getFastWebsiteImageUrl(imgs[currentIdx], 560, 72);
 };
 
 function toggleDealerCustomizer() {
@@ -4077,7 +4120,9 @@ function createProductCard(p, renderIndex = 999) {
   const hasMultiplePhotos = imgs.length > 1;
   if (hasMultiplePhotos) box.classList.add('has-hover-photo');
   const hoverImg = hasMultiplePhotos ? imgs[1] : '';
-  const isPriorityPhoto = renderIndex < 4;
+  const primaryGridImg = getFastWebsiteImageUrl(primaryImg, 560, 72);
+  const hoverGridImg = hoverImg ? getFastWebsiteImageUrl(hoverImg, 560, 72) : '';
+  const isPriorityPhoto = renderIndex < 3;
   const primaryLoading = isPriorityPhoto ? 'eager' : 'lazy';
   const primaryPriority = isPriorityPhoto ? 'high' : 'low';
   const multiPhotoBadge = hasMultiplePhotos ? `<div class="multi-photo-pill">📷 ${imgs.length}</div>` : '';
@@ -4103,8 +4148,8 @@ function createProductCard(p, renderIndex = 999) {
 
   box.innerHTML = `
     <div class="product-thumb">
-      <img class="product-thumb-primary" src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="${primaryLoading}" decoding="async" fetchpriority="${primaryPriority}" onerror="this.src='${fallbackImg}';">
-      ${hoverImg ? `<img class="product-thumb-hover" data-src="${escapeStr(hoverImg)}" alt="" decoding="async" aria-hidden="true" onerror="this.style.display='none';">` : ''}
+      <img class="product-thumb-primary" src="${escapeStr(primaryGridImg)}" data-original-src="${escapeStr(primaryImg)}" data-fallback-src="${escapeStr(fallbackImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="${primaryLoading}" decoding="async" fetchpriority="${primaryPriority}" onerror="handleFastWebsiteImageError(this)">
+      ${hoverImg ? `<img class="product-thumb-hover" data-src="${escapeStr(hoverGridImg)}" data-original-src="${escapeStr(hoverImg)}" data-hide-if-failed="1" alt="" decoding="async" aria-hidden="true" onerror="handleFastWebsiteImageError(this)">` : ''}
       ${photoArrowsHtml}
       <div class="badge-metal-type">${escapeStr(p.category || 'Pure Brass')}</div>
       ${multiPhotoBadge}
@@ -4359,9 +4404,10 @@ function renderSearchAutocomplete(rawQuery) {
     const p = item.product;
     const imgs = getProductImages(p);
     const img = imgs[0] || getFallbackSvg(p.category, p.name);
+    const searchThumb = getFastWebsiteImageUrl(img, 120, 68);
     return `
       <button type="button" class="search-suggestion" data-suggestion-index="${idx}">
-        <img src="${escapeStr(img)}" alt="" loading="lazy" onerror="this.src=getFallbackSvg('','Photo');">
+        <img src="${escapeStr(searchThumb)}" data-original-src="${escapeStr(img)}" data-fallback-src="${escapeStr(getFallbackSvg('', 'Photo'))}" alt="" loading="lazy" decoding="async" onerror="handleFastWebsiteImageError(this)">
         <span class="search-suggestion-copy">
           <span class="search-suggestion-name">${escapeStr(p.name)}</span>
           <span class="search-suggestion-meta">${escapeStr(p.sku || getProductSku(p))} · ${escapeStr(p.catalog || '')} · ${escapeStr(p.category || '')}</span>
@@ -4637,15 +4683,14 @@ function renderCategoryVisualTiles() {
     const imageBox = document.createElement('div');
     imageBox.className = 'collection-tile-image';
     const img = document.createElement('img');
-    img.src = imageSrc;
     img.alt = category;
     img.loading = 'lazy';
     img.decoding = 'async';
     img.fetchPriority = 'low';
-    img.onerror = function() {
-      this.onerror = null;
-      this.src = getFallbackSvg('Pure Metal', category);
-    };
+    img.dataset.originalSrc = imageSrc;
+    img.dataset.fallbackSrc = getFallbackSvg('Pure Metal', category);
+    img.onerror = function() { handleFastWebsiteImageError(this); };
+    img.src = getFastWebsiteImageUrl(imageSrc, 680, 72);
     imageBox.appendChild(img);
 
     const copy = document.createElement('div');
@@ -4738,8 +4783,11 @@ function updateCompanyHeader() {
   
   const bannerEl = document.getElementById('heroBannerImg');
   if (bannerEl) {
-    bannerEl.src = company.bannerImg || COMPANY_INFO.bannerImg;
-    bannerEl.onerror = function() { this.onerror = null; this.src = getFallbackSvg('Pure Brass', 'Heritage Craftsmanship'); };
+    const heroSource = company.bannerImg || COMPANY_INFO.bannerImg;
+    bannerEl.dataset.originalSrc = heroSource;
+    bannerEl.dataset.fallbackSrc = getFallbackSvg('Pure Brass', 'Heritage Craftsmanship');
+    bannerEl.onerror = function() { handleFastWebsiteImageError(this); };
+    bannerEl.src = getFastWebsiteImageUrl(heroSource, 1600, 76);
   }
   
   const waPhone = (company.phone || '919758444444').replace(/[^0-9]/g, '');
