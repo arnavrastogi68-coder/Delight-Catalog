@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House of Delight — Dealer & Wholesale Product Catalog</title>
-  <!-- v26: Website Polish + Dynamic Category-only PDF Layout — 2026-09 -->
+  <!-- v28: Website Polish + Dynamic Category-only PDF Layout — 2026-09 -->
   
   <meta property="og:title" content="House of Delight — Wholesale & Export Catalog">
   <meta property="og:description" content="Heritage metalware, made for modern homes — handcrafted Brass, Copper, Kansa Bronze and Stainless Steel by House of Delight.">
@@ -2882,6 +2882,23 @@
       .floating-action-bar { display: none; }
     }
 
+  
+    /* v28 performance-only rendering hints — no visual feature changes */
+    .product-box,
+    .featured-product-card,
+    .collection-tile {
+      content-visibility: auto;
+      contain-intrinsic-size: 320px 430px;
+    }
+
+    .collection-tile {
+      contain-intrinsic-size: 280px 230px;
+    }
+
+    .featured-product-card {
+      contain-intrinsic-size: 280px 390px;
+    }
+
   </style>
 </head>
 <body>
@@ -2895,7 +2912,7 @@
   <div class="header-container premium-header-container">
     <div class="brand-block">
       <div class="logo-box">
-        <img alt="Delight Logo" id="headerLogoImg" src="">
+        <img alt="Delight Logo" id="headerLogoImg" src="" decoding="async">
       </div>
       <div class="brand-text">
         <h1 id="headerCompanyName">House of Delight</h1>
@@ -2943,7 +2960,7 @@
 <!-- Premium Hero -->
 <section class="premium-hero reveal-on-scroll visible">
   <div class="premium-hero-media">
-    <img alt="House of Delight heritage metalware" id="heroBannerImg" src="">
+    <img alt="House of Delight heritage metalware" id="heroBannerImg" src="" decoding="async" fetchpriority="high">
   </div>
   <div class="premium-hero-shade"></div>
   <div class="premium-hero-content">
@@ -3559,8 +3576,92 @@ let sharedDeepLinkApplied = false;
 // This lets us update/delete one product without rewriting the entire catalog.
 const productStorageKeys = new Map();
 
-// Render the shell immediately. Products appear after the authoritative Firebase catalog loads.
+
+// Fast repeat visits: keep a lightweight copy of catalog DATA in IndexedDB.
+// This stores only the same product metadata/image URLs already received from Firebase;
+// it does not store image files and it does not replace Firebase as the source of truth.
+// Editing remains disabled until the live Firebase catalog has loaded successfully.
+const CATALOG_IDB_NAME = 'delight_catalog_fast_cache';
+const CATALOG_IDB_STORE = 'catalog';
+const CATALOG_IDB_KEY = 'latest';
+
+function openCatalogCacheDb() {
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) {
+      reject(new Error('IndexedDB unavailable'));
+      return;
+    }
+    const request = indexedDB.open(CATALOG_IDB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const dbi = request.result;
+      if (!dbi.objectStoreNames.contains(CATALOG_IDB_STORE)) {
+        dbi.createObjectStore(CATALOG_IDB_STORE);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('IndexedDB open failed'));
+  });
+}
+
+async function readCatalogFastCache() {
+  try {
+    const dbi = await openCatalogCacheDb();
+    return await new Promise((resolve, reject) => {
+      const tx = dbi.transaction(CATALOG_IDB_STORE, 'readonly');
+      const request = tx.objectStore(CATALOG_IDB_STORE).get(CATALOG_IDB_KEY);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+      tx.oncomplete = () => dbi.close();
+    });
+  } catch (err) {
+    return null;
+  }
+}
+
+async function writeCatalogFastCache(payload) {
+  try {
+    const dbi = await openCatalogCacheDb();
+    await new Promise((resolve, reject) => {
+      const tx = dbi.transaction(CATALOG_IDB_STORE, 'readwrite');
+      tx.objectStore(CATALOG_IDB_STORE).put(payload, CATALOG_IDB_KEY);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+    dbi.close();
+  } catch (err) {
+    // Cache failure must never affect the live website.
+  }
+}
+
+async function hydrateCatalogFromFastCache() {
+  const cached = await readCatalogFastCache();
+  if (!cached || firebaseCatalogReady) return;
+
+  const cachedProducts = Array.isArray(cached.products) ? cached.products.filter(Boolean) : [];
+  if (!cachedProducts.length) return;
+
+  products = cachedProducts;
+  customCategories = Array.isArray(cached.categories) && cached.categories.length
+    ? cached.categories
+    : DEFAULT_MAIN_CATS;
+  customMetals = Array.isArray(cached.metals) && cached.metals.length
+    ? cached.metals
+    : DEFAULT_METALS;
+  company = { ...COMPANY_INFO, ...(cached.company || {}) };
+
+  displayedItemCount = Math.min(
+    Math.max(itemsPerPage, displayedItemCount),
+    Math.max(products.length, itemsPerPage)
+  );
+
+  renderCatalog();
+}
+
+// Render the shell immediately. Products appear from cache when available,
+// then Firebase silently replaces them with the authoritative live catalog.
 renderCatalog();
+hydrateCatalogFromFastCache();
 
 // Real-Time Background Firebase Sync. IMPORTANT: writes stay disabled until this completes.
 db.ref('catalog').on('value', (snapshot) => {
@@ -3597,6 +3698,22 @@ db.ref('catalog').on('value', (snapshot) => {
   renderCatalog();
   renderManageLists();
   applySharedDeepLinkOnce();
+
+  const cachePayload = {
+    products,
+    categories: customCategories,
+    metals: customMetals,
+    company,
+    savedAt: Date.now()
+  };
+
+  const saveCache = () => writeCatalogFastCache(cachePayload);
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(saveCache, { timeout: 2500 });
+  } else {
+    setTimeout(saveCache, 250);
+  }
+
   showToast(`Cloud catalog synced: ${products.length} products`);
 }, (error) => {
   firebaseCatalogLoadFailed = true;
@@ -4117,7 +4234,7 @@ function createProductCard(p) {
   box.innerHTML = `
     <div class="product-thumb">
       <img class="product-thumb-primary" src="${escapeStr(primaryImg)}" alt="${escapeStr(p.name)}" data-photo-index="0" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='${fallbackImg}';">
-      ${hoverImg ? `<img class="product-thumb-hover" src="${escapeStr(hoverImg)}" alt="" loading="lazy" decoding="async" aria-hidden="true" onerror="this.style.display='none';">` : ''}
+      ${hoverImg ? `<img class="product-thumb-hover" data-src="${escapeStr(hoverImg)}" alt="" decoding="async" aria-hidden="true" onerror="this.style.display='none';">` : ''}
       ${photoArrowsHtml}
       <div class="badge-metal-type">${escapeStr(p.category || 'Pure Brass')}</div>
       ${multiPhotoBadge}
@@ -4137,6 +4254,21 @@ function createProductCard(p) {
         <button class="btn-add-order" onclick="addCardToCart('${p.id}', event)">+ Enquiry</button>
       </div>
     </div>`;
+
+  // The second image keeps the same hover feature, but is downloaded only
+  // when a desktop user actually approaches the card.
+  if (hoverImg) {
+    const loadHoverPhoto = () => {
+      const hoverEl = box.querySelector('.product-thumb-hover[data-src]');
+      if (hoverEl && !hoverEl.src) {
+        hoverEl.src = hoverEl.dataset.src || '';
+        hoverEl.removeAttribute('data-src');
+      }
+    };
+    box.addEventListener('pointerenter', loadHoverPhoto, { once: true, passive: true });
+    box.addEventListener('focusin', loadHoverPhoto, { once: true });
+  }
+
   return box;
 }
 
@@ -4145,8 +4277,7 @@ function renderCatalog(options = {}) {
   if (!append) {
     updateCompanyHeader();
     renderCategoryPills();
-    renderCategoryVisualTiles();
-    renderFeaturedProducts();
+    scheduleDeferredHomepageVisuals();
     updateCartUI();
   }
 
@@ -4546,6 +4677,47 @@ function applySharedDeepLinkOnce() {
 
 
 
+let categoryVisualTilesRendered = false;
+let featuredProductsRendered = false;
+let categoryVisualObserver = null;
+let featuredProductsObserver = null;
+
+function scheduleDeferredHomepageVisuals() {
+  const collectionSection = document.getElementById('collectionShowcase');
+  const featuredSection = document.getElementById('featuredProductsSection');
+
+  // If a section has already been rendered once, keep its live behavior exactly
+  // as before when products/admin data changes.
+  if (categoryVisualTilesRendered) {
+    renderCategoryVisualTiles();
+  } else if (collectionSection && !categoryVisualObserver) {
+    categoryVisualObserver = new IntersectionObserver((entries) => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        categoryVisualTilesRendered = true;
+        renderCategoryVisualTiles();
+        categoryVisualObserver.disconnect();
+        categoryVisualObserver = null;
+      }
+    }, { rootMargin: '900px 0px' });
+    categoryVisualObserver.observe(collectionSection);
+  }
+
+  if (featuredProductsRendered) {
+    renderFeaturedProducts();
+  } else if (featuredSection && !featuredProductsObserver) {
+    featuredProductsObserver = new IntersectionObserver((entries) => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        featuredProductsRendered = true;
+        renderFeaturedProducts();
+        featuredProductsObserver.disconnect();
+        featuredProductsObserver = null;
+      }
+    }, { rootMargin: '900px 0px' });
+    featuredProductsObserver.observe(featuredSection);
+  }
+}
+
+
 function renderFeaturedProducts() {
   const track = document.getElementById('featuredProductsTrack');
   if (!track) return;
@@ -4633,10 +4805,11 @@ function renderCategoryVisualTiles() {
     const imageBox = document.createElement('div');
     imageBox.className = 'collection-tile-image';
     const img = document.createElement('img');
-    img.src = imageSrc;
     img.alt = category;
     img.loading = 'lazy';
     img.decoding = 'async';
+    img.fetchPriority = 'low';
+    img.src = imageSrc;
     img.onerror = function() {
       this.onerror = null;
       this.src = getFallbackSvg('Pure Metal', category);
@@ -5510,12 +5683,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  async function catalogImageToJpeg(url) {
+  async function catalogImageToJpeg(url, profile = 'product') {
     const key = normalizeCatalogImageUrl(url);
     if (!key) return null;
 
-    if (catalogPdfImageCache.has(key)) {
-      return await catalogPdfImageCache.get(key);
+    // Keep one higher-quality copy only for the cover.
+    // Product photos use a lighter profile because their printed/displayed
+    // size on an A4 page does not need the original multi-megapixel image.
+    const cacheKey = `${key}|${profile}`;
+
+    if (catalogPdfImageCache.has(cacheKey)) {
+      return await catalogPdfImageCache.get(cacheKey);
     }
 
     const task = (async () => {
@@ -5545,7 +5723,12 @@ document.addEventListener('DOMContentLoaded', () => {
           // Preserve the product photo's real aspect ratio. Earlier versions
           // converted everything to a square and then stretched that square into
           // the PDF card, which made some products look shortened/squashed.
-          const maxSide = 560;
+          // Lightweight PDF profile:
+          // Product images are reduced to the resolution actually needed
+          // inside an A4 catalog card. The single cover image remains larger.
+          // Aspect ratio is preserved exactly.
+          const maxSide = profile === 'cover' ? 760 : 420;
+          const jpegQuality = profile === 'cover' ? 0.78 : 0.66;
           const scale = Math.min(1, maxSide / Math.max(naturalW, naturalH));
           const outputW = Math.max(1, Math.round(naturalW * scale));
           const outputH = Math.max(1, Math.round(naturalH * scale));
@@ -5563,7 +5746,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ctx.fillRect(0, 0, outputW, outputH);
           ctx.drawImage(img, 0, 0, outputW, outputH);
 
-          const data = canvas.toDataURL('image/jpeg', 0.80);
+          const data = canvas.toDataURL('image/jpeg', jpegQuality);
           if (!data || data.length < 1000) throw new Error('Image conversion failed');
 
           return data;
@@ -5583,12 +5766,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return null;
     })();
 
-    catalogPdfImageCache.set(key, task);
+    catalogPdfImageCache.set(cacheKey, task);
     const result = await task;
 
     // Do not permanently cache a failure. This lets the final page-building pass
     // retry a temporarily unavailable image host after the preload stage.
-    if (!result) catalogPdfImageCache.delete(key);
+    if (!result) catalogPdfImageCache.delete(cacheKey);
     return result;
   }
 
@@ -5598,7 +5781,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .filter(Boolean);
 
     for (let i = 0; i < candidates.length; i++) {
-      const data = await catalogImageToJpeg(candidates[i]);
+      const data = await catalogImageToJpeg(candidates[i], 'product');
       if (data) {
         return {
           data,
@@ -5636,7 +5819,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const index = cursor++;
         if (index >= uniqueUrls.length) return;
 
-        await catalogImageToJpeg(uniqueUrls[index]);
+        await catalogImageToJpeg(uniqueUrls[index], 'product');
         completed++;
 
         if (typeof onProgress === 'function') {
@@ -5981,7 +6164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     doc.text('HERITAGE METALWARE, MADE FOR MODERN HOMES', pageW / 2, 45, { align: 'center' });
 
     // The cover begins loading first while the remaining catalog photos continue in parallel.
-    const coverImage = coverImageUrl ? await catalogImageToJpeg(normalizeCatalogImageUrl(coverImageUrl)) : null;
+    const coverImage = coverImageUrl ? await catalogImageToJpeg(normalizeCatalogImageUrl(coverImageUrl), 'cover') : null;
 
     const coverX = 21;
     const coverY = 61;
